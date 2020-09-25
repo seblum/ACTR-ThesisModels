@@ -1,0 +1,3 @@
+Participant,Time.alert,L.run,M.run,R.run,L.focus,M.focus,R.focus,Result,Time.focus.result,L.action,M.action,R.action,L.duration,M.duration,R.duration,state.anticipation,correct,value.thrustlever,uppertime,ticktime,lowertime,Time.action.result
+2,20445,0,0,0,0,0,0,nan,nan,normative,0,0,n,0,0,nan,successful,0.0,25,20,12,40690
+3,20445,0,0,0,0,0,0,nan,nan,normative,0,0,n,0,0,nan,failed,0.0,25,11,12,31595

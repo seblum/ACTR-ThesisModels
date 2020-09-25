@@ -1,0 +1,3 @@
+Participant,Time.alert,L.run,M.run,R.run,L.focus,M.focus,R.focus,Result,Time.focus.result,L.action,M.action,R.action,L.duration,M.duration,R.duration,state.anticipation,correct,value.thrustlever,uppertime,ticktime,lowertime,Time.action.result
+2,20445,nan,middle,right,nan,PFD,MFD,PFD,21465,nan,middle,nan,nan,m,nan,m,successful,0.0,21,20,14,40710
+3,20445,left,middle,right,ND,PFD,MFD,MFD,21850,nan,nan,right,nan,nan,s,s,successful,0.0,12,11,8,31575

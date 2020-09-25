@@ -1,0 +1,9 @@
+Participant,Time.alert,L.focus,M.focus,R.focus,correct.focus,Time.focus,L.action.1,M.action.1,R.action.1,Time.action.1,lowertime.action.1,ticktime.action.1,uppertime.action.1,correct.1,L.action.2,M.action.2,R.action.2,Time.action.2,lowertime.action.2,ticktime.action.2,uppertime.action.2,correct.2,below.attempt
+2,20445,nan,PFD,MFD,PFD,21465,l,m,nan,42580,14,21,20,failed-1,nan,m,m,47025,19,26,25,failed-2,X
+3,20445,nan,PFD,MFD,MFD,21465,l,nan,s,33430,7,12,13,successfull,nan,m,s,39460,13,18,19,successful,nan
+4,20480,ND,PFD,MFD,MFD,21885,l,nan,s,30990,7,10,13,successfull,nan,nan,s,37745,13,17,19,successful,nan
+5,20435,ND,PFD,MFD,ND,21840,nan,m,nan,41645,14,21,20,failed-1,nan,m,m,46835,19,26,25,failed-2,X
+7,20445,nan,PFD,nan,PFD,21080,l,m,nan,35400,14,14,20,successfull,nan,m,m,41470,19,20,25,successful,nan
+9,20450,ND,PFD,MFD,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan
+10,20440,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan
+13,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan

@@ -1,0 +1,8 @@
+Participant,Time.alert,L.focus,M.focus,R.focus,correct.focus,Time.focus,L.action.1,M.action.1,R.action.1,Time.action.1,lowertime.action.1,ticktime.action.1,uppertime.action.1,correct.1,L.action.2,M.action.2,R.action.2,Time.action.2,lowertime.action.2,ticktime.action.2,uppertime.action.2,correct.2,failed.action.1,failed.action.2,Runtime
+5,20445,ND,PFD,MFD,nan,nan,nan,nan,nan,nan,nan,nan,nan,failedFocus,nan,nan,nan,nan,nan,nan,nan,failedFocus,0,0,0
+5,20435,ND,PFD,nan,ND,21455,l,nan,nan,44360,22,24,28,successful-1,l,nan,nan,58925,34,38,40,successful-2,0,0,1
+5,20435,ND,PFD,MFD,ND,21840,l,nan,nan,44070,22,23,28,successful-1,l,nan,nan,57485,34,36,40,successful-2,0,0,2
+5,20435,ND,PFD,MFD,nan,nan,nan,nan,nan,nan,nan,nan,nan,failedFocus,nan,nan,nan,nan,nan,nan,nan,failedFocus,0,0,3
+5,20445,ND,PFD,MFD,nan,nan,nan,nan,nan,nan,nan,nan,nan,failedFocus,nan,nan,nan,nan,nan,nan,nan,failedFocus,0,0,4
+5,20445,ND,PFD,MFD,nan,nan,nan,nan,nan,nan,nan,nan,nan,failedFocus,nan,nan,nan,nan,nan,nan,nan,failedFocus,0,0,5
+5,20435,ND,PFD,MFD,ND,21840,l,nan,nan,44285,22,23,28,successful-1,l,nan,nan,59425,34,38,40,successful-2,0,0,6

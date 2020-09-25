@@ -1,0 +1,8 @@
+Participant,Time.alert.4,L.run,R.run,L.action_4,R.action_4,Result,Time.action_4,L.model,R.model,L.action_10,R.action_10,Time.alert.10,correct,Behavior_4,Behavior_10,Time.action_10,Ticktime.4,Ticktime.10
+2,20650,0,0,0,0,0,0,nan,nan,normative,s,80640,failed,s,l,82405,2,4
+3,20650,0,0,0,0,0,0,nan,nan,normative,s,80630,failed,s,l,83085,2,5
+4,20640,0,0,0,0,0,0,nan,nan,normative,s,80600,failed,l,l,82715,5,5
+6,20660,0,0,0,0,0,0,nan,nan,normative,s,80630,successful,l,s,81600,7,2
+7,20640,0,0,0,0,0,0,nan,nan,normative,s,80650,successful,l,s,81610,7,2
+9,20640,0,0,0,0,0,0,nan,nan,normative,s,80620,successful,l,s,81590,7,2
+10,20660,0,0,0,0,0,0,nan,nan,normative,s,80650,successful,l,s,81620,8,2

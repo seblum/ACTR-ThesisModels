@@ -1,0 +1,4 @@
+Participant,Time.alert,L.focus,M.focus,R.focus,correct.focus,Time.focus,L.action.1,M.action.1,R.action.1,Time.action.1,lowertime.action.1,ticktime.action.1,uppertime.action.1,correct.1,L.action.2,M.action.2,R.action.2,Time.action.2,lowertime.action.2,ticktime.action.2,uppertime.action.2,correct.2,failed.action.1,failed.action.2
+2,20445,nan,PFD,MFD,PFD,21465,l,nan,nan,42410,22,22,28,successfull,nan,m,nan,46565,19,26,25,failed-2,nan,0
+3,20445,ND,PFD,MFD,MFD,21850,nan,nan,s,31525,7,10,13,successfull,nan,m,nan,39741,19,19,25,successful,nan,nan
+4,20445,ND,PFD,MFD,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan,0
