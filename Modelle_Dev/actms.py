@@ -5,36 +5,36 @@ Created on Wed Aug 28 08:24:27 2019
 @author: Sebastian Blum
 """
 
-import actr
+from . import actr
 import numpy as np
 import pandas as pd
 
 
 
-class ActMSProtocol():
+class ActMSProtocol:
 
 	def __init__(self):
 		self.dict = {}
 
-	def writeToProtocol(self. name, variable):
+	def writeToProtocol(self, name, variable):
 	    self.dict.update( { name : variable } )
 
-	def getProtocol():
+	def getProtocol(self):
 	    return pd.DataFrame([self.dict])
 
-	def deleteProtocol():
+	def deleteProtocol(self):
 	    self.dict.clear()
 
 
 
 
-class ActMS():
+class ActMS:
 
 	def __init__(self, modelname):
 		self.name = modelname
 		actr.add_command("simulate-submodel", self.simulate_submodel, "back to main function")
-	    actr.add_command("return-from-submodel", self.return_from_submodel, "back to main function")
-	    actr.add_command("end-program", self.end_program,"returns that model is finished")
+		actr.add_command("return-from-submodel", self.return_from_submodel, "back to main function")
+		actr.add_command("end-program", self.end_program,"returns that model is finished")
 	   
 	def simulate_submodel(self, model, action):
 	    actr.set_current_model(model)
@@ -57,28 +57,43 @@ class ActMSUtility:
 	'''
 	UTILITY LEARNING OVER MODELS
 	''' 
-	def __init__(self)
+	def __init__(self):
 		self.initial_utility = list()
 		self.new_utility = self.getutility()
 
-	def getutility():
+	def getutility(self):
 	    #self.new_utility
 	    return actr.spp([':name', ':u'])
 
+	def model_start(self):
+		self.initial_utility = self.new_utility
+
+	def model_end(self):
+		# get new utility
+		self.new_utility = self.getutility()
+		# save new utility
+		for idx, val in enumerate(self.new_utility[0:14]):
+			self.new_utility[idx][1] = 0
+			
+		for idx, val in enumerate(self.new_utility):
+			actr.spp(val[0],':u',val[1])
+			print("-"*30 + " Utility Reset ")
+
+
 '''
-	def reset_utility():
+	def reset_utility(self):
 	    self.new_utility = list()
 
-	def save_utility():
+	def save_utility(self):
 	    self.initial_utility = self.new_utility
 
-	def set_new_utility():
+	def set_new_utility(self):
 	    for idx,val in enumerate(self.new_utility[0:14]):
 	            self.new_utility[idx][1] = 0
 
 	    for idx,val in enumerate(self.new_utility):
 	        actr.spp(val[0],':u',val[1])
-	    print("-"*30 + " Utility Reset ")         
+	    	print("-"*30 + " Utility Reset ")         
 
 	def set_initial_utility():
 	    for idx,val in enumerate(self.initial_utility[0:14]):
@@ -86,30 +101,5 @@ class ActMSUtility:
 
 	    for idx,val in enumerate(self.initial_utility):
 	        actr.spp(val[0],':u',val[1])
-	    print("-"*30 + " Utility Reset ")       
+	    	print("-"*30 + " Utility Reset ")       
 '''
-
-	def model_start():
-		'''
-		Model start after reset
-		'''
-		self.initial_utility = self.new_utility
-
-	def model_end():
-		'''
-		model end after run and before reset
-		'''
-		# get new utility
-		self.new_utility = self.getutility()
-
-		# save new utility
-	    for idx,val in enumerate(self.new_utility[0:14]):
-        self.new_utility[idx][1] = 0
-
-	    for idx,val in enumerate(self.new_utility):
-	        actr.spp(val[0],':u',val[1])
-	    print("-"*30 + " Utility Reset ")         
-
-
- 
-    
