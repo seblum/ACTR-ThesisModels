@@ -1,0 +1,48 @@
+
+
+### Run: ------------
+
+1. Start Python. I used spyder via anaconda which worked very well
+
+2. Start ACT-R. If you import actr now, it should state that actr is set. Otherwise it runs an error. It might be that the actr.py from the actr-distribution needs to be copied into the home directory of python or that you change your home directory accordingly.
+
+3. Run RUN-metamodel.py. The ACT-R models are loaded by the file. Both terminals (in the python GUI and in ACT-R) should show the ACT-R trace if activated
+
+The directories of running the files are fixed as the Data- and the Results-folder need to be within the folder of the simulation files
+
+
+### Versions ------------
+
+ACT-R           : Version 7.13-<2796.m:2019-03-13> 
+Python			: Python 3.6.5 |Anaconda, Inc.| (default, Apr 26 2018, 08:42:37) 
+packages		: python, numpy, sys, os
+
+
+### Known Problems ------------
+
+When the computer got on standby or even if the screen goes black it did not work properly to run all scenarios. So if you want to leave the room and do other stuff, turn on a video so the computer keeps on running. 
+
+
+### Files ------------
+
+Run-metamodel.py
+- Script to be called for running. Handles ACT-MS and ACT-CV and loades the ACT-R models
+
+actcv.py
+- Framework to load a dataset (.csv) and schedule each line of data to the visicon
+
+actms.py
+- Framework that handles the coordination between the different ACT-R models (Metamodel and Submodel). It is currently specified for each use case of the work but might be more suitable if generalized to multiple use cases.
+
+MMdispatchercmds.py
+- loads each of the ACT-CV and ACT-MS python functions in the ACT-R dispatched to be called within an ACT-R model. The commands were merely outsourced to this script so the other scripts are more clear.
+
+MMsaveresults.py
+- creates a .csv to write the simulation and submodel results. Each result is attached to the file after a simulation has finished.
+
+
+### Contact ------------
+
+Sebastian Blum
+s.blum@campus.tu-berlin.de
+sebast.blum@gmail.com
