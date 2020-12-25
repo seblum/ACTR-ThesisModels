@@ -148,7 +148,7 @@ def actCVLoop(data,starttime = 0,indexinput = 0):
             
             statelist.append(state_current)
             #savestate(state_current)
-
+            print(time_offset)
             actr.schedule_event(time_offset,"current-to-visicon",params = [index],maintenance=True )     
             index += 1
             #print(state_current[header[-1]])
@@ -161,10 +161,8 @@ def actCVLoop(data,starttime = 0,indexinput = 0):
                 #print(time_current)
                 
             state_previous = state_current               
-
     print("-"*32 + " Scheduling successfull" + "-"*25)         
-
-    
+    exit()
     
     
     

@@ -143,10 +143,10 @@
     (P_RIGHT_SIDESTICK_ROLL_CTRL isa chunk)
     (CKT_ENGINE1MASTERLEVERON isa chunk)
     (CKT_ENGINE2MASTERLEVERON isa chunk)
-    (CKT_THRUSTLEVERANGLE[0] isa chunk)
-    (CKT_THRUSTLEVERANGLE[1] isa chunk)
-    (CKT_THRUSTLEVERANGLE[2] isa chunk)
-    (CKT_THRUSTLEVERANGLE[3] isa chunk)
+    (CKT_THRUSTLEVERANGLE0 isa chunk)
+    (CKT_THRUSTLEVERANGLE1 isa chunk)
+    (CKT_THRUSTLEVERANGLE2 isa chunk)
+    (CKT_THRUSTLEVERANGLE3 isa chunk)
     (P_TRIM_CP_RUDDER_RESET isa chunk)
     (P_FLAPS_BOOLEAN_1 isa chunk)
     (P_FLAPS_BOOLEAN_2 isa chunk)
@@ -655,7 +655,7 @@
     lowertime           =lowtime
   =goal>
     state               scan-action
-    next                CKT_ThrustLeverAngle[0]
+    next                CKT_ThrustLeverAngle0
   )
 
 
@@ -1302,6 +1302,7 @@
   -imaginal>
   =goal>
     state               end
+!eval! ("quit-simulation" 1)
   )
 
 
@@ -1319,6 +1320,7 @@
   -imaginal>
   =goal>
     state               end
+!eval! ("quit-simulation" 1)
    )
 
 
@@ -1336,6 +1338,7 @@
   -imaginal>
   =goal>
     state               end
+!eval! ("quit-simulation" 1)
   )
 
 

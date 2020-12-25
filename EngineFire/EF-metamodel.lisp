@@ -13,7 +13,7 @@
   (sgp
    ;:auto-attend t
    :esc t
-   :v nil
+   :v t
    :rt -1               
    :time-master-start-increment 1.0
    :time-mult 1.0

@@ -2,7 +2,7 @@
 
 (define-model submodel-normative
 
-  (sgp :v nil :show-focus t :needs-mouse nil)
+  (sgp :v t :show-focus t :needs-mouse nil)
 
   (chunk-type response letter)
 

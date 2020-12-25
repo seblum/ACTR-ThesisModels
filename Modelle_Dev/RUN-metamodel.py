@@ -2,7 +2,7 @@
 """
 Created on Thu Jul 25 11:22:00 2019
 
-@author: THO1NR
+@author: seblum
 """
 
 import pandas as pd
@@ -11,12 +11,16 @@ import sys
 import os
 import random
 
+import actr
+import actcv as cv
+import actms as ms
+#import MMsaveresults as sr
+
+
 # Get path of current directory and convert it to lisp
 directory_path = os.path.join(os.path.dirname(__file__))
 
 def convertPath(path):
-     #sep = os.path.sep
-     #print('separator: ' + sep)
      return path.replace(os.path.sep, ';') 
  
 directory_path_lisp = convertPath(directory_path)[1:]
@@ -24,21 +28,6 @@ directory_path_lisp = convertPath(directory_path)[1:]
 
 sys.path.append(directory_path)
 sys.path
-
-
-import actr
-import actcv as cv
-from actcv import ActCV
-import MMsaveresults as sr
-import MMdispatchercmds as cmd
-
-
-# Load Dispatcher commands
-cmd.load_actms_commands()
-
-
-# create .csv with headers
-sr.writeReHeaderCsv(directory_path)
 
 # LOAD ACT-R MODELS
 def loadmodels():
@@ -48,37 +37,31 @@ def loadmodels():
     actr.load_act_r_model(directory_path_lisp + ";EF-submodel-right.lisp")
 
 loadmodels()
+
+
 actr.set_current_model("main-model")          
 
-util_cl = ActMSUtility()
+actms = ms.ActMS("main-model",)
 
-#ms.getutility()
-#ms.saveutility()
+
+printer_total = pd.DataFrame() # wirklich dict?
+
 
 timesRun = 1
-## ----- -----
-# loop over all datasets
 session = [2,3,4,5,7,9,10,13]
 #session = [5,7,13]
 session = [5]
 
+
+# loop over all datasets
 for tr in range(timesRun):
+    print("-"*20 + f' Run: {tr} ' )
+    
     random.shuffle(session)
-
-    print("-"*40 + "-----------------------------")
-    print("-"*40 + '   Run: ' + str(tr) )
-    print("-"*40 + "-----------------------------")
-    print("-"*40 + '  List: ' + str(session) )
-    print("-"*40 + "-----------------------------")
-
-    #                                                                                             ms.setsaveutility()
-
     for ses in session:
-        print('Looping Participant: {0}'.format(ses))
+        print(f'Looping Participant: {ses} of list: {session}')
 
-
-        # LOOP AND SCHEDULE EVENT 4
-        print('Looping Scenario: 2 | Event: 3')
+        # Looping Scenario: 2 | Event: 3
         data = pd.read_csv(directory_path + f'/Data/Session_{ses}_scenario_2.csv',
                             sep = ';', 
                             dtype = {'ALTITUDE' : float, 
@@ -87,51 +70,43 @@ for tr in range(timesRun):
                                     'AlarmActive' : float, 
                                     'AOIpT' : str})
             
-        head = list(data) # only for testing needed
+        data.columns = data.columns.str.replace('[', '').str.replace(']', '')
+        head = list(data)
         #print(head)
 
         actcv = cv.ActCV(data, "TIME")         
-        
-
         actcv.load_States()
         actcv.schedule_Visicon()
         actcv.schedule_Tone(freq = 3000, duration = 3)
+        #sessionexit()
+        actms.reset_model('main-model')
+        actms.write_Protocol("Session", ses)
+        actms.write_Protocol("timesRun", tr)
 
-        actms = ActMS("main-model",)
+        #exit()
 
-        exit()
+        actr.run_until_condition("quit-simulation", True)       
 
-        prot_cl = ActMSProtocol()
-        prot_cl.writeToProtocol("Session", ses)
-        prot_cl.writeToProtocol("timesRun", tr)
+        printer_current_run = actms.get_Protocol()
+        print(printer_current_run)
+        printer_total = pd.concat([printer_total, printer_current_run])
 
-        actr.run_until_condition("end-program", True)       
 
-        tmpresult = prot_cl.getProtocol()
-        printer = pd.concat([printer, tmpresult])
+        actms.save_utility()
 
-        #ms.resetutility()
-        #ms.getutility()
-
+        # reset and reload for new run
         actr.reset()
+
         loadmodels()
-        cmd.load_actms_commands()
-        #cmd.load_actcv_commands()
-        print("-"*30 + " Models Reloaded " + "-"*30)         
 
-        #util_cl.set_new_utility()
-        
-        
-        prot_cl.deleteProtocol()
-
-        # reload act-r
         actr.set_current_model("main-model")
         actr.delete_all_visicon_features()
 
-    print("-"*30 + " " + "-"*22 + " " + "-"*30)
-    print("-"*30 + "    END SIMULATION     " + "-"*30)         
-    print("-"*30 + " " + "-"*22 + " " + "-"*30)
+        actms.set_utility()
+        print("> models reloaded ")         
 
-printer.to_csv('simulation_results.csv')
 
+printer_total.to_csv('simulation_results.csv')
+
+print('> end simulation ')
 
