@@ -55,7 +55,7 @@ actr.set_current_model("main-model")
 ## ----- -----
 # loop over all datasets
 
-session = [2,3,4,6,7,9,10]
+session = [3]
   
 for ses in session:
     print('Looping Participant: {0}'.format(ses))
@@ -66,7 +66,7 @@ for ses in session:
 
     # LOOP AND SCHEDULE EVENT 4
     print('Looping Scenario: 2 | Event: 4')
-    data = pd.read_csv(directory_path + '/Data/Session_{0}_scenario_2.csv'.format(ses),
+    data = pd.read_csv(directory_path + '/Data/session_{0}_sce_2.csv'.format(ses),
                         sep = ';', dtype = {'ALTITUDE' : float, 'SPEED' : float, 'AOI' : object, 'AlarmActive' : float, 'Action' : float})
 
     cv.actCVLoop(data,0,0)
@@ -77,7 +77,7 @@ for ses in session:
     
     # LOOP AND SCHEDULE EVENT 10
     print('Looping Scenario: 2 | Event: 10')
-    data_2 = pd.read_csv(directory_path + '/Data/Session_{0}_scenario_4.csv'.format(ses),
+    data_2 = pd.read_csv(directory_path + '/Data/session_{0}_sce_4.csv'.format(ses),
                         sep = ';', dtype = {'ALTITUDE' : float, 'SPEED' : float, 'AOI' : object, 'AlarmActive' : float, 'Action' : float})
 
     cv.actCVLoop(data_2,addtime,addindex)
