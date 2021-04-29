@@ -30,11 +30,15 @@ proc select_copyrights {} {
     wm geometry .copyright \
     "400x290+[expr $screen_center_x - 200]+[expr $screen_center_y - 145]"
 
-    wm overrideredirect .copyright 1
+    global tcl_platform
+
+    if {$tcl_platform(os) != "Darwin"} {
+      wm overrideredirect .copyright 1
+    }
 
     label .copyright.lab22 -font intro_l_font -height 1 -text {ACT-R Environment} -anchor center
     label .copyright.lab30 -font intro_l_font -height 2 -textvariable copyrightlab30var -anchor center
-    label .copyright.lab24 -font intro_s_font -height 1 -text {© 2002-2017} -anchor center
+    label .copyright.lab24 -font intro_s_font -height 1 -text "\u00a9 2002-2019" -anchor center
     label .copyright.lab33 -font intro_s_font -height 1 -anchor center -text {Dan Bothell} 
     label .copyright.lab43 -font intro_s_font -height 1 -anchor center -text {John R. Anderson}  
     label .copyright.lab35 -font intro_s_font -height 1 -anchor center -text {Department of Psychology, Carnegie Mellon University}  

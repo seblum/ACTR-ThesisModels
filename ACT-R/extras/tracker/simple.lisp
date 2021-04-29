@@ -60,6 +60,8 @@ There is an example run provided at the end of this file.
 
 (clear-all)
 
+(require-extra "tracker")
+
 (define-model simple-tracker-test
     
   (sgp :v t :trace-tracker t :trace-detail high)
@@ -166,7 +168,7 @@ bounded by 1s and 60s).
 
 > (run-test 100)
      0.000   VISION                 PROC-DISPLAY
-     0.000   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-0 NIL
+     0.000   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
      0.000   VISION                 visicon-update
      0.000   PROCEDURAL             CONFLICT-RESOLUTION
      0.000   PROCEDURAL             PRODUCTION-SELECTED START
@@ -175,7 +177,7 @@ bounded by 1s and 60s).
      0.000   PROCEDURAL             QUERY-BUFFER-ACTION TRACKER
      0.050   PROCEDURAL             PRODUCTION-FIRED START
      0.050   PROCEDURAL             MODULE-REQUEST TRACKER
-Tracker generating value for buffer GOAL slot VALUE with temperature 1.0:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 1.0:
   Choices: 1.000 2.000 3.000
   Probs:   0.333 0.333 0.333
  Chosen result is 1.0
@@ -207,7 +209,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 1.0:
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
      0.500   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
      0.500   VISION                 PROC-DISPLAY
-     0.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-1 NIL
+     0.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
      0.500   VISION                 visicon-update
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
      0.500   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -215,7 +217,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 1.0:
      0.500   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
      0.550   PROCEDURAL             PRODUCTION-FIRED WRONG
      0.550   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
      0.550   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -223,7 +225,7 @@ Tracker for VALUE updating the current BAD value
      0.650   MOTOR                  FINISH-MOVEMENT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      5.500   VISION                 PROC-DISPLAY
-     5.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-2 NIL
+     5.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
      5.500   VISION                 visicon-update
      5.500   PROCEDURAL             CONFLICT-RESOLUTION
      5.500   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -241,7 +243,7 @@ Tracker for VALUE updating the current BAD value
      5.600   PROCEDURAL             CONFLICT-RESOLUTION
      5.700   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
      5.700   VISION                 PROC-DISPLAY
-     5.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-3 NIL
+     5.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
      5.700   VISION                 visicon-update
      5.700   PROCEDURAL             CONFLICT-RESOLUTION
      5.700   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -249,7 +251,7 @@ Tracker for VALUE updating the current BAD value
      5.700   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
      5.750   PROCEDURAL             PRODUCTION-FIRED WRONG
      5.750   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
      5.750   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -257,7 +259,7 @@ Tracker for VALUE updating the current BAD value
      5.850   MOTOR                  FINISH-MOVEMENT
      5.850   PROCEDURAL             CONFLICT-RESOLUTION
     10.700   VISION                 PROC-DISPLAY
-    10.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-4 NIL
+    10.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     10.700   VISION                 visicon-update
     10.700   PROCEDURAL             CONFLICT-RESOLUTION
     10.700   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -275,7 +277,7 @@ Tracker for VALUE updating the current BAD value
     10.800   PROCEDURAL             CONFLICT-RESOLUTION
     10.900   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
     10.900   VISION                 PROC-DISPLAY
-    10.900   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-5 NIL
+    10.900   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     10.900   VISION                 visicon-update
     10.900   PROCEDURAL             CONFLICT-RESOLUTION
     10.900   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -283,7 +285,7 @@ Tracker for VALUE updating the current BAD value
     10.900   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     10.950   PROCEDURAL             PRODUCTION-FIRED WRONG
     10.950   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     10.950   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -291,7 +293,7 @@ Tracker for VALUE updating the current BAD value
     11.050   MOTOR                  FINISH-MOVEMENT
     11.050   PROCEDURAL             CONFLICT-RESOLUTION
     15.900   VISION                 PROC-DISPLAY
-    15.900   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-6 NIL
+    15.900   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     15.900   VISION                 visicon-update
     15.900   PROCEDURAL             CONFLICT-RESOLUTION
     15.900   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -309,7 +311,7 @@ Tracker for VALUE updating the current BAD value
     16.000   PROCEDURAL             CONFLICT-RESOLUTION
     16.100   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
     16.100   VISION                 PROC-DISPLAY
-    16.100   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-7 NIL
+    16.100   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     16.100   VISION                 visicon-update
     16.100   PROCEDURAL             CONFLICT-RESOLUTION
     16.100   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -317,7 +319,7 @@ Tracker for VALUE updating the current BAD value
     16.100   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     16.150   PROCEDURAL             PRODUCTION-FIRED WRONG
     16.150   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     16.150   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -325,7 +327,7 @@ Tracker for VALUE updating the current BAD value
     16.250   MOTOR                  FINISH-MOVEMENT
     16.250   PROCEDURAL             CONFLICT-RESOLUTION
     21.100   VISION                 PROC-DISPLAY
-    21.100   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-8 NIL
+    21.100   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     21.100   VISION                 visicon-update
     21.100   PROCEDURAL             CONFLICT-RESOLUTION
     21.100   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -343,7 +345,7 @@ Tracker for VALUE updating the current BAD value
     21.200   PROCEDURAL             CONFLICT-RESOLUTION
     21.300   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
     21.300   VISION                 PROC-DISPLAY
-    21.300   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-9 NIL
+    21.300   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     21.300   VISION                 visicon-update
     21.300   PROCEDURAL             CONFLICT-RESOLUTION
     21.300   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -351,7 +353,7 @@ Tracker for VALUE updating the current BAD value
     21.300   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     21.350   PROCEDURAL             PRODUCTION-FIRED WRONG
     21.350   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     21.350   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -359,7 +361,7 @@ Tracker for VALUE updating the current BAD value
     21.450   MOTOR                  FINISH-MOVEMENT
     21.450   PROCEDURAL             CONFLICT-RESOLUTION
     26.300   VISION                 PROC-DISPLAY
-    26.300   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-10 NIL
+    26.300   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     26.300   VISION                 visicon-update
     26.300   PROCEDURAL             CONFLICT-RESOLUTION
     26.300   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -377,7 +379,7 @@ Tracker for VALUE updating the current BAD value
     26.400   PROCEDURAL             CONFLICT-RESOLUTION
     26.500   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
     26.500   VISION                 PROC-DISPLAY
-    26.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-11 NIL
+    26.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     26.500   VISION                 visicon-update
     26.500   PROCEDURAL             CONFLICT-RESOLUTION
     26.500   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -385,7 +387,7 @@ Tracker for VALUE updating the current BAD value
     26.500   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     26.550   PROCEDURAL             PRODUCTION-FIRED WRONG
     26.550   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     26.550   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -393,7 +395,7 @@ Tracker for VALUE updating the current BAD value
     26.650   MOTOR                  FINISH-MOVEMENT
     26.650   PROCEDURAL             CONFLICT-RESOLUTION
     31.500   VISION                 PROC-DISPLAY
-    31.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-12 NIL
+    31.500   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     31.500   VISION                 visicon-update
     31.500   PROCEDURAL             CONFLICT-RESOLUTION
     31.500   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -411,7 +413,7 @@ Tracker for VALUE updating the current BAD value
     31.600   PROCEDURAL             CONFLICT-RESOLUTION
     31.700   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
     31.700   VISION                 PROC-DISPLAY
-    31.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-13 NIL
+    31.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     31.700   VISION                 visicon-update
     31.700   PROCEDURAL             CONFLICT-RESOLUTION
     31.700   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -419,24 +421,24 @@ Tracker for VALUE updating the current BAD value
     31.700   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     31.750   PROCEDURAL             PRODUCTION-FIRED WRONG
     31.750   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     31.750   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
     31.750   PROCEDURAL             CONFLICT-RESOLUTION
     31.850   MOTOR                  FINISH-MOVEMENT
     31.850   PROCEDURAL             CONFLICT-RESOLUTION
-    31.946   TRACKER                update-tracker VALUE
-Tracker for VALUE slot updating the equation
+    31.946   TRACKER                update-tracker TRACKER0 VALUE
+Tracker TRACKER0 for VALUE slot updating the equation
   new equation is -0.6383563 + 0.5319536x + -0.10638899x^2
-Tracker generating value for buffer GOAL slot VALUE with temperature 0.8494733:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 0.8494733:
   Choices: 1.000 2.000 3.000
   Probs:   0.280 0.360 0.360
  Chosen result is 2.0
     31.946   TRACKER                MOD-BUFFER-CHUNK GOAL
     31.946   PROCEDURAL             CONFLICT-RESOLUTION
     36.700   VISION                 PROC-DISPLAY
-    36.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-14 NIL
+    36.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     36.700   VISION                 visicon-update
     36.700   PROCEDURAL             CONFLICT-RESOLUTION
     36.700   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -455,7 +457,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.8494733:
     36.950   PROCEDURAL             CONFLICT-RESOLUTION
     37.050   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     37.050   VISION                 PROC-DISPLAY
-    37.050   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-15 NIL
+    37.050   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     37.050   VISION                 visicon-update
     37.050   PROCEDURAL             CONFLICT-RESOLUTION
     37.050   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -463,33 +465,33 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.8494733:
     37.050   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     37.100   PROCEDURAL             PRODUCTION-FIRED CORRECT
     37.100   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     37.100   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
     37.100   PROCEDURAL             CONFLICT-RESOLUTION
     37.200   MOTOR                  FINISH-MOVEMENT
     37.200   PROCEDURAL             CONFLICT-RESOLUTION
-    38.955   TRACKER                update-tracker VALUE
-Tracker for VALUE slot updating the equation
+    38.955   TRACKER                update-tracker TRACKER0 VALUE
+Tracker TRACKER0 for VALUE slot updating the equation
   new equation is -1.0129573 + 1.0314226x + -0.2312571x^2
-Tracker generating value for buffer GOAL slot VALUE with temperature 0.8222745:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 0.8222745:
   Choices: 1.000 2.000 3.000
   Probs:   0.263 0.396 0.341
  Chosen result is 2.0
     38.955   TRACKER                MOD-BUFFER-CHUNK GOAL
     38.955   PROCEDURAL             CONFLICT-RESOLUTION
-    39.955   TRACKER                update-tracker VALUE
-Tracker for VALUE slot updating the equation
+    39.955   TRACKER                update-tracker TRACKER0 VALUE
+Tracker TRACKER0 for VALUE slot updating the equation
   new equation is -0.97136295 + 0.97596157x + -0.21739036x^2
-Tracker generating value for buffer GOAL slot VALUE with temperature 0.81853527:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 0.81853527:
   Choices: 1.000 2.000 3.000
   Probs:   0.264 0.393 0.343
  Chosen result is 1.0
     39.955   TRACKER                MOD-BUFFER-CHUNK GOAL
     39.955   PROCEDURAL             CONFLICT-RESOLUTION
     42.050   VISION                 PROC-DISPLAY
-    42.050   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-16 NIL
+    42.050   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     42.050   VISION                 visicon-update
     42.050   PROCEDURAL             CONFLICT-RESOLUTION
     42.050   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -508,7 +510,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.81853527:
     42.300   PROCEDURAL             CONFLICT-RESOLUTION
     42.400   KEYBOARD               output-key SIMPLE-TRACKER-TEST 1
     42.400   VISION                 PROC-DISPLAY
-    42.400   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-17 NIL
+    42.400   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     42.400   VISION                 visicon-update
     42.400   PROCEDURAL             CONFLICT-RESOLUTION
     42.400   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -516,24 +518,24 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.81853527:
     42.400   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     42.450   PROCEDURAL             PRODUCTION-FIRED WRONG
     42.450   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     42.450   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
     42.450   PROCEDURAL             CONFLICT-RESOLUTION
     42.550   MOTOR                  FINISH-MOVEMENT
     42.550   PROCEDURAL             CONFLICT-RESOLUTION
-    43.291   TRACKER                update-tracker VALUE
-Tracker for VALUE slot updating the equation
+    43.291   TRACKER                update-tracker TRACKER0 VALUE
+Tracker TRACKER0 for VALUE slot updating the equation
   new equation is -0.99539316 + 0.99599135x + -0.22139755x^2
-Tracker generating value for buffer GOAL slot VALUE with temperature 0.8063035:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 0.8063035:
   Choices: 1.000 2.000 3.000
   Probs:   0.261 0.395 0.344
  Chosen result is 2.0
     43.291   TRACKER                MOD-BUFFER-CHUNK GOAL
     43.291   PROCEDURAL             CONFLICT-RESOLUTION
     47.400   VISION                 PROC-DISPLAY
-    47.400   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-18 NIL
+    47.400   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     47.400   VISION                 visicon-update
     47.400   PROCEDURAL             CONFLICT-RESOLUTION
     47.400   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -552,7 +554,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.8063035:
     47.650   PROCEDURAL             CONFLICT-RESOLUTION
     47.750   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     47.750   VISION                 PROC-DISPLAY
-    47.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-19 NIL
+    47.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     47.750   VISION                 visicon-update
     47.750   PROCEDURAL             CONFLICT-RESOLUTION
     47.750   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -560,7 +562,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.8063035:
     47.750   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     47.800   PROCEDURAL             PRODUCTION-FIRED CORRECT
     47.800   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     47.800   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -568,7 +570,7 @@ Tracker for VALUE updating the current GOOD value
     47.900   MOTOR                  FINISH-MOVEMENT
     47.900   PROCEDURAL             CONFLICT-RESOLUTION
     52.750   VISION                 PROC-DISPLAY
-    52.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-20 NIL
+    52.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     52.750   VISION                 visicon-update
     52.750   PROCEDURAL             CONFLICT-RESOLUTION
     52.750   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -586,7 +588,7 @@ Tracker for VALUE updating the current GOOD value
     52.850   PROCEDURAL             CONFLICT-RESOLUTION
     52.950   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     52.950   VISION                 PROC-DISPLAY
-    52.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-21 NIL
+    52.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     52.950   VISION                 visicon-update
     52.950   PROCEDURAL             CONFLICT-RESOLUTION
     52.950   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -594,7 +596,7 @@ Tracker for VALUE updating the current GOOD value
     52.950   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     53.000   PROCEDURAL             PRODUCTION-FIRED CORRECT
     53.000   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     53.000   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -602,7 +604,7 @@ Tracker for VALUE updating the current GOOD value
     53.100   MOTOR                  FINISH-MOVEMENT
     53.100   PROCEDURAL             CONFLICT-RESOLUTION
     57.950   VISION                 PROC-DISPLAY
-    57.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-22 NIL
+    57.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     57.950   VISION                 visicon-update
     57.950   PROCEDURAL             CONFLICT-RESOLUTION
     57.950   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -620,7 +622,7 @@ Tracker for VALUE updating the current GOOD value
     58.050   PROCEDURAL             CONFLICT-RESOLUTION
     58.150   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     58.150   VISION                 PROC-DISPLAY
-    58.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-23 NIL
+    58.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     58.150   VISION                 visicon-update
     58.150   PROCEDURAL             CONFLICT-RESOLUTION
     58.150   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -628,7 +630,7 @@ Tracker for VALUE updating the current GOOD value
     58.150   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     58.200   PROCEDURAL             PRODUCTION-FIRED CORRECT
     58.200   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     58.200   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -636,7 +638,7 @@ Tracker for VALUE updating the current GOOD value
     58.300   MOTOR                  FINISH-MOVEMENT
     58.300   PROCEDURAL             CONFLICT-RESOLUTION
     63.150   VISION                 PROC-DISPLAY
-    63.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-24 NIL
+    63.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     63.150   VISION                 visicon-update
     63.150   PROCEDURAL             CONFLICT-RESOLUTION
     63.150   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -654,7 +656,7 @@ Tracker for VALUE updating the current GOOD value
     63.250   PROCEDURAL             CONFLICT-RESOLUTION
     63.350   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     63.350   VISION                 PROC-DISPLAY
-    63.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-25 NIL
+    63.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     63.350   VISION                 visicon-update
     63.350   PROCEDURAL             CONFLICT-RESOLUTION
     63.350   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -662,7 +664,7 @@ Tracker for VALUE updating the current GOOD value
     63.350   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     63.400   PROCEDURAL             PRODUCTION-FIRED CORRECT
     63.400   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     63.400   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -670,7 +672,7 @@ Tracker for VALUE updating the current GOOD value
     63.500   MOTOR                  FINISH-MOVEMENT
     63.500   PROCEDURAL             CONFLICT-RESOLUTION
     68.350   VISION                 PROC-DISPLAY
-    68.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-26 NIL
+    68.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     68.350   VISION                 visicon-update
     68.350   PROCEDURAL             CONFLICT-RESOLUTION
     68.350   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -688,7 +690,7 @@ Tracker for VALUE updating the current GOOD value
     68.450   PROCEDURAL             CONFLICT-RESOLUTION
     68.550   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     68.550   VISION                 PROC-DISPLAY
-    68.550   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-27 NIL
+    68.550   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     68.550   VISION                 visicon-update
     68.550   PROCEDURAL             CONFLICT-RESOLUTION
     68.550   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -696,7 +698,7 @@ Tracker for VALUE updating the current GOOD value
     68.550   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     68.600   PROCEDURAL             PRODUCTION-FIRED CORRECT
     68.600   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     68.600   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -704,7 +706,7 @@ Tracker for VALUE updating the current GOOD value
     68.700   MOTOR                  FINISH-MOVEMENT
     68.700   PROCEDURAL             CONFLICT-RESOLUTION
     73.550   VISION                 PROC-DISPLAY
-    73.550   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-28 NIL
+    73.550   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     73.550   VISION                 visicon-update
     73.550   PROCEDURAL             CONFLICT-RESOLUTION
     73.550   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -722,7 +724,7 @@ Tracker for VALUE updating the current GOOD value
     73.650   PROCEDURAL             CONFLICT-RESOLUTION
     73.750   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     73.750   VISION                 PROC-DISPLAY
-    73.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-29 NIL
+    73.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     73.750   VISION                 visicon-update
     73.750   PROCEDURAL             CONFLICT-RESOLUTION
     73.750   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -730,7 +732,7 @@ Tracker for VALUE updating the current GOOD value
     73.750   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     73.800   PROCEDURAL             PRODUCTION-FIRED CORRECT
     73.800   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     73.800   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -738,7 +740,7 @@ Tracker for VALUE updating the current GOOD value
     73.900   MOTOR                  FINISH-MOVEMENT
     73.900   PROCEDURAL             CONFLICT-RESOLUTION
     78.750   VISION                 PROC-DISPLAY
-    78.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-30 NIL
+    78.750   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     78.750   VISION                 visicon-update
     78.750   PROCEDURAL             CONFLICT-RESOLUTION
     78.750   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -756,7 +758,7 @@ Tracker for VALUE updating the current GOOD value
     78.850   PROCEDURAL             CONFLICT-RESOLUTION
     78.950   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     78.950   VISION                 PROC-DISPLAY
-    78.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-31 NIL
+    78.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     78.950   VISION                 visicon-update
     78.950   PROCEDURAL             CONFLICT-RESOLUTION
     78.950   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -764,7 +766,7 @@ Tracker for VALUE updating the current GOOD value
     78.950   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     79.000   PROCEDURAL             PRODUCTION-FIRED CORRECT
     79.000   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     79.000   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -772,7 +774,7 @@ Tracker for VALUE updating the current GOOD value
     79.100   MOTOR                  FINISH-MOVEMENT
     79.100   PROCEDURAL             CONFLICT-RESOLUTION
     83.950   VISION                 PROC-DISPLAY
-    83.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-32 NIL
+    83.950   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     83.950   VISION                 visicon-update
     83.950   PROCEDURAL             CONFLICT-RESOLUTION
     83.950   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -790,7 +792,7 @@ Tracker for VALUE updating the current GOOD value
     84.050   PROCEDURAL             CONFLICT-RESOLUTION
     84.150   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     84.150   VISION                 PROC-DISPLAY
-    84.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-33 NIL
+    84.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     84.150   VISION                 visicon-update
     84.150   PROCEDURAL             CONFLICT-RESOLUTION
     84.150   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -798,24 +800,24 @@ Tracker for VALUE updating the current GOOD value
     84.150   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     84.200   PROCEDURAL             PRODUCTION-FIRED CORRECT
     84.200   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     84.200   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
     84.200   PROCEDURAL             CONFLICT-RESOLUTION
     84.300   MOTOR                  FINISH-MOVEMENT
     84.300   PROCEDURAL             CONFLICT-RESOLUTION
-    85.155   TRACKER                update-tracker VALUE
-Tracker for VALUE slot updating the equation
+    85.155   TRACKER                update-tracker TRACKER0 VALUE
+Tracker TRACKER0 for VALUE slot updating the equation
   new equation is -1.193099 + 1.2595936x + -0.28729433x^2
-Tracker generating value for buffer GOAL slot VALUE with temperature 0.67897624:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 0.67897624:
   Choices: 1.000 2.000 3.000
   Probs:   0.239 0.430 0.331
  Chosen result is 2.0
     85.155   TRACKER                MOD-BUFFER-CHUNK GOAL
     85.155   PROCEDURAL             CONFLICT-RESOLUTION
     89.150   VISION                 PROC-DISPLAY
-    89.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-34 NIL
+    89.150   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     89.150   VISION                 visicon-update
     89.150   PROCEDURAL             CONFLICT-RESOLUTION
     89.150   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -833,7 +835,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.67897624:
     89.250   PROCEDURAL             CONFLICT-RESOLUTION
     89.350   KEYBOARD               output-key SIMPLE-TRACKER-TEST 2
     89.350   VISION                 PROC-DISPLAY
-    89.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-35 NIL
+    89.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     89.350   VISION                 visicon-update
     89.350   PROCEDURAL             CONFLICT-RESOLUTION
     89.350   PROCEDURAL             PRODUCTION-SELECTED CORRECT
@@ -841,24 +843,24 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.67897624:
     89.350   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     89.400   PROCEDURAL             PRODUCTION-FIRED CORRECT
     89.400   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current GOOD value
+Tracker TRACKER0 for VALUE updating the current GOOD value
  Updating event occurred in the GOOD slot of the IMAGINAL buffer
   updating with value 1.0
     89.400   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
     89.400   PROCEDURAL             CONFLICT-RESOLUTION
     89.500   MOTOR                  FINISH-MOVEMENT
     89.500   PROCEDURAL             CONFLICT-RESOLUTION
-    90.279   TRACKER                update-tracker VALUE
-Tracker for VALUE slot updating the equation
+    90.279   TRACKER                update-tracker TRACKER0 VALUE
+Tracker TRACKER0 for VALUE slot updating the equation
   new equation is -1.1981206 + 1.2662959x + -0.28897288x^2
-Tracker generating value for buffer GOAL slot VALUE with temperature 0.6661017:
+Tracker TRACKER0 generating value for buffer GOAL slot VALUE with temperature 0.6661017:
   Choices: 1.000 2.000 3.000
   Probs:   0.237 0.432 0.331
  Chosen result is 3.0
     90.279   TRACKER                MOD-BUFFER-CHUNK GOAL
     90.279   PROCEDURAL             CONFLICT-RESOLUTION
     94.350   VISION                 PROC-DISPLAY
-    94.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-36 NIL
+    94.350   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     94.350   VISION                 visicon-update
     94.350   PROCEDURAL             CONFLICT-RESOLUTION
     94.350   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -877,7 +879,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.6661017:
     94.600   PROCEDURAL             CONFLICT-RESOLUTION
     94.700   KEYBOARD               output-key SIMPLE-TRACKER-TEST 3
     94.700   VISION                 PROC-DISPLAY
-    94.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-37 NIL
+    94.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     94.700   VISION                 visicon-update
     94.700   PROCEDURAL             CONFLICT-RESOLUTION
     94.700   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -885,7 +887,7 @@ Tracker generating value for buffer GOAL slot VALUE with temperature 0.6661017:
     94.700   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     94.750   PROCEDURAL             PRODUCTION-FIRED WRONG
     94.750   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     94.750   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION
@@ -893,7 +895,7 @@ Tracker for VALUE updating the current BAD value
     94.850   MOTOR                  FINISH-MOVEMENT
     94.850   PROCEDURAL             CONFLICT-RESOLUTION
     99.700   VISION                 PROC-DISPLAY
-    99.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-38 NIL
+    99.700   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     99.700   VISION                 visicon-update
     99.700   PROCEDURAL             CONFLICT-RESOLUTION
     99.700   PROCEDURAL             PRODUCTION-SELECTED GUESS
@@ -911,7 +913,7 @@ Tracker for VALUE updating the current BAD value
     99.800   PROCEDURAL             CONFLICT-RESOLUTION
     99.900   KEYBOARD               output-key SIMPLE-TRACKER-TEST 3
     99.900   VISION                 PROC-DISPLAY
-    99.900   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0-39 NIL
+    99.900   VISION                 SET-BUFFER-CHUNK VISUAL-LOCATION CHUNK0 NIL
     99.900   VISION                 visicon-update
     99.900   PROCEDURAL             CONFLICT-RESOLUTION
     99.900   PROCEDURAL             PRODUCTION-SELECTED WRONG
@@ -919,7 +921,7 @@ Tracker for VALUE updating the current BAD value
     99.900   PROCEDURAL             BUFFER-READ-ACTION VISUAL-LOCATION
     99.950   PROCEDURAL             PRODUCTION-FIRED WRONG
     99.950   PROCEDURAL             MOD-BUFFER-CHUNK IMAGINAL
-Tracker for VALUE updating the current BAD value
+Tracker TRACKER0 for VALUE updating the current BAD value
  Updating event occurred in the BAD slot of the IMAGINAL buffer
   updating with value 1.0
     99.950   PROCEDURAL             CLEAR-BUFFER VISUAL-LOCATION

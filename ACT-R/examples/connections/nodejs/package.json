@@ -1,11 +1,11 @@
 {
-  "name": "relay-AGI",
-  "version": "0.0.1",
-  "description": "View the ACT-R visible virtual windows in a browser window at localhost:3000.",
-  "main": "relay-virtual-view.js",
-  "bin": "relay-virtual-view.js",
+  "name": "html-environment",
+  "version": "1.0a",
+  "description": "ACT-R Environment tools and experiment window viewer tools in a browser.",
+  "main": "environment.js",
+  "bin": "environment.js",
   "author": "Dan Bothell",
   "pkg": {
-    "assets": "*.html"
+    "assets": ["environment.html","expwindow.html"]                
   }
 }

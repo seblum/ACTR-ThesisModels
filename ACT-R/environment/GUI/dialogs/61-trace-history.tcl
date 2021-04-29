@@ -190,13 +190,7 @@ proc save_trace_history_data {level_var min_entry max_entry} {
     
       set trace_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "th_record_warnings" "Environment command for capturing warnings during Save Text History."
+      set warning_monitor [add_new_cmd warning_monitor "th_record_warnings" "Environment command for capturing warnings during Save Text History."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -234,13 +228,7 @@ proc load_trace_history_data {trace_window top_label} {
 
     set trace_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "th_record_warnings" "Environment command for capturing warnings during Load Text History."
+    set warning_monitor [add_new_cmd warning_monitor "th_record_warnings" "Environment command for capturing warnings during Load Text History."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 

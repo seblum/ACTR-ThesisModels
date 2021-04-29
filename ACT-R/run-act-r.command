@@ -41,7 +41,7 @@ cd "$execpath"
 ## Change the terminal's title
 echo -n -e "\033]0;ACT-R\007"
 
-cd environment/Start\ Environment\ OSX.app/Contents/MacOS
+cd environment
 ./start-environment-osx > /dev/null 2> /dev/null &
 
 cd "$execpath"
@@ -49,4 +49,4 @@ cd apps
 
 ## Run the included Lisp image
 
-./act-r-64 -n -l ../set-logical.lisp -e "(init-des)" -e "(echo-act-r-output)" -e "(mp-print-versions)" 
+./act-r-64 -n -l ../set-logical.lisp -e "(load-patch-files)" -e "(init-des)" -e "(echo-act-r-output)" -e "(load-user-files)" -e "(mp-print-versions)" 

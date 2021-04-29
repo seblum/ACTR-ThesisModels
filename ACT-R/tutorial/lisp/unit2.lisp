@@ -37,8 +37,9 @@
     (monitor-act-r-command "output-key" "unit2-key-press")
 
     (if human 
-        (while (null *response*)
-          (process-events))
+        (if (visible-virtuals-available?)
+            (while (null *response*)
+              (process-events)))
       
       (progn
         (install-device window)

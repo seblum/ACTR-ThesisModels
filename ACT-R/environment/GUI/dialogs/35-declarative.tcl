@@ -98,6 +98,12 @@ proc update_dm_chunk_list {list text_box model filter_button} {
  
   set chunks [lindex [call_act_r_command "filter-dm-chunks" $model [list $filter]] 0]
 
+  global options_array
+
+  if {$options_array(sort_lists) == 1} {
+    set chunks [lsort -dictionary $chunks]
+  }
+
   global $list.var
 
   set selection [$list curselection]
@@ -167,6 +173,10 @@ proc declarative_drop_list {win but list_box text_box model} {
   # first create a toplevel window that will hold the selection list
   # it's got to be a separate window so that things like leaving it's focus
   # can easily be trapped
+
+  if [winfo exists $win.top] {
+    destroy $win.top
+  }
 
   set top [toplevel $win.top]
   wm overrideredirect $top 1
@@ -277,7 +287,7 @@ proc declarative_drop_list {win but list_box text_box model} {
   # have the update occur automatically because 
   # if it gets called directly it could happen twice
 
-  focus $win
+  focus -force $win
 
 }
 

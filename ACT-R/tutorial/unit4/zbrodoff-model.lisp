@@ -8,27 +8,31 @@
 (sgp :show-focus t)
 
 (chunk-type problem arg1 arg2 result)
-(chunk-type goal state count target)
-(chunk-type sequence identity next)
+(chunk-type goal state count target next-let next-num)
+(chunk-type number number next visual-rep vocal-rep)
+(chunk-type letter letter next visual-rep vocal-rep)
 
 (add-dm
- (zero  ISA sequence identity "0" next "1")
- (one   ISA sequence identity "1" next "2")
- (two   ISA sequence identity "2" next "3")
- (three ISA sequence identity "3" next "4")
- (four  ISA sequence identity "4" next "5")
- (a ISA sequence identity "a" next "b")
- (b ISA sequence identity "b" next "c")
- (c ISA sequence identity "c" next "d")
- (d ISA sequence identity "d" next "e")
- (e ISA sequence identity "e" next "f")
- (f ISA sequence identity "f" next "g")
- (g ISA sequence identity "g" next "h")
- (h ISA sequence identity "h" next "i")
- (i ISA sequence identity "i" next "j")
- (j ISA sequence identity "j" next "k")
+ (zero  ISA number number zero next one visual-rep "0" vocal-rep "zero")
+ (one   ISA number number one next two visual-rep "1" vocal-rep "one")
+ (two   ISA number number two next three visual-rep "2" vocal-rep "two")
+ (three ISA number number three next four visual-rep "3" vocal-rep "three")
+ (four  ISA number number four next five visual-rep "4" vocal-rep "four")
+ (five  isa number number five)
+ (a ISA letter letter a next b visual-rep "a" vocal-rep "a")
+ (b ISA letter letter b next c visual-rep "b" vocal-rep "b")
+ (c ISA letter letter c next d visual-rep "c" vocal-rep "c")
+ (d ISA letter letter d next e visual-rep "d" vocal-rep "d")
+ (e ISA letter letter e next f visual-rep "e" vocal-rep "e")
+ (f ISA letter letter f next g visual-rep "f" vocal-rep "f")
+ (g ISA letter letter g next h visual-rep "g" vocal-rep "g")
+ (h ISA letter letter h next i visual-rep "h" vocal-rep "h")
+ (i ISA letter letter i next j visual-rep "i" vocal-rep "i")
+ (j ISA letter letter j next k visual-rep "j" vocal-rep "j")
+ (k isa letter letter k next l visual-rep "k" vocal-rep "k")
+ (l isa letter letter l)
  (goal isa goal)
- (attending) (count) (counting))
+ (attending) (read) (count) (counting) (encode))
 
 (set-visloc-default screen-x lowest)
 
@@ -45,7 +49,7 @@
    +visual>
       cmd         move-attention
       screen-pos  =visual-location
-)
+   )
 
 (P read-first
    =goal>
@@ -54,18 +58,14 @@
    =visual>
      ISA         visual-object
      value       =char
-   ?vocal>
-     state      free
    ?imaginal>
-     buffer     empty
-     state      free   
+     buffer      empty
+     state       free   
 ==>
-   +vocal>
-     cmd         subvocalize
-     string      =char
    +imaginal>
-     isa         problem 
-     arg1        =char
+   +retrieval>
+     isa         letter
+     visual-rep  =char
    =goal>
      state       nil
    +visual-location>
@@ -73,39 +73,80 @@
    > screen-x    current
      screen-x    lowest
    - value       "+"
-)
+   )
 
+(p encode-first
+   =goal>
+     isa           goal
+     state         attending
+   =retrieval>
+     letter        =let
+     vocal-rep     =word
+   =imaginal>
+     arg1          nil
+   ?vocal>
+     preparation   free
+   ==>
+   +vocal>
+     cmd           subvocalize
+     string        =word
+   =imaginal>
+     arg1          =let
+   =goal>
+     state         read
+   )
 
 (P read-second
    =goal>
      ISA         goal
-     state       attending
+     state       read
    =visual>
      ISA         visual-object
      value       =char
    =imaginal>
      isa         problem
+    - arg1       nil
      arg2        nil
-   ?vocal>
-     state       free
-==>
-   +vocal>
-     cmd         subvocalize
-     string      =char
+   ==>
    =imaginal>
-     arg2       =char
+   +retrieval>
+     isa         number
+     visual-rep  =char
+   
    =goal>
      state       nil
+   
    +visual-location>
      ISA         visual-location
      screen-x    highest
-)
+   )
 
+(p encode-second
+   =goal>
+     isa          goal
+     state        attending
+   =retrieval>
+     number       =num
+     vocal-rep    =word
+   =imaginal>
+    - arg1        nil
+     arg2         nil
+   ?vocal>
+     preparation  free
+   ==>
+   +vocal>
+     cmd          subvocalize
+     string       =word
+   =imaginal>
+     arg2         =num
+   =goal>
+     state        read
+   )
 
 (P read-third
    =goal>
      ISA         goal
-     state       attending
+     state       read
    =imaginal>
      isa         problem
      arg1        =arg1
@@ -113,98 +154,139 @@
    =visual>
      ISA         visual-object
      value       =char
-   ?vocal>
-     state       free
    ?visual>
      state       free
 ==>
    =imaginal>
-   +vocal>
-     cmd         subvocalize
-     string      =char
+   +retrieval>
+     isa         letter
+     visual-rep  =char
    =goal>
-     target      =char
-     state       count
+     state       encode
    +visual>
      cmd         clear
-)
+   )
+
+(p encode-third
+   =goal>
+     isa          goal
+     state        encode
+     target       nil
+   =retrieval>
+     letter       =let
+     vocal-rep    =word
+   =imaginal>
+     arg1         =a1
+     arg2         =a2
+   ?vocal>
+     preparation  free
+   ==>
+   +vocal>
+     cmd          subvocalize
+     string       =word
+   =goal>
+     target       =let
+     state        count
+   =imaginal>
+   )
 
 
 (P start-counting
    =goal>
      ISA         goal
      state       count
-   
    =imaginal>
      isa         problem
      arg1        =a
      arg2        =val
-
-   ?vocal>
-     state      free
 ==>
-   +vocal>
-     cmd         subvocalize
-     string      =a
    =imaginal>
      result      =a
    =goal>
-     count       "0"
      state       counting
    +retrieval>
-     ISA         sequence
-     identity    =a
-)
+     ISA         letter
+     letter      =a
+   )
+
+(p initialize-counting
+   =goal>
+     isa         goal
+     state       counting
+     count       nil
+   =retrieval>
+     isa         letter
+     letter      =l
+     next        =new
+     vocal-rep   =t
+   ?vocal>
+     state       free
+   ==>
+   +vocal>
+     isa         subvocalize
+     string      =t
+   =goal>
+     next-num    one
+     next-let    =new
+     count       zero
+   +retrieval>
+     isa         letter
+     letter      =new
+   )
+
 
 (P update-result
    =goal>
      ISA         goal
      count       =val
+     next-let    =let
+     next-num    =n
    =imaginal>
      isa         problem
-     result      =let
-   - arg2        =val
+    - arg2       =val
    =retrieval>
-     ISA         sequence
-     identity    =let
+     ISA         letter
+     letter      =let
      next        =new
+     vocal-rep   =txt
    ?vocal>
      state       free
-==>
+   ==>
+   =goal>
+     next-let    =new
    +vocal>
      cmd         subvocalize
-     string      =new
+     string      =txt
    =imaginal>
-     result      =new
+     result      =let
    +retrieval>
-     ISA         sequence
-     identity    =val
-)
+     ISA         number
+     number      =n
+   )
 
 (P update-count
    =goal>
      ISA         goal
-     count       =val
-   =imaginal>
-     isa         problem
-     result      =ans
+     next-let    =let
+     next-num    =n
    =retrieval>
-     ISA         sequence
-     identity    =val
+     ISA         number
+     number      =val
      next        =new
+     vocal-rep   =txt
    ?vocal>
      state       free
 ==>
    +vocal>
      cmd         subvocalize
-     string      =new
-   =imaginal>
+     string      =txt
    =goal>
-     count       =new
+     count       =val
+     next-num    =new
    +retrieval>
-     ISA         sequence
-     identity    =ans
-)
+     ISA         letter
+     letter      =let
+   )
 
 
 (P final-answer-yes
@@ -227,8 +309,7 @@
    +manual>
      cmd         press-key
      key         "k"
-   
-)
+   )
 
 (P final-answer-no
     =goal>
@@ -251,8 +332,7 @@
    +manual>
      cmd         press-key
      key         "d"
-   
-)
+   )
 
 (set-all-base-levels 100000 -1000)
 (goal-focus goal)

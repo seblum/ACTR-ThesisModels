@@ -48,8 +48,8 @@ of the ACT-R source code distribution, but that is provided only for basic refer
 purposes because the operation of the software with this version of ACT-R differs
 significantly from that prior documentation.  
 
-The touch-demo-model.lisp file shows the use of all of the new motor extensions 
-the use of the touch device and the signals that it generates.
+The touch-demo-model.lisp file shows the use of all of the new motor extensions, 
+the use of the touch device, and the signals that it generates.
 
 
 In additon to the motor extensions and the touch device there is also a module 
@@ -139,7 +139,7 @@ be described first.
    5.
 
 
-There are seven new motor actions provided with the ACT-Touch extension.  Those actions can
+There are several new motor actions provided with the ACT-Touch extension.  Those actions can
 be used with any device (or no device) currently installed for the model's hands, but if the
 device does not support the appropriate notifications used then the results may not be very
 useful.  In particular, since the coordinates for these actions are measured in pixels, but
@@ -460,7 +460,7 @@ Devices for touch actions
 
 The actions above indicate the notifications that are sent to the device to specify what
 the model's hands are doing.  In addition to those, there are three notifications which 
-those actions use to a acquire the current positional information from the device to 
+those actions use to acquire the current positional information from the device to 
 calculate the appropriate timing:
 
 (finger-position <hand> <finger>)
@@ -517,7 +517,7 @@ information about finger positions (described below):
 
 The "touch" device is located at position 6,9 in the motor module's coordinates for the hand
 positions (which is below the center of the space bar for the default keyboard device's
-location).  To place the model's hands on the device the modelercan use the start-hand-at-touch
+location).  To place the model's hands on the device the modeler can use the start-hand-at-touch
 command (available as a Lisp function and remote command).
 
 Start-hand-at-touch {hand}

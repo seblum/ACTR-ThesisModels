@@ -2,7 +2,7 @@
 
 (define-model fan
 
-  (sgp :v t :act nil :esc t :lf .63 :mas 1.6 :ga 1.0 :imaginal-activation 1.0) 
+  (sgp :v t :act nil :esc t :lf .63 :mas 1.6 :ga 1.0) 
   (sgp :style-warnings nil)
   
   (chunk-type comprehend-sentence relation arg1 arg2)

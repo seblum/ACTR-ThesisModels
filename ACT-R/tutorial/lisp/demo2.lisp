@@ -28,8 +28,9 @@
     (setf *response* nil) 
     
     (if human
-        (while (null *response*)
-          (process-events))
+        (when (visible-virtuals-available?)
+          (while (null *response*)
+            (process-events)))
       
       (progn
         (install-device window)

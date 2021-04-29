@@ -94,13 +94,7 @@ proc add_agi_handler {cmd fn} {
 
 
 
-set env_handler [new_variable_name "env_vv_handler"]
-
-while {[send_cmd "check" $env_handler] != "null"} {
-  set env_handler [new_variable_name "env_vv_handler"]
-}
-
-add_cmd $env_handler "process_env_window" "Environment command for handling the visible virtual windows. Do not call."
+set env_handler [add_new_cmd "env_vv_handler" "process_env_window" "Environment command for handling the visible virtual windows. Do not call."]
 
 call_act_r_command "add-virtual-window-handler" nil [list $env_handler]
 
@@ -187,9 +181,6 @@ proc process_env_window {model cmd} {
       remove_name_to_window [lindex $cmd 1]
       destroy $win
       set win "" 
-    }
-    clear {
-      $win.can delete line button text
     }
     open {
      

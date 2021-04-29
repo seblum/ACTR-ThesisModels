@@ -245,13 +245,7 @@ proc save_bold_graph_history_data {model} {
 
       set bold_graph_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "bold_graph_record_warnings" "Environment command for capturing warnings during Save BOLD graph trace."
+      set warning_monitor [add_new_cmd warning_monitor "bold_graph_record_warnings" "Environment command for capturing warnings during Save BOLD graph trace."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -335,13 +329,7 @@ proc get_bold_graph_history_data {win model list_box canvas {fname ""}} {
     global bold_graph_history_warnings
     set bold_graph_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "bold_graph_record_warnings" "Environment command for capturing warnings during Load BOLD data."
+    set warning_monitor [add_new_cmd warning_monitor "bold_graph_record_warnings" "Environment command for capturing warnings during Load BOLD data."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -444,6 +432,4 @@ proc get_bold_graph_history_data {win model list_box canvas {fname ""}} {
   }
 }
 
-button [control_panel_name].bold_graph -command make_bold_multi_graphs -text "BOLD graph" -font button_font
-
-pack [control_panel_name].bold_graph
+add_bold_trace_type "graph" make_bold_multi_graphs

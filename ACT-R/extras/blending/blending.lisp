@@ -210,6 +210,18 @@
 ;;; 2018.08.23 Dan
 ;;;             : * Switched print-blending-trace to go to command output since
 ;;;             :   it's a command.
+;;; 2019.04.04 Dan
+;;;             : * Cache the result of chunk-spec-slots in the blending
+;;;             :   request since that's costly don't want to do it twice.
+;;; 2020.01.09 Dan [4.4]
+;;;             : * To make things safer for external access can't use the 
+;;;             :   function object for things like parameter tests or interface
+;;;             :   actions.  So starting to clean that up.
+;;;             : * Hook parameters now also accept (:remove xxx) to remove an
+;;;             :   item and always return the current list of hooks.
+;;; 2020.08.26 Dan
+;;;             : * Removed the path for require-compiled since it's not needed
+;;;             :   and results in warnings in SBCL.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -256,7 +268,7 @@
 
 ;; To be safe since I'm using the goal-style code's create-buffer-chunk function
 
-(require-compiled "GOAL-STYLE-MODULE" "ACT-R-support:goal-style-module")
+(require-compiled "GOAL-STYLE-MODULE")
 
 (suppress-extension-warnings)
 (extend-chunks blended-activation :default-value nil)
@@ -352,33 +364,14 @@
             (:ans (setf (blending-module-ans instance) (cdr param)))
             (:blend-all-slots (setf (blending-module-blend-all instance) (cdr param)))
             (:blending-request-hook 
-             (if (cdr param)
-                 (if (member (cdr param) (blending-module-request-hooks instance))
-                     (print-warning 
-                      "Setting parameter ~s failed because ~s already on the hook."
-                      :blending-request-hook
-                      (cdr param))
-                   (push (cdr param) (blending-module-request-hooks instance)))
-               (setf (blending-module-request-hooks instance) nil)))
+             (setf (blending-module-request-hooks instance) 
+                   (set-or-remove-hook-parameter :blending-request-hook (blending-module-request-hooks instance) (cdr param))))
             (:blending-result-hook 
-             (if (cdr param)
-                 (if (member (cdr param) (blending-module-result-hooks instance))
-                     (print-warning 
-                      "Setting parameter ~s failed because ~s already on the hook."
-                      :blending-result-hook
-                      (cdr param))
-                   (push (cdr param) (blending-module-result-hooks instance)))
-               (setf (blending-module-result-hooks instance) nil)))
+             (setf (blending-module-result-hooks instance) 
+                   (set-or-remove-hook-parameter :blending-result-hook (blending-module-result-hooks instance) (cdr param))))
             (:blending-set-hook 
-             (if (cdr param)
-                 (if (member (cdr param) (blending-module-set-hooks instance))
-                     (print-warning 
-                      "Setting parameter ~s failed because ~s already on the hook."
-                      :blending-set-hook
-                      (cdr param))
-                   (push (cdr param) (blending-module-set-hooks instance)))
-               (setf (blending-module-set-hooks instance) nil))))
-        
+             (setf (blending-module-set-hooks instance) 
+               (set-or-remove-hook-parameter :blending-set-hook (blending-module-set-hooks instance) (cdr param)))))
         (case param
           (:min-bl (blending-module-min-bl instance))
           (:tmp (blending-module-tmp instance))
@@ -467,7 +460,8 @@
                               (return-from start-blending)))
     (let ((ignore nil) 
           (dont-generalize nil)
-          (sblt nil))
+          (sblt nil)
+          (requested-slots (chunk-spec-slots request)))
       (bt:with-recursive-lock-held ((blending-module-lock instance))
         
         ;; set the currently pending request
@@ -479,7 +473,7 @@
           (setf (gethash (mp-time-ms) (blending-module-trace-table instance)) sblt)
           (setf (sblt-trace-request sblt) (printed-chunk-spec request)))
         
-        (when (member :ignore-slots (chunk-spec-slots request))
+        (when (member :ignore-slots requested-slots)
           
           (let ((ignore-slots (chunk-spec-slot-spec request :ignore-slots)))
             (cond ((> (length ignore-slots) 1)
@@ -489,7 +483,7 @@
                   (t 
                    (setf ignore (spec-slot-value (first ignore-slots)))))))
         
-        (when (member :do-not-generalize (chunk-spec-slots request))
+        (when (member :do-not-generalize requested-slots)
           
           (let ((ignore-slots (chunk-spec-slot-spec request :do-not-generalize)))
             (cond ((> (length ignore-slots) 1)
@@ -939,40 +933,40 @@
 
 (define-module-fct 'blending (list (define-buffer blending :request-params (:ignore-slots :do-not-generalize)))                 
   (list                           
-   (define-parameter :blt :valid-test #'tornil 
+   (define-parameter :blt :valid-test 'tornil 
      :default-value nil :warning "T or nil" 
      :documentation "Blending trace")
-   (define-parameter :sblt :valid-test #'tornil 
+   (define-parameter :sblt :valid-test 'tornil 
      :default-value nil :warning "T or nil" 
      :documentation "Save blending trace")
    
-   (define-parameter :min-bl :valid-test #'numornil
+   (define-parameter :min-bl :valid-test 'numornil
      :default-value nil :warning "A number or nil" 
      :documentation "Blending minimum base-level activation required to consider a chunk for blending")
    
-   (define-parameter :tmp :valid-test #'(lambda (x) (or (null x) (plusp x)))
+   (define-parameter :tmp :valid-test 'posnumornil
      :default-value nil :warning "Positive number or nil" 
      :documentation "Blending temperature")
-   (define-parameter :value->mag :valid-test #'(lambda (x) (and x (local-or-remote-function-p x)))
+   (define-parameter :value->mag :valid-test 'local-or-remote-function-p
      :default-value 'identity :warning "function" 
      :documentation "Blending function to map a slot value to a magnitude to be blended")
-   (define-parameter :mag->value :valid-test #'local-or-remote-function-or-nil 
+   (define-parameter :mag->value :valid-test 'local-or-remote-function-or-nil 
      :default-value nil :warning "a function or nil" 
      :documentation "Blending function to map a blended magnitude back into a value for the slot")
-   (define-parameter :blend-all-slots :valid-test #'tornil
+   (define-parameter :blend-all-slots :valid-test 'tornil
      :default-value nil :warning "t or nil" 
      :documentation "Whether the requested slots are also blended")
-   (define-parameter :blending-request-hook :valid-test #'local-or-remote-function-or-nil 
+   (define-parameter :blending-request-hook :valid-test 'local-or-remote-function-or-remove 
           :default-value nil
-          :warning "a function or nil" 
+          :warning "a function, string naming a command, nil, or (:remove <item>)" 
      :documentation "Blending request notification hook")
-   (define-parameter :blending-result-hook :valid-test #'local-or-remote-function-or-nil 
+   (define-parameter :blending-result-hook :valid-test 'local-or-remote-function-or-remove 
           :default-value nil
-          :warning "a function or nil" 
+          :warning "a function, string naming a command, nil, or (:remove <item>)" 
      :documentation "Blended result notification hook")
-   (define-parameter :blending-set-hook :valid-test #'local-or-remote-function-or-nil 
+   (define-parameter :blending-set-hook :valid-test 'local-or-remote-function-or-remove 
           :default-value nil
-          :warning "a function or nil" 
+          :warning "a function, string naming a command, nil, or (:remove <item>)" 
           :documentation "Blended chunk set notification hook")
    (define-parameter :rt :owner nil)
    (define-parameter :esc :owner nil)
@@ -981,7 +975,7 @@
   
   ;; Have to have version and a doc strings
   
-  :version "4.3"
+  :version "4.4"
   :documentation "Module which adds a new buffer to do blended retrievals"
   
   ;; functions to handle the interfacing for the module

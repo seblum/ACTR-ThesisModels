@@ -230,13 +230,7 @@ proc load_buffer_history_data {lb1 lb2 tb1 tb2 tb3 label model data_var} {
 
     set buffer_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "buffer_record_warnings" "Environment command for capturing warnings during Load Buffer History."
+    set warning_monitor [add_new_cmd warning_monitor "buffer_record_warnings" "Environment command for capturing warnings during Load Buffer History."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -294,13 +288,7 @@ proc save_buffer_history_data {model} {
 
       set buffer_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "buffer_record_warnings" "Environment command for capturing warnings during Save Buffer History."
+      set warning_monitor [add_new_cmd warning_monitor "buffer_record_warnings" "Environment command for capturing warnings during Save Buffer History."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 

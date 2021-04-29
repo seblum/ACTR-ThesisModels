@@ -29,10 +29,10 @@ def build_display (a,b,c,goal):
     current_line = None
     window = actr.open_exp_window("Building Sticks Task",visible=visible,width=600,height=400)
 
-    actr.add_button_to_exp_window(window, text="A", x=5, y=23, action=["bst-button-pressed",a,"under"], height=24, width=40)
-    actr.add_button_to_exp_window(window, text="B", x=5, y=48, action=["bst-button-pressed",b,"over"], height=24, width=40)
-    actr.add_button_to_exp_window(window, text="C", x=5, y=73, action=["bst-button-pressed",c,"under"], height=24, width=40)
-    actr.add_button_to_exp_window(window, text="Reset", x=5, y=123, action="bst-reset-button-pressed", height=24, width=65)
+    actr.add_button_to_exp_window(window, text="A", x=5, y=23, action=["bst-ppm-button-pressed",a,"under"], height=24, width=40)
+    actr.add_button_to_exp_window(window, text="B", x=5, y=48, action=["bst-ppm-button-pressed",b,"over"], height=24, width=40)
+    actr.add_button_to_exp_window(window, text="C", x=5, y=73, action=["bst-ppm-button-pressed",c,"under"], height=24, width=40)
+    actr.add_button_to_exp_window(window, text="Reset", x=5, y=123, action="bst-ppm-reset-button-pressed", height=24, width=65)
 
     actr.add_line_to_exp_window(window,[75,35],[a + 75,35],"black")
     actr.add_line_to_exp_window(window,[75,60],[b + 75,60],"black")
@@ -62,8 +62,8 @@ def reset_display():
         update_current_line()
 
 
-actr.add_command("bst-button-pressed",button_pressed,"Choice button action for the Building Sticks Task.  Do not call directly")
-actr.add_command("bst-reset-button-pressed",reset_display,"Reset button action for the Building Sticks Task.  Do not call directly")
+actr.add_command("bst-ppm-button-pressed",button_pressed,"Choice button action for the Building Sticks Task.  Do not call directly")
+actr.add_command("bst-ppm-reset-button-pressed",reset_display,"Reset button action for the Building Sticks Task.  Do not call directly")
 
 
 def update_current_line():
@@ -87,7 +87,8 @@ def do_experiment(sticks, human=False):
     build_display(*sticks)
   
     if human:
-        wait_for_human()
+        if actr.visible_virtuals_available():
+            wait_for_human()
     else:
         actr.install_device(window)
         actr.start_hand_at_mouse()

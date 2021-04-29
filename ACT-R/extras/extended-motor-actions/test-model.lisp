@@ -257,8 +257,8 @@
   (chunk-type goal test param state)
   
   (define-chunks 
-      (loc1 isa visual-location screen-x 10 screen-y 20) 
-      (loc2 isa visual-location screen-x 100 screen-y 40))
+      (loc1 isa visual-location screen-x 10 screen-y 20 distance 1080) 
+      (loc2 isa visual-location screen-x 100 screen-y 40 distance 1080))
   
   (install-device (open-exp-window "" :visible nil :x 0 :y 0))
   
@@ -999,7 +999,7 @@
 
 #|  Runs of all the test models for reference
 
-CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9)) (RUN-TEST X))
+CG-USER(3): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9)) (RUN-TEST X))
 ########################
 "SAME hand 2 processors 2 executions query STATE"
 ########################
@@ -1014,15 +1014,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1033,15 +1033,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY e
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.800   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.850   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   KEYBOARD               output-key TEST-MOTOR e
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.990   KEYBOARD               release-key TEST-MOTOR e
      0.990   PROCEDURAL             CONFLICT-RESOLUTION
-     1.100   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     1.100   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand LEFT
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
      1.100   ------                 Stopped because no events left to process
 ########################
@@ -1058,15 +1058,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1077,15 +1077,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY e
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.800   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.850   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   KEYBOARD               output-key TEST-MOTOR e
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.990   KEYBOARD               release-key TEST-MOTOR e
      0.990   PROCEDURAL             CONFLICT-RESOLUTION
-     1.100   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     1.100   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand LEFT
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
      1.100   ------                 Stopped because no events left to process
 ########################
@@ -1102,15 +1102,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1121,15 +1121,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY e
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.800   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.850   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   KEYBOARD               output-key TEST-MOTOR e
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.990   KEYBOARD               release-key TEST-MOTOR e
      0.990   PROCEDURAL             CONFLICT-RESOLUTION
-     1.100   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     1.100   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand LEFT
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
      1.100   ------                 Stopped because no events left to process
 ########################
@@ -1146,15 +1146,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1165,15 +1165,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY e
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.800   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.850   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand LEFT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   KEYBOARD               output-key TEST-MOTOR e
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.990   KEYBOARD               release-key TEST-MOTOR e
      0.990   PROCEDURAL             CONFLICT-RESOLUTION
-     1.100   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     1.100   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand LEFT
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
      1.100   ------                 Stopped because no events left to process
 ########################
@@ -1190,9 +1190,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1207,17 +1207,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1234,9 +1234,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1251,17 +1251,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1278,9 +1278,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1295,17 +1295,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1322,9 +1322,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1339,17 +1339,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1366,12 +1366,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1382,17 +1382,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.500   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1409,12 +1409,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1425,17 +1425,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.500   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1452,12 +1452,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1468,17 +1468,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.500   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1495,12 +1495,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-SAME
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-SAME
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1511,17 +1511,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.500   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR e
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR e
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1538,15 +1538,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1557,15 +1557,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY i
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      1.000   KEYBOARD               output-key TEST-MOTOR i
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
      1.040   KEYBOARD               release-key TEST-MOTOR i
      1.040   PROCEDURAL             CONFLICT-RESOLUTION
-     1.150   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     1.150   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand RIGHT
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
      1.150   ------                 Stopped because no events left to process
 ########################
@@ -1582,15 +1582,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1601,15 +1601,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY i
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      1.000   KEYBOARD               output-key TEST-MOTOR i
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
      1.040   KEYBOARD               release-key TEST-MOTOR i
      1.040   PROCEDURAL             CONFLICT-RESOLUTION
-     1.150   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     1.150   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand RIGHT
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
      1.150   ------                 Stopped because no events left to process
 ########################
@@ -1626,15 +1626,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1645,15 +1645,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY i
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      1.000   KEYBOARD               output-key TEST-MOTOR i
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
      1.040   KEYBOARD               release-key TEST-MOTOR i
      1.040   PROCEDURAL             CONFLICT-RESOLUTION
-     1.150   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     1.150   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand RIGHT
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
      1.150   ------                 Stopped because no events left to process
 ########################
@@ -1670,15 +1670,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   KEYBOARD               output-key TEST-MOTOR r
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1689,15 +1689,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  PRESS-KEY KEY i
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.65 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      1.000   KEYBOARD               output-key TEST-MOTOR i
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
      1.040   KEYBOARD               release-key TEST-MOTOR i
      1.040   PROCEDURAL             CONFLICT-RESOLUTION
-     1.150   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     1.150   MOTOR                  FINISH-MOVEMENT 0.65 style PECK-RECOIL hand RIGHT
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
      1.150   ------                 Stopped because no events left to process
 ########################
@@ -1714,9 +1714,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1731,16 +1731,16 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
-     0.600   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR i
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR i
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1757,9 +1757,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1774,16 +1774,16 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
-     0.600   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR i
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR i
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1800,9 +1800,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1817,16 +1817,16 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
-     0.600   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR i
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR i
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1843,9 +1843,9 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -1860,16 +1860,16 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
-     0.600   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.4 style PECK-RECOIL hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR i
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR i
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.4 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1886,12 +1886,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1902,16 +1902,16 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
-     0.600   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.700   KEYBOARD               output-key TEST-MOTOR i
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
      0.740   KEYBOARD               release-key TEST-MOTOR i
      0.740   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.850   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.850   ------                 Stopped because no events left to process
 ########################
@@ -1928,12 +1928,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1944,17 +1944,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR i
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR i
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 ########################
@@ -1971,12 +1971,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -1987,16 +1987,16 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
-     0.600   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.700   KEYBOARD               output-key TEST-MOTOR i
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
      0.740   KEYBOARD               release-key TEST-MOTOR i
      0.740   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.850   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.850   ------                 Stopped because no events left to process
 ########################
@@ -2013,12 +2013,12 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  PRESS-KEY KEY r
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST1-SECOND-PRESS-DIFF
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK-RECOIL hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST1-SECOND-PRESS-DIFF
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER GOAL
@@ -2029,17 +2029,17 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR r
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.550   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.05 style PECK-RECOIL hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand RIGHT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   KEYBOARD               output-key TEST-MOTOR i
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.790   KEYBOARD               release-key TEST-MOTOR i
      0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand RIGHT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   ------                 Stopped because no events left to process
 #####
@@ -2413,13 +2413,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  MOVE-CURSOR LOC LOC1
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.250   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.250   MOTOR                  PREPARATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.250   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.300   MOTOR                  INITIATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 NIL)
+     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 1080)
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style CURSOR-PLY hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST2-CLICK
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2430,15 +2430,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  CLICK-MOUSE
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style PUNCH hand RIGHT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.700   MOTOR                  INITIATION-COMPLETE style PUNCH hand RIGHT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
-     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.710   PROCEDURAL             CONFLICT-RESOLUTION
-     0.790   MOUSE                  release-mouse TEST-MOTOR (10 20 NIL) INDEX
-     0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  FINISH-MOVEMENT style PUNCH hand RIGHT
+     0.740   MOUSE                  release-mouse TEST-MOTOR (10 20 1080) INDEX
+     0.740   PROCEDURAL             CONFLICT-RESOLUTION
+     0.800   MOTOR                  FINISH-MOVEMENT 0.5 style PUNCH hand RIGHT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
      0.800   PROCEDURAL             PRODUCTION-SELECTED TEST2-HOLD
      0.800   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2447,13 +2447,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.850   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.850   PROCEDURAL             MODULE-REQUEST MANUAL
      0.850   PROCEDURAL             CLEAR-BUFFER MANUAL
-     0.850   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
-     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.910   PROCEDURAL             CONFLICT-RESOLUTION
-     0.950   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.950   MOTOR                  FINISH-MOVEMENT 0.85 style HOLD-PUNCH hand RIGHT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   PROCEDURAL             PRODUCTION-SELECTED TEST2-MOVE
      0.950   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2464,13 +2464,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.000   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.000   MOTOR                  MOVE-CURSOR LOC LOC2
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.200   MOTOR                  PREPARATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.250   MOTOR                  INITIATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
-     1.493   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 NIL)
+     1.493   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 1080)
      1.493   PROCEDURAL             CONFLICT-RESOLUTION
-     1.543   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     1.543   MOTOR                  FINISH-MOVEMENT 1.0 style CURSOR-PLY hand RIGHT
      1.543   PROCEDURAL             CONFLICT-RESOLUTION
      1.543   PROCEDURAL             PRODUCTION-SELECTED TEST2-RELEASE
      1.543   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2480,13 +2480,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.593   PROCEDURAL             CLEAR-BUFFER GOAL
      1.593   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.593   PROCEDURAL             CONFLICT-RESOLUTION
-     1.743   MOTOR                  PREPARATION-COMPLETE style RELEASE hand RIGHT
+     1.743   MOTOR                  PREPARATION-COMPLETE 1.593 style RELEASE hand RIGHT
      1.743   PROCEDURAL             CONFLICT-RESOLUTION
-     1.793   MOTOR                  INITIATION-COMPLETE style RELEASE hand RIGHT
+     1.793   MOTOR                  INITIATION-COMPLETE 1.593 style RELEASE hand RIGHT
      1.793   PROCEDURAL             CONFLICT-RESOLUTION
-     1.833   MOUSE                  release-mouse TEST-MOTOR (100 40 NIL) INDEX
+     1.833   MOUSE                  release-mouse TEST-MOTOR (100 40 1080) INDEX
      1.833   PROCEDURAL             CONFLICT-RESOLUTION
-     1.843   MOTOR                  FINISH-MOVEMENT style RELEASE hand RIGHT
+     1.843   MOTOR                  FINISH-MOVEMENT 1.593 style RELEASE hand RIGHT
      1.843   PROCEDURAL             CONFLICT-RESOLUTION
      1.843   ------                 Stopped because no events left to process
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL GOAL0 NIL
@@ -2500,13 +2500,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  MOVE-CURSOR LOC LOC1
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.250   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.250   MOTOR                  PREPARATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.250   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.300   MOTOR                  INITIATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 NIL)
+     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 1080)
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style CURSOR-PLY hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST2-CLICK
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2517,15 +2517,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  CLICK-MOUSE
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style PUNCH hand RIGHT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.700   MOTOR                  INITIATION-COMPLETE style PUNCH hand RIGHT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
-     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.710   PROCEDURAL             CONFLICT-RESOLUTION
-     0.790   MOUSE                  release-mouse TEST-MOTOR (10 20 NIL) INDEX
-     0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  FINISH-MOVEMENT style PUNCH hand RIGHT
+     0.740   MOUSE                  release-mouse TEST-MOTOR (10 20 1080) INDEX
+     0.740   PROCEDURAL             CONFLICT-RESOLUTION
+     0.800   MOTOR                  FINISH-MOVEMENT 0.5 style PUNCH hand RIGHT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
      0.800   PROCEDURAL             PRODUCTION-SELECTED TEST2-HOLD
      0.800   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2534,13 +2534,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.850   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.850   PROCEDURAL             MODULE-REQUEST MANUAL
      0.850   PROCEDURAL             CLEAR-BUFFER MANUAL
-     0.850   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
-     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.910   PROCEDURAL             CONFLICT-RESOLUTION
-     0.950   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.950   MOTOR                  FINISH-MOVEMENT 0.85 style HOLD-PUNCH hand RIGHT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   PROCEDURAL             PRODUCTION-SELECTED TEST2-MOVE
      0.950   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2551,13 +2551,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.000   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.000   MOTOR                  MOVE-CURSOR LOC LOC2
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.200   MOTOR                  PREPARATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.250   MOTOR                  INITIATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
-     1.673   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 NIL)
+     1.673   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 1080)
      1.673   PROCEDURAL             CONFLICT-RESOLUTION
-     1.723   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     1.723   MOTOR                  FINISH-MOVEMENT 1.0 style CURSOR-PLY hand RIGHT
      1.723   PROCEDURAL             CONFLICT-RESOLUTION
      1.723   PROCEDURAL             PRODUCTION-SELECTED TEST2-RELEASE
      1.723   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2567,13 +2567,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.773   PROCEDURAL             CLEAR-BUFFER GOAL
      1.773   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.773   PROCEDURAL             CONFLICT-RESOLUTION
-     1.923   MOTOR                  PREPARATION-COMPLETE style RELEASE hand RIGHT
+     1.923   MOTOR                  PREPARATION-COMPLETE 1.773 style RELEASE hand RIGHT
      1.923   PROCEDURAL             CONFLICT-RESOLUTION
-     1.973   MOTOR                  INITIATION-COMPLETE style RELEASE hand RIGHT
+     1.973   MOTOR                  INITIATION-COMPLETE 1.773 style RELEASE hand RIGHT
      1.973   PROCEDURAL             CONFLICT-RESOLUTION
-     2.013   MOUSE                  release-mouse TEST-MOTOR (100 40 NIL) INDEX
+     2.013   MOUSE                  release-mouse TEST-MOTOR (100 40 1080) INDEX
      2.013   PROCEDURAL             CONFLICT-RESOLUTION
-     2.023   MOTOR                  FINISH-MOVEMENT style RELEASE hand RIGHT
+     2.023   MOTOR                  FINISH-MOVEMENT 1.773 style RELEASE hand RIGHT
      2.023   PROCEDURAL             CONFLICT-RESOLUTION
      2.023   ------                 Stopped because no events left to process
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL GOAL0 NIL
@@ -2587,13 +2587,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  MOVE-CURSOR LOC LOC1
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.250   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.250   MOTOR                  PREPARATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.250   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.300   MOTOR                  INITIATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 NIL)
+     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 1080)
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style CURSOR-PLY hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST2-CLICK
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2604,15 +2604,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  CLICK-MOUSE
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style PUNCH hand RIGHT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.700   MOTOR                  INITIATION-COMPLETE style PUNCH hand RIGHT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
-     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.710   PROCEDURAL             CONFLICT-RESOLUTION
-     0.790   MOUSE                  release-mouse TEST-MOTOR (10 20 NIL) INDEX
-     0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  FINISH-MOVEMENT style PUNCH hand RIGHT
+     0.740   MOUSE                  release-mouse TEST-MOTOR (10 20 1080) INDEX
+     0.740   PROCEDURAL             CONFLICT-RESOLUTION
+     0.800   MOTOR                  FINISH-MOVEMENT 0.5 style PUNCH hand RIGHT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
      0.800   PROCEDURAL             PRODUCTION-SELECTED TEST2-HOLD
      0.800   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2621,13 +2621,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.850   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.850   PROCEDURAL             MODULE-REQUEST MANUAL
      0.850   PROCEDURAL             CLEAR-BUFFER MANUAL
-     0.850   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
-     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.910   PROCEDURAL             CONFLICT-RESOLUTION
-     0.950   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.950   MOTOR                  FINISH-MOVEMENT 0.85 style HOLD-PUNCH hand RIGHT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   PROCEDURAL             PRODUCTION-SELECTED TEST2-MOVE
      0.950   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2638,13 +2638,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.000   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.000   MOTOR                  MOVE-CURSOR LOC LOC2
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.200   MOTOR                  PREPARATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.250   MOTOR                  INITIATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
-     1.594   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 NIL)
+     1.594   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 1080)
      1.594   PROCEDURAL             CONFLICT-RESOLUTION
-     1.644   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     1.644   MOTOR                  FINISH-MOVEMENT 1.0 style CURSOR-PLY hand RIGHT
      1.644   PROCEDURAL             CONFLICT-RESOLUTION
      1.644   PROCEDURAL             PRODUCTION-SELECTED TEST2-RELEASE
      1.644   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2654,13 +2654,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.694   PROCEDURAL             CLEAR-BUFFER GOAL
      1.694   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.694   PROCEDURAL             CONFLICT-RESOLUTION
-     1.844   MOTOR                  PREPARATION-COMPLETE style RELEASE hand RIGHT
+     1.844   MOTOR                  PREPARATION-COMPLETE 1.694 style RELEASE hand RIGHT
      1.844   PROCEDURAL             CONFLICT-RESOLUTION
-     1.894   MOTOR                  INITIATION-COMPLETE style RELEASE hand RIGHT
+     1.894   MOTOR                  INITIATION-COMPLETE 1.694 style RELEASE hand RIGHT
      1.894   PROCEDURAL             CONFLICT-RESOLUTION
-     1.934   MOUSE                  release-mouse TEST-MOTOR (100 40 NIL) INDEX
+     1.934   MOUSE                  release-mouse TEST-MOTOR (100 40 1080) INDEX
      1.934   PROCEDURAL             CONFLICT-RESOLUTION
-     1.944   MOTOR                  FINISH-MOVEMENT style RELEASE hand RIGHT
+     1.944   MOTOR                  FINISH-MOVEMENT 1.694 style RELEASE hand RIGHT
      1.944   PROCEDURAL             CONFLICT-RESOLUTION
      1.944   ------                 Stopped because no events left to process
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL GOAL0 NIL
@@ -2674,13 +2674,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  MOVE-CURSOR LOC LOC1
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.250   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.250   MOTOR                  PREPARATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.250   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     0.300   MOTOR                  INITIATION-COMPLETE 0.05 style CURSOR-PLY hand RIGHT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 NIL)
+     0.400   MOUSE                  move-cursor TEST-MOTOR mouse (10 20 1080)
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style CURSOR-PLY hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST2-CLICK
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2691,15 +2691,15 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  CLICK-MOUSE
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style PUNCH hand RIGHT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.700   MOTOR                  INITIATION-COMPLETE style PUNCH hand RIGHT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.5 style PUNCH hand RIGHT
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
-     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.710   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.710   PROCEDURAL             CONFLICT-RESOLUTION
-     0.790   MOUSE                  release-mouse TEST-MOTOR (10 20 NIL) INDEX
-     0.790   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  FINISH-MOVEMENT style PUNCH hand RIGHT
+     0.740   MOUSE                  release-mouse TEST-MOTOR (10 20 1080) INDEX
+     0.740   PROCEDURAL             CONFLICT-RESOLUTION
+     0.800   MOTOR                  FINISH-MOVEMENT 0.5 style PUNCH hand RIGHT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
      0.800   PROCEDURAL             PRODUCTION-SELECTED TEST2-HOLD
      0.800   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2708,13 +2708,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.850   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.850   PROCEDURAL             MODULE-REQUEST MANUAL
      0.850   PROCEDURAL             CLEAR-BUFFER MANUAL
-     0.850   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.85 style HOLD-PUNCH hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
-     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 NIL) INDEX
+     0.910   MOUSE                  click-mouse TEST-MOTOR (10 20 1080) INDEX
      0.910   PROCEDURAL             CONFLICT-RESOLUTION
-     0.950   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.950   MOTOR                  FINISH-MOVEMENT 0.85 style HOLD-PUNCH hand RIGHT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
      0.950   PROCEDURAL             PRODUCTION-SELECTED TEST2-MOVE
      0.950   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2725,13 +2725,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.000   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.000   MOTOR                  MOVE-CURSOR LOC LOC2
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  PREPARATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.200   MOTOR                  PREPARATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  INITIATION-COMPLETE style CURSOR-PLY hand RIGHT
+     1.250   MOTOR                  INITIATION-COMPLETE 1.0 style CURSOR-PLY hand RIGHT
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
-     1.736   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 NIL)
+     1.736   MOUSE                  move-cursor TEST-MOTOR mouse (100 40 1080)
      1.736   PROCEDURAL             CONFLICT-RESOLUTION
-     1.786   MOTOR                  FINISH-MOVEMENT style CURSOR-PLY hand RIGHT
+     1.786   MOTOR                  FINISH-MOVEMENT 1.0 style CURSOR-PLY hand RIGHT
      1.786   PROCEDURAL             CONFLICT-RESOLUTION
      1.786   PROCEDURAL             PRODUCTION-SELECTED TEST2-RELEASE
      1.786   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2741,13 +2741,13 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      1.836   PROCEDURAL             CLEAR-BUFFER GOAL
      1.836   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.836   PROCEDURAL             CONFLICT-RESOLUTION
-     1.986   MOTOR                  PREPARATION-COMPLETE style RELEASE hand RIGHT
+     1.986   MOTOR                  PREPARATION-COMPLETE 1.836 style RELEASE hand RIGHT
      1.986   PROCEDURAL             CONFLICT-RESOLUTION
-     2.036   MOTOR                  INITIATION-COMPLETE style RELEASE hand RIGHT
+     2.036   MOTOR                  INITIATION-COMPLETE 1.836 style RELEASE hand RIGHT
      2.036   PROCEDURAL             CONFLICT-RESOLUTION
-     2.076   MOUSE                  release-mouse TEST-MOTOR (100 40 NIL) INDEX
+     2.076   MOUSE                  release-mouse TEST-MOTOR (100 40 1080) INDEX
      2.076   PROCEDURAL             CONFLICT-RESOLUTION
-     2.086   MOTOR                  FINISH-MOVEMENT style RELEASE hand RIGHT
+     2.086   MOTOR                  FINISH-MOVEMENT 1.836 style RELEASE hand RIGHT
      2.086   PROCEDURAL             CONFLICT-RESOLUTION
      2.086   ------                 Stopped because no events left to process
 #####
@@ -2756,60 +2756,60 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
  PRESSED:
  RELEASED:
  CLICKED:
-     0.710 (10 20 NIL) 
-     0.910 (10 20 NIL) (0.200)
+     0.710 (10 20 1080) 
+     0.910 (10 20 1080) (0.200)
  UNCLICKED:
-     0.790 (10 20 NIL) 
-     1.833 (100 40 NIL) (1.043)
+     0.740 (10 20 1080) 
+     1.833 (100 40 1080) (1.093)
  Held:
  Clicked:
-  (10 20 NIL) (10 20 NIL) 0.080
-  (10 20 NIL) (100 40 NIL) 0.923
+  (10 20 1080) (10 20 1080) 0.030
+  (10 20 1080) (100 40 1080) 0.923
 #####
 "click and hold mouse *cdd* T"
 #####
  PRESSED:
  RELEASED:
  CLICKED:
-     0.710 (10 20 NIL) 
-     0.910 (10 20 NIL) (0.200)
+     0.710 (10 20 1080) 
+     0.910 (10 20 1080) (0.200)
  UNCLICKED:
-     0.790 (10 20 NIL) 
-     2.013 (100 40 NIL) (1.223)
+     0.740 (10 20 1080) 
+     2.013 (100 40 1080) (1.273)
  Held:
  Clicked:
-  (10 20 NIL) (10 20 NIL) 0.080
-  (10 20 NIL) (100 40 NIL) 1.103
+  (10 20 1080) (10 20 1080) 0.030
+  (10 20 1080) (100 40 1080) 1.103
 #####
 "click and hold mouse *cdd* 0.5"
 #####
  PRESSED:
  RELEASED:
  CLICKED:
-     0.710 (10 20 NIL) 
-     0.910 (10 20 NIL) (0.200)
+     0.710 (10 20 1080) 
+     0.910 (10 20 1080) (0.200)
  UNCLICKED:
-     0.790 (10 20 NIL) 
-     1.934 (100 40 NIL) (1.144)
+     0.740 (10 20 1080) 
+     1.934 (100 40 1080) (1.194)
  Held:
  Clicked:
-  (10 20 NIL) (10 20 NIL) 0.080
-  (10 20 NIL) (100 40 NIL) 1.024
+  (10 20 1080) (10 20 1080) 0.030
+  (10 20 1080) (100 40 1080) 1.024
 #####
 "click and hold mouse *cdd* 1.0"
 #####
  PRESSED:
  RELEASED:
  CLICKED:
-     0.710 (10 20 NIL) 
-     0.910 (10 20 NIL) (0.200)
+     0.710 (10 20 1080) 
+     0.910 (10 20 1080) (0.200)
  UNCLICKED:
-     0.790 (10 20 NIL) 
-     2.076 (100 40 NIL) (1.286)
+     0.740 (10 20 1080) 
+     2.076 (100 40 1080) (1.336)
  Held:
  Clicked:
-  (10 20 NIL) (10 20 NIL) 0.080
-  (10 20 NIL) (100 40 NIL) 1.166
+  (10 20 1080) (10 20 1080) 0.030
+  (10 20 1080) (100 40 1080) 1.166
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL GOAL0 NIL
      0.000   PROCEDURAL             CONFLICT-RESOLUTION
      0.000   PROCEDURAL             PRODUCTION-SELECTED TEST3-START
@@ -2820,21 +2820,21 @@ CG-USER(4): (DOLIST (X '(TEST1 TEST2 TEST3 TEST4 TEST5 TEST6 TEST7 TEST8 TEST9))
      0.050   PROCEDURAL             MODULE-REQUEST MANUAL
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style HOLD-PECK hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST3-HOLD-K
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style HOLD-PECK hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST3-HOLD-K
      0.350   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand LEFT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style HOLD-PECK hand LEFT
      0.450   KEYBOARD               output-key TEST-MOTOR shift
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.500   MOTOR                  PREPARATION-COMPLETE 0.35 style HOLD-PUNCH hand RIGHT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
      0.500   ------                 Stopped because time limit reached
 MANUAL-LEFT:
@@ -2887,11 +2887,11 @@ MANUAL-RIGHT:
   thumb  free           : T
   thumb  down           : NIL
 
-     0.550   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.550   MOTOR                  INITIATION-COMPLETE 0.35 style HOLD-PUNCH hand RIGHT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
      0.575   KEYBOARD               output-key TEST-MOTOR k
      0.575   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.600   MOTOR                  FINISH-MOVEMENT 0.35 style HOLD-PUNCH hand RIGHT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.600   PROCEDURAL             PRODUCTION-SELECTED TEST3-TO-MOUSE
      0.600   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2902,15 +2902,15 @@ MANUAL-RIGHT:
      0.650   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.650   MOTOR                  HAND-TO-MOUSE
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  PREPARATION-COMPLETE style HAND-PLY hand RIGHT
+     0.850   MOTOR                  PREPARATION-COMPLETE 0.65 style HAND-PLY hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  INITIATION-COMPLETE style HAND-PLY hand RIGHT
+     0.900   MOTOR                  INITIATION-COMPLETE 0.65 style HAND-PLY hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.925   KEYBOARD               release-key TEST-MOTOR k
      0.925   PROCEDURAL             CONFLICT-RESOLUTION
      1.153   MOTOR                  MOVE-A-HAND RIGHT 21.095022 -0.094951704
      1.153   PROCEDURAL             CONFLICT-RESOLUTION
-     1.203   MOTOR                  FINISH-MOVEMENT style HAND-PLY hand RIGHT
+     1.203   MOTOR                  FINISH-MOVEMENT 0.65 style HAND-PLY hand RIGHT
      1.203   PROCEDURAL             CONFLICT-RESOLUTION
      1.203   PROCEDURAL             PRODUCTION-SELECTED TEST3-HOLD
      1.203   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2971,13 +2971,13 @@ MANUAL-RIGHT:
      1.253   PROCEDURAL             MODULE-REQUEST MANUAL
      1.253   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.253   PROCEDURAL             CONFLICT-RESOLUTION
-     1.403   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     1.403   MOTOR                  PREPARATION-COMPLETE 1.253 style HOLD-PUNCH hand RIGHT
      1.403   PROCEDURAL             CONFLICT-RESOLUTION
-     1.453   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     1.453   MOTOR                  INITIATION-COMPLETE 1.253 style HOLD-PUNCH hand RIGHT
      1.453   PROCEDURAL             CONFLICT-RESOLUTION
-     1.478   MOUSE                  click-mouse TEST-MOTOR (0 0) INDEX
+     1.478   MOUSE                  click-mouse TEST-MOTOR (0 0 1080) INDEX
      1.478   PROCEDURAL             CONFLICT-RESOLUTION
-     1.503   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     1.503   MOTOR                  FINISH-MOVEMENT 1.253 style HOLD-PUNCH hand RIGHT
      1.503   PROCEDURAL             CONFLICT-RESOLUTION
      1.503   PROCEDURAL             PRODUCTION-SELECTED TEST3-KEYS
      1.503   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -2988,15 +2988,15 @@ MANUAL-RIGHT:
      1.553   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.553   MOTOR                  HAND-TO-HOME 
      1.553   PROCEDURAL             CONFLICT-RESOLUTION
-     1.753   MOTOR                  PREPARATION-COMPLETE style HAND-PLY hand RIGHT
+     1.753   MOTOR                  PREPARATION-COMPLETE 1.553 style HAND-PLY hand RIGHT
      1.753   PROCEDURAL             CONFLICT-RESOLUTION
-     1.803   MOTOR                  INITIATION-COMPLETE style HAND-PLY hand RIGHT
+     1.803   MOTOR                  INITIATION-COMPLETE 1.553 style HAND-PLY hand RIGHT
      1.803   PROCEDURAL             CONFLICT-RESOLUTION
-     1.828   MOUSE                  release-mouse TEST-MOTOR (0 0) INDEX
+     1.828   MOUSE                  release-mouse TEST-MOTOR (0 0 1080) INDEX
      1.828   PROCEDURAL             CONFLICT-RESOLUTION
      2.056   MOTOR                  MOVE-A-HAND RIGHT 21.095022 3.0466409
      2.056   PROCEDURAL             CONFLICT-RESOLUTION
-     2.106   MOTOR                  FINISH-MOVEMENT style HAND-PLY hand RIGHT
+     2.106   MOTOR                  FINISH-MOVEMENT 1.553 style HAND-PLY hand RIGHT
      2.106   PROCEDURAL             CONFLICT-RESOLUTION
      2.106   ------                 Stopped because no events left to process
 #####
@@ -3008,14 +3008,14 @@ MANUAL-RIGHT:
  RELEASED:
      0.925 "k"        
  CLICKED:
-     1.478 (0 0)      
+     1.478 (0 0 1080) 
  UNCLICKED:
-     1.828 (0 0)      
+     1.828 (0 0 1080) 
  Held:
   "shift"    
   "k"        0.350
  Clicked:
-  (0 0)      (0 0)      0.350
+  (0 0 1080) (0 0 1080) 0.350
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL GOAL0 NIL
      0.000   PROCEDURAL             CONFLICT-RESOLUTION
      0.000   PROCEDURAL             PRODUCTION-SELECTED TEST4
@@ -3026,18 +3026,18 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             MODULE-REQUEST MANUAL
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style PECK hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style PECK hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST4-1
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style PECK hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style PECK hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST4-1
      0.350   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
-     0.400   MOTOR                  PREPARATION-COMPLETE style PECK hand LEFT
+     0.400   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK hand LEFT
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
      0.400   PROCEDURAL             PRODUCTION-SELECTED TEST4-2
      0.400   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3050,20 +3050,20 @@ MANUAL-RIGHT:
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.490   KEYBOARD               release-key TEST-MOTOR t
      0.490   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  FINISH-MOVEMENT style PECK hand LEFT
+     0.500   MOTOR                  FINISH-MOVEMENT 0.05 style PECK hand LEFT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.550   MOTOR                  INITIATION-COMPLETE style PECK hand LEFT
+     0.550   MOTOR                  INITIATION-COMPLETE 0.35 style PECK hand LEFT
      0.550   PROCEDURAL             CONFLICT-RESOLUTION
      0.627   KEYBOARD               output-key TEST-MOTOR r
      0.627   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style PECK hand RIGHT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.45 style PECK hand RIGHT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.650   PROCEDURAL             PRODUCTION-SELECTED TEST4-3
      0.650   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.650   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
      0.690   KEYBOARD               release-key TEST-MOTOR r
-     0.700   MOTOR                  FINISH-MOVEMENT style PECK hand LEFT
-     0.700   MOTOR                  INITIATION-COMPLETE style PECK hand RIGHT
+     0.700   MOTOR                  FINISH-MOVEMENT 0.35 style PECK hand LEFT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.45 style PECK hand RIGHT
      0.700   PROCEDURAL             PRODUCTION-FIRED TEST4-3
      0.700   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.700   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -3073,14 +3073,14 @@ MANUAL-RIGHT:
      0.777   PROCEDURAL             CONFLICT-RESOLUTION
      0.840   KEYBOARD               release-key TEST-MOTOR i
      0.840   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  FINISH-MOVEMENT style PECK hand RIGHT
+     0.850   MOTOR                  FINISH-MOVEMENT 0.45 style PECK hand RIGHT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  PREPARATION-COMPLETE style PECK hand LEFT
+     0.900   MOTOR                  PREPARATION-COMPLETE 0.7 style PECK hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   PROCEDURAL             PRODUCTION-SELECTED TEST4-4
      0.900   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.900   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.950   MOTOR                  INITIATION-COMPLETE style PECK hand LEFT
+     0.950   MOTOR                  INITIATION-COMPLETE 0.7 style PECK hand LEFT
      0.950   PROCEDURAL             PRODUCTION-FIRED TEST4-4
      0.950   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.950   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -3090,14 +3090,14 @@ MANUAL-RIGHT:
      1.027   PROCEDURAL             CONFLICT-RESOLUTION
      1.090   KEYBOARD               release-key TEST-MOTOR f
      1.090   PROCEDURAL             CONFLICT-RESOLUTION
-     1.100   MOTOR                  FINISH-MOVEMENT style PECK hand LEFT
+     1.100   MOTOR                  FINISH-MOVEMENT 0.7 style PECK hand LEFT
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
-     1.150   MOTOR                  PREPARATION-COMPLETE style PECK hand RIGHT
+     1.150   MOTOR                  PREPARATION-COMPLETE 0.95 style PECK hand RIGHT
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
      1.150   PROCEDURAL             PRODUCTION-SELECTED TEST4-5
      1.150   PROCEDURAL             BUFFER-READ-ACTION GOAL
      1.150   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     1.200   MOTOR                  INITIATION-COMPLETE style PECK hand RIGHT
+     1.200   MOTOR                  INITIATION-COMPLETE 0.95 style PECK hand RIGHT
      1.200   PROCEDURAL             PRODUCTION-FIRED TEST4-5
      1.200   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      1.200   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -3107,14 +3107,14 @@ MANUAL-RIGHT:
      1.282   PROCEDURAL             CONFLICT-RESOLUTION
      1.340   KEYBOARD               release-key TEST-MOTOR n
      1.340   PROCEDURAL             CONFLICT-RESOLUTION
-     1.350   MOTOR                  FINISH-MOVEMENT style PECK hand RIGHT
+     1.350   MOTOR                  FINISH-MOVEMENT 0.95 style PECK hand RIGHT
      1.350   PROCEDURAL             CONFLICT-RESOLUTION
-     1.400   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand LEFT
+     1.400   MOTOR                  PREPARATION-COMPLETE 1.2 style HOLD-PECK hand LEFT
      1.400   PROCEDURAL             CONFLICT-RESOLUTION
      1.400   PROCEDURAL             PRODUCTION-SELECTED TEST4-6
      1.400   PROCEDURAL             BUFFER-READ-ACTION GOAL
      1.400   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     1.450   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand LEFT
+     1.450   MOTOR                  INITIATION-COMPLETE 1.2 style HOLD-PECK hand LEFT
      1.450   PROCEDURAL             PRODUCTION-FIRED TEST4-6
      1.450   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      1.450   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -3122,13 +3122,14 @@ MANUAL-RIGHT:
      1.450   PROCEDURAL             CONFLICT-RESOLUTION
      1.527   KEYBOARD               output-key TEST-MOTOR x
      1.527   PROCEDURAL             CONFLICT-RESOLUTION
-     1.550   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand LEFT
+     1.550   MOTOR                  FINISH-MOVEMENT 1.2 style HOLD-PECK hand LEFT
      1.550   PROCEDURAL             CONFLICT-RESOLUTION
-     1.650   MOTOR                  PREPARATION-COMPLETE style POINT-FINGER hand RIGHT
+     1.650   MOTOR                  PREPARATION-COMPLETE 1.45 style POINT-FINGER hand RIGHT
      1.650   PROCEDURAL             CONFLICT-RESOLUTION
-     1.700   MOTOR                  INITIATION-COMPLETE style POINT-FINGER hand RIGHT
+     1.700   MOTOR                  INITIATION-COMPLETE 1.45 style POINT-FINGER hand RIGHT
      1.700   PROCEDURAL             CONFLICT-RESOLUTION
-     1.800   MOTOR                  FINISH-MOVEMENT style POINT-FINGER hand RIGHT
+     1.750   PROCEDURAL             CONFLICT-RESOLUTION
+     1.800   MOTOR                  FINISH-MOVEMENT 1.45 style POINT-FINGER hand RIGHT
      1.800   PROCEDURAL             CONFLICT-RESOLUTION
      1.800   PROCEDURAL             PRODUCTION-SELECTED TEST4-7
 (P TEST4-7
@@ -3210,13 +3211,16 @@ MANUAL-RIGHT:
      1.850   PROCEDURAL             CLEAR-BUFFER GOAL
      1.850   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.850   PROCEDURAL             CONFLICT-RESOLUTION
-     1.950   MOTOR                  PREPARATION-COMPLETE style ALL-HOME hand BOTH
+     1.950   MOTOR                  PREPARATION-COMPLETE 1.85 style ALL-FINGERS-TO-HOME hand BOTH
      1.950   PROCEDURAL             CONFLICT-RESOLUTION
-     2.000   MOTOR                  INITIATION-COMPLETE style ALL-HOME hand BOTH
+     2.000   MOTOR                  INITIATION-COMPLETE 1.85 style ALL-FINGERS-TO-HOME hand BOTH
      2.000   PROCEDURAL             CONFLICT-RESOLUTION
      2.040   KEYBOARD               release-key TEST-MOTOR x
      2.040   PROCEDURAL             CONFLICT-RESOLUTION
-     2.200   MOTOR                  FINISH-MOVEMENT style ALL-HOME hand BOTH
+     2.150   MOTOR                  ALL-FINGERS-TO-HOME LEFT
+     2.150   MOTOR                  ALL-FINGERS-TO-HOME RIGHT
+     2.150   PROCEDURAL             CONFLICT-RESOLUTION
+     2.200   MOTOR                  FINISH-MOVEMENT 1.85 style ALL-FINGERS-TO-HOME hand BOTH
      2.200   PROCEDURAL             CONFLICT-RESOLUTION
      2.200   ------                 Stopped because no events left to process
 MANUAL-LEFT:
@@ -3232,7 +3236,7 @@ MANUAL-LEFT:
   processor busy        : NIL
   execution free        : T
   execution busy        : NIL
-  last-command          : ALL-HOME
+  last-command          : ALL-FINGERS-TO-HOME
   index  free           : T
   index  down           : NIL
   middle free           : T
@@ -3257,7 +3261,7 @@ MANUAL-RIGHT:
   processor busy        : NIL
   execution free        : T
   execution busy        : NIL
-  last-command          : ALL-HOME
+  last-command          : ALL-FINGERS-TO-HOME
   index  free           : T
   index  down           : NIL
   middle free           : T
@@ -3316,11 +3320,12 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             MODULE-REQUEST MANUAL
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style POINT-FINGER hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style POINT-FINGER hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  INITIATION-COMPLETE style POINT-FINGER hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style POINT-FINGER hand LEFT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style POINT-FINGER hand LEFT
+     0.400   PROCEDURAL             CONFLICT-RESOLUTION
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style POINT-FINGER hand LEFT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST5-1
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3331,13 +3336,13 @@ MANUAL-RIGHT:
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  HOLD-PUNCH HAND LEFT FINGER RING
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand LEFT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.5 style HOLD-PUNCH hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
-     0.700   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand LEFT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.5 style HOLD-PUNCH hand LEFT
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
      0.710   KEYBOARD               output-key TEST-MOTOR w
      0.710   PROCEDURAL             CONFLICT-RESOLUTION
-     0.750   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand LEFT
+     0.750   MOTOR                  FINISH-MOVEMENT 0.5 style HOLD-PUNCH hand LEFT
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
      0.750   PROCEDURAL             PRODUCTION-SELECTED TEST5-2
      0.750   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3346,13 +3351,13 @@ MANUAL-RIGHT:
      0.800   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.800   PROCEDURAL             MODULE-REQUEST MANUAL
      0.800   PROCEDURAL             CLEAR-BUFFER MANUAL
-     0.800   MOTOR                  PREPARATION-COMPLETE style RELEASE hand LEFT
+     0.800   MOTOR                  PREPARATION-COMPLETE 0.8 style RELEASE hand LEFT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.850   MOTOR                  INITIATION-COMPLETE style RELEASE hand LEFT
+     0.850   MOTOR                  INITIATION-COMPLETE 0.8 style RELEASE hand LEFT
      0.850   PROCEDURAL             CONFLICT-RESOLUTION
      0.890   KEYBOARD               release-key TEST-MOTOR w
      0.890   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style RELEASE hand LEFT
+     0.900   MOTOR                  FINISH-MOVEMENT 0.8 style RELEASE hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   PROCEDURAL             PRODUCTION-SELECTED TEST5-3
      0.900   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3361,15 +3366,15 @@ MANUAL-RIGHT:
      0.950   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.950   PROCEDURAL             MODULE-REQUEST MANUAL
      0.950   PROCEDURAL             CLEAR-BUFFER MANUAL
-     0.950   MOTOR                  PREPARATION-COMPLETE style PUNCH hand LEFT
+     0.950   MOTOR                  PREPARATION-COMPLETE 0.95 style PUNCH hand LEFT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
-     1.000   MOTOR                  INITIATION-COMPLETE style PUNCH hand LEFT
+     1.000   MOTOR                  INITIATION-COMPLETE 0.95 style PUNCH hand LEFT
      1.000   PROCEDURAL             CONFLICT-RESOLUTION
      1.010   KEYBOARD               output-key TEST-MOTOR w
      1.010   PROCEDURAL             CONFLICT-RESOLUTION
-     1.090   KEYBOARD               release-key TEST-MOTOR w
-     1.090   PROCEDURAL             CONFLICT-RESOLUTION
-     1.100   MOTOR                  FINISH-MOVEMENT style PUNCH hand LEFT
+     1.040   KEYBOARD               release-key TEST-MOTOR w
+     1.040   PROCEDURAL             CONFLICT-RESOLUTION
+     1.100   MOTOR                  FINISH-MOVEMENT 0.95 style PUNCH hand LEFT
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
      1.100   PROCEDURAL             PRODUCTION-SELECTED TEST5-4
      1.100   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3378,13 +3383,13 @@ MANUAL-RIGHT:
      1.150   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      1.150   PROCEDURAL             MODULE-REQUEST MANUAL
      1.150   PROCEDURAL             CLEAR-BUFFER MANUAL
-     1.150   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand LEFT
+     1.150   MOTOR                  PREPARATION-COMPLETE 1.15 style HOLD-PUNCH hand LEFT
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand LEFT
+     1.200   MOTOR                  INITIATION-COMPLETE 1.15 style HOLD-PUNCH hand LEFT
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
      1.210   KEYBOARD               output-key TEST-MOTOR w
      1.210   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand LEFT
+     1.250   MOTOR                  FINISH-MOVEMENT 1.15 style HOLD-PUNCH hand LEFT
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
      1.250   PROCEDURAL             PRODUCTION-SELECTED TEST5-5
 (P TEST5-5
@@ -3468,13 +3473,13 @@ MANUAL-RIGHT:
      1.300   PROCEDURAL             MODULE-REQUEST MANUAL
      1.300   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.300   PROCEDURAL             CONFLICT-RESOLUTION
-     1.550   MOTOR                  PREPARATION-COMPLETE style RELEASE-RECOIL hand LEFT
+     1.550   MOTOR                  PREPARATION-COMPLETE 1.3 style RELEASE-RECOIL hand LEFT
      1.550   PROCEDURAL             CONFLICT-RESOLUTION
-     1.600   MOTOR                  INITIATION-COMPLETE style RELEASE-RECOIL hand LEFT
+     1.600   MOTOR                  INITIATION-COMPLETE 1.3 style RELEASE-RECOIL hand LEFT
      1.600   PROCEDURAL             CONFLICT-RESOLUTION
      1.640   KEYBOARD               release-key TEST-MOTOR w
      1.640   PROCEDURAL             CONFLICT-RESOLUTION
-     1.750   MOTOR                  FINISH-MOVEMENT style RELEASE-RECOIL hand LEFT
+     1.750   MOTOR                  FINISH-MOVEMENT 1.3 style RELEASE-RECOIL hand LEFT
      1.750   PROCEDURAL             CONFLICT-RESOLUTION
      1.750   PROCEDURAL             PRODUCTION-SELECTED TEST5-6
      1.750   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3484,11 +3489,12 @@ MANUAL-RIGHT:
      1.800   PROCEDURAL             MODULE-REQUEST MANUAL
      1.800   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.800   PROCEDURAL             CONFLICT-RESOLUTION
-     1.950   MOTOR                  PREPARATION-COMPLETE style POINT-FINGER hand LEFT
+     1.950   MOTOR                  PREPARATION-COMPLETE 1.8 style POINT-FINGER hand LEFT
      1.950   PROCEDURAL             CONFLICT-RESOLUTION
-     2.000   MOTOR                  INITIATION-COMPLETE style POINT-FINGER hand LEFT
+     2.000   MOTOR                  INITIATION-COMPLETE 1.8 style POINT-FINGER hand LEFT
      2.000   PROCEDURAL             CONFLICT-RESOLUTION
-     2.100   MOTOR                  FINISH-MOVEMENT style POINT-FINGER hand LEFT
+     2.050   PROCEDURAL             CONFLICT-RESOLUTION
+     2.100   MOTOR                  FINISH-MOVEMENT 1.8 style POINT-FINGER hand LEFT
      2.100   PROCEDURAL             CONFLICT-RESOLUTION
      2.100   PROCEDURAL             PRODUCTION-SELECTED TEST5-7
      2.100   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3498,13 +3504,13 @@ MANUAL-RIGHT:
      2.150   PROCEDURAL             MODULE-REQUEST MANUAL
      2.150   PROCEDURAL             CLEAR-BUFFER MANUAL
      2.150   PROCEDURAL             CONFLICT-RESOLUTION
-     2.300   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand LEFT
+     2.300   MOTOR                  PREPARATION-COMPLETE 2.15 style HOLD-PUNCH hand LEFT
      2.300   PROCEDURAL             CONFLICT-RESOLUTION
-     2.350   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand LEFT
+     2.350   MOTOR                  INITIATION-COMPLETE 2.15 style HOLD-PUNCH hand LEFT
      2.350   PROCEDURAL             CONFLICT-RESOLUTION
      2.360   KEYBOARD               output-key TEST-MOTOR g
      2.360   PROCEDURAL             CONFLICT-RESOLUTION
-     2.400   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand LEFT
+     2.400   MOTOR                  FINISH-MOVEMENT 2.15 style HOLD-PUNCH hand LEFT
      2.400   PROCEDURAL             CONFLICT-RESOLUTION
      2.400   PROCEDURAL             PRODUCTION-SELECTED TEST5-8
      2.400   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3515,7 +3521,7 @@ MANUAL-RIGHT:
      2.450   PROCEDURAL             CLEAR-BUFFER MANUAL
      2.450   MOTOR                  PREPARE HAND-PLY HAND RIGHT R 1 THETA 3.14
      2.450   PROCEDURAL             CONFLICT-RESOLUTION
-     2.650   MOTOR                  PREPARATION-COMPLETE style HAND-PLY hand RIGHT
+     2.650   MOTOR                  PREPARATION-COMPLETE 2.45 style HAND-PLY hand RIGHT
      2.650   PROCEDURAL             CONFLICT-RESOLUTION
      2.650   PROCEDURAL             PRODUCTION-SELECTED TEST5-9
 (P TEST5-9
@@ -3599,11 +3605,11 @@ MANUAL-RIGHT:
      2.700   PROCEDURAL             CLEAR-BUFFER MANUAL
      2.700   MOTOR                  EXECUTE
      2.700   PROCEDURAL             CONFLICT-RESOLUTION
-     2.750   MOTOR                  INITIATION-COMPLETE style HAND-PLY hand RIGHT
+     2.750   MOTOR                  INITIATION-COMPLETE 2.45 style HAND-PLY hand RIGHT
      2.750   PROCEDURAL             CONFLICT-RESOLUTION
      2.850   MOTOR                  MOVE-A-HAND RIGHT 1 3.14
      2.850   PROCEDURAL             CONFLICT-RESOLUTION
-     2.900   MOTOR                  FINISH-MOVEMENT style HAND-PLY hand RIGHT
+     2.900   MOTOR                  FINISH-MOVEMENT 2.45 style HAND-PLY hand RIGHT
      2.900   PROCEDURAL             CONFLICT-RESOLUTION
      2.900   PROCEDURAL             PRODUCTION-SELECTED TEST5-10
      2.900   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3614,13 +3620,13 @@ MANUAL-RIGHT:
      2.950   PROCEDURAL             CLEAR-BUFFER MANUAL
      2.950   MOTOR                  POINT-HAND-AT-KEY HAND RIGHT TO-KEY y
      2.950   PROCEDURAL             CONFLICT-RESOLUTION
-     3.000   MOTOR                  PREPARATION-COMPLETE style HAND-PLY hand RIGHT
+     3.000   MOTOR                  PREPARATION-COMPLETE 2.95 style HAND-PLY hand RIGHT
      3.000   PROCEDURAL             CONFLICT-RESOLUTION
-     3.050   MOTOR                  INITIATION-COMPLETE style HAND-PLY hand RIGHT
+     3.050   MOTOR                  INITIATION-COMPLETE 2.95 style HAND-PLY hand RIGHT
      3.050   PROCEDURAL             CONFLICT-RESOLUTION
      3.150   MOTOR                  MOVE-A-HAND RIGHT 1.0 -1.5707964
      3.150   PROCEDURAL             CONFLICT-RESOLUTION
-     3.200   MOTOR                  FINISH-MOVEMENT style HAND-PLY hand RIGHT
+     3.200   MOTOR                  FINISH-MOVEMENT 2.95 style HAND-PLY hand RIGHT
      3.200   PROCEDURAL             CONFLICT-RESOLUTION
      3.200   PROCEDURAL             PRODUCTION-SELECTED TEST5-11
 (P TEST5-11
@@ -3704,11 +3710,11 @@ MANUAL-RIGHT:
      3.250   PROCEDURAL             MODULE-REQUEST MANUAL
      3.250   PROCEDURAL             CLEAR-BUFFER MANUAL
      3.250   PROCEDURAL             CONFLICT-RESOLUTION
-     3.500   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand RIGHT
+     3.500   MOTOR                  PREPARATION-COMPLETE 3.25 style HOLD-PECK hand RIGHT
      3.500   PROCEDURAL             CONFLICT-RESOLUTION
-     3.550   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand RIGHT
+     3.550   MOTOR                  INITIATION-COMPLETE 3.25 style HOLD-PECK hand RIGHT
      3.550   PROCEDURAL             CONFLICT-RESOLUTION
-     3.650   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand RIGHT
+     3.650   MOTOR                  FINISH-MOVEMENT 3.25 style HOLD-PECK hand RIGHT
      3.650   KEYBOARD               output-key TEST-MOTOR k
      3.650   PROCEDURAL             CONFLICT-RESOLUTION
      3.650   PROCEDURAL             PRODUCTION-SELECTED TEST5-12
@@ -3792,13 +3798,15 @@ MANUAL-RIGHT:
      3.700   PROCEDURAL             CLEAR-BUFFER GOAL
      3.700   PROCEDURAL             CLEAR-BUFFER MANUAL
      3.700   PROCEDURAL             CONFLICT-RESOLUTION
-     3.800   MOTOR                  PREPARATION-COMPLETE style ALL-HOME hand RIGHT
+     3.800   MOTOR                  PREPARATION-COMPLETE 3.7 style ALL-FINGERS-TO-HOME hand RIGHT
      3.800   PROCEDURAL             CONFLICT-RESOLUTION
-     3.850   MOTOR                  INITIATION-COMPLETE style ALL-HOME hand RIGHT
+     3.850   MOTOR                  INITIATION-COMPLETE 3.7 style ALL-FINGERS-TO-HOME hand RIGHT
      3.850   PROCEDURAL             CONFLICT-RESOLUTION
      3.890   KEYBOARD               release-key TEST-MOTOR k
      3.890   PROCEDURAL             CONFLICT-RESOLUTION
-     4.050   MOTOR                  FINISH-MOVEMENT style ALL-HOME hand RIGHT
+     4.000   MOTOR                  ALL-FINGERS-TO-HOME RIGHT
+     4.000   PROCEDURAL             CONFLICT-RESOLUTION
+     4.050   MOTOR                  FINISH-MOVEMENT 3.7 style ALL-FINGERS-TO-HOME hand RIGHT
      4.050   PROCEDURAL             CONFLICT-RESOLUTION
      4.050   ------                 Stopped because no events left to process
 MANUAL-LEFT:
@@ -3839,7 +3847,7 @@ MANUAL-RIGHT:
   processor busy        : NIL
   execution free        : T
   execution busy        : NIL
-  last-command          : ALL-HOME
+  last-command          : ALL-FINGERS-TO-HOME
   index  free           : T
   index  down           : NIL
   middle free           : T
@@ -3873,14 +3881,14 @@ MANUAL-RIGHT:
      3.650 "k"        (1.290)
  RELEASED:
      0.890 "w"        
-     1.090 "w"        (0.200)
-     1.640 "w"        (0.550)
+     1.040 "w"        (0.150)
+     1.640 "w"        (0.600)
      3.890 "k"        (2.250)
  CLICKED:
  UNCLICKED:
  Held:
   "w"        0.180
-  "w"        0.080
+  "w"        0.030
   "w"        0.430
   "g"        
   "k"        0.240
@@ -3895,44 +3903,44 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             MODULE-REQUEST MANUAL
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  PREPARATION-COMPLETE style POINT-FINGER hand LEFT
+     0.300   MOTOR                  PREPARATION-COMPLETE 0.05 style POINT-FINGER hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
      0.300   PROCEDURAL             PRODUCTION-SELECTED TEST6-1
      0.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.350   MOTOR                  INITIATION-COMPLETE style POINT-FINGER hand LEFT
+     0.350   MOTOR                  INITIATION-COMPLETE 0.05 style POINT-FINGER hand LEFT
      0.350   PROCEDURAL             PRODUCTION-FIRED TEST6-1
      0.350   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.350   PROCEDURAL             MODULE-REQUEST MANUAL
      0.350   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
-     0.400   MOTOR                  PREPARATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.400   MOTOR                  PREPARATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
      0.400   PROCEDURAL             PRODUCTION-SELECTED TEST6-2
      0.400   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.400   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.450   MOTOR                  FINISH-MOVEMENT style POINT-FINGER hand LEFT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.05 style POINT-FINGER hand LEFT
      0.450   PROCEDURAL             PRODUCTION-FIRED TEST6-2
      0.450   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.450   PROCEDURAL             MODULE-REQUEST MANUAL
      0.450   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
-     0.500   MOTOR                  INITIATION-COMPLETE style PECK-RECOIL hand LEFT
+     0.500   MOTOR                  INITIATION-COMPLETE 0.35 style PECK-RECOIL hand LEFT
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  PREPARATION-COMPLETE style PUNCH hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.45 style PUNCH hand LEFT
      0.600   KEYBOARD               output-key TEST-MOTOR r
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.640   KEYBOARD               release-key TEST-MOTOR r
      0.640   PROCEDURAL             CONFLICT-RESOLUTION
-     0.750   MOTOR                  FINISH-MOVEMENT style PECK-RECOIL hand LEFT
+     0.750   MOTOR                  FINISH-MOVEMENT 0.35 style PECK-RECOIL hand LEFT
      0.750   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  INITIATION-COMPLETE style PUNCH hand LEFT
+     0.800   MOTOR                  INITIATION-COMPLETE 0.45 style PUNCH hand LEFT
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
      0.810   KEYBOARD               output-key TEST-MOTOR t
      0.810   PROCEDURAL             CONFLICT-RESOLUTION
-     0.890   KEYBOARD               release-key TEST-MOTOR t
-     0.890   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  FINISH-MOVEMENT style PUNCH hand LEFT
+     0.840   KEYBOARD               release-key TEST-MOTOR t
+     0.840   PROCEDURAL             CONFLICT-RESOLUTION
+     0.900   MOTOR                  FINISH-MOVEMENT 0.45 style PUNCH hand LEFT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
      0.900   PROCEDURAL             PRODUCTION-SELECTED TEST6-3
      0.900   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -3943,11 +3951,12 @@ MANUAL-RIGHT:
      0.950   PROCEDURAL             CLEAR-BUFFER GOAL
      0.950   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  PREPARATION-COMPLETE style POINT-FINGER hand LEFT
+     1.200   MOTOR                  PREPARATION-COMPLETE 0.95 style POINT-FINGER hand LEFT
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  INITIATION-COMPLETE style POINT-FINGER hand LEFT
+     1.250   MOTOR                  INITIATION-COMPLETE 0.95 style POINT-FINGER hand LEFT
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
-     1.350   MOTOR                  FINISH-MOVEMENT style POINT-FINGER hand LEFT
+     1.300   PROCEDURAL             CONFLICT-RESOLUTION
+     1.350   MOTOR                  FINISH-MOVEMENT 0.95 style POINT-FINGER hand LEFT
      1.350   PROCEDURAL             CONFLICT-RESOLUTION
      1.350   ------                 Stopped because no events left to process
 MANUAL-LEFT:
@@ -4018,12 +4027,12 @@ MANUAL-RIGHT:
      0.810 "t"        (0.210)
  RELEASED:
      0.640 "r"        
-     0.890 "t"        (0.250)
+     0.840 "t"        (0.200)
  CLICKED:
  UNCLICKED:
  Held:
   "r"        0.040
-  "t"        0.080
+  "t"        0.030
  Clicked:
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL CHUNK0 NIL
      0.000   PROCEDURAL             CONFLICT-RESOLUTION
@@ -4036,12 +4045,12 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  DELAYED-PUNCH HAND LEFT FINGER INDEX DELAY 0.075
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.200   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.200   MOTOR                  PREPARATION-COMPLETE 0.05 style DELAYED-PUNCH hand LEFT
      0.200   PROCEDURAL             CONFLICT-RESOLUTION
      0.200   PROCEDURAL             PRODUCTION-SELECTED TEST7-1
      0.200   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.200   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.250   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.250   MOTOR                  INITIATION-COMPLETE 0.05 style DELAYED-PUNCH hand LEFT
      0.250   PROCEDURAL             PRODUCTION-FIRED TEST7-1
      0.250   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.250   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4052,13 +4061,13 @@ MANUAL-RIGHT:
      0.260   PROCEDURAL             CONFLICT-RESOLUTION
      0.335   KEYBOARD               release-key TEST-MOTOR f
      0.335   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.350   MOTOR                  PREPARATION-COMPLETE 0.25 style DELAYED-PUNCH hand RIGHT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST7-2
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.350   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.385   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand LEFT
-     0.400   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.385   MOTOR                  FINISH-MOVEMENT 0.05 style DELAYED-PUNCH hand LEFT
+     0.400   MOTOR                  INITIATION-COMPLETE 0.25 style DELAYED-PUNCH hand RIGHT
      0.400   PROCEDURAL             PRODUCTION-FIRED TEST7-2
      0.400   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.400   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4067,7 +4076,7 @@ MANUAL-RIGHT:
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
      0.410   KEYBOARD               output-key TEST-MOTOR j
      0.410   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.450   MOTOR                  PREPARATION-COMPLETE 0.4 style DELAYED-PUNCH hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST7-3
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
@@ -4079,25 +4088,25 @@ MANUAL-RIGHT:
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  DELAYED-PUNCH HAND LEFT FINGER RING DELAY 0.22
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.510   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand RIGHT
+     0.510   MOTOR                  FINISH-MOVEMENT 0.25 style DELAYED-PUNCH hand RIGHT
      0.510   PROCEDURAL             CONFLICT-RESOLUTION
-     0.560   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.560   MOTOR                  INITIATION-COMPLETE 0.4 style DELAYED-PUNCH hand RIGHT
      0.560   PROCEDURAL             CONFLICT-RESOLUTION
      0.570   KEYBOARD               output-key TEST-MOTOR k
      0.570   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.5 style DELAYED-PUNCH hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.5 style DELAYED-PUNCH hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.660   KEYBOARD               output-key TEST-MOTOR s
      0.660   PROCEDURAL             CONFLICT-RESOLUTION
      0.670   KEYBOARD               release-key TEST-MOTOR k
      0.670   PROCEDURAL             CONFLICT-RESOLUTION
-     0.720   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand RIGHT
+     0.720   MOTOR                  FINISH-MOVEMENT 0.4 style DELAYED-PUNCH hand RIGHT
      0.720   PROCEDURAL             CONFLICT-RESOLUTION
      0.880   KEYBOARD               release-key TEST-MOTOR s
      0.880   PROCEDURAL             CONFLICT-RESOLUTION
-     0.930   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand LEFT
+     0.930   MOTOR                  FINISH-MOVEMENT 0.5 style DELAYED-PUNCH hand LEFT
      0.930   PROCEDURAL             CONFLICT-RESOLUTION
      0.930   ------                 Stopped because no events left to process
      0.000   GOAL                   SET-BUFFER-CHUNK GOAL CHUNK0 NIL
@@ -4111,12 +4120,12 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  DELAYED-PUNCH HAND LEFT FINGER INDEX DELAY 0.05
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.200   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.200   MOTOR                  PREPARATION-COMPLETE 0.05 style DELAYED-PUNCH hand LEFT
      0.200   PROCEDURAL             CONFLICT-RESOLUTION
      0.200   PROCEDURAL             PRODUCTION-SELECTED TEST7-1
      0.200   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.200   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.250   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.250   MOTOR                  INITIATION-COMPLETE 0.05 style DELAYED-PUNCH hand LEFT
      0.250   PROCEDURAL             PRODUCTION-FIRED TEST7-1
      0.250   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.250   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4127,13 +4136,13 @@ MANUAL-RIGHT:
      0.260   PROCEDURAL             CONFLICT-RESOLUTION
      0.310   KEYBOARD               release-key TEST-MOTOR f
      0.310   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.350   MOTOR                  PREPARATION-COMPLETE 0.25 style DELAYED-PUNCH hand RIGHT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST7-2
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.350   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.360   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand LEFT
-     0.400   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.360   MOTOR                  FINISH-MOVEMENT 0.05 style DELAYED-PUNCH hand LEFT
+     0.400   MOTOR                  INITIATION-COMPLETE 0.25 style DELAYED-PUNCH hand RIGHT
      0.400   PROCEDURAL             PRODUCTION-FIRED TEST7-2
      0.400   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.400   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4144,35 +4153,35 @@ MANUAL-RIGHT:
      0.410   PROCEDURAL             CONFLICT-RESOLUTION
      0.435   KEYBOARD               release-key TEST-MOTOR j
      0.435   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.450   MOTOR                  PREPARATION-COMPLETE 0.4 style DELAYED-PUNCH hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
      0.450   PROCEDURAL             PRODUCTION-SELECTED TEST7-3
      0.450   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.450   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.485   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand RIGHT
+     0.485   MOTOR                  FINISH-MOVEMENT 0.25 style DELAYED-PUNCH hand RIGHT
      0.500   PROCEDURAL             PRODUCTION-FIRED TEST7-3
      0.500   PROCEDURAL             MODULE-REQUEST MANUAL
      0.500   PROCEDURAL             CLEAR-BUFFER GOAL
      0.500   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.500   MOTOR                  DELAYED-PUNCH HAND LEFT FINGER RING DELAY 0.22
      0.500   PROCEDURAL             CONFLICT-RESOLUTION
-     0.535   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand RIGHT
+     0.535   MOTOR                  INITIATION-COMPLETE 0.4 style DELAYED-PUNCH hand RIGHT
      0.535   PROCEDURAL             CONFLICT-RESOLUTION
      0.545   KEYBOARD               output-key TEST-MOTOR k
      0.545   PROCEDURAL             CONFLICT-RESOLUTION
-     0.600   MOTOR                  PREPARATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.600   MOTOR                  PREPARATION-COMPLETE 0.5 style DELAYED-PUNCH hand LEFT
      0.600   PROCEDURAL             CONFLICT-RESOLUTION
      0.615   KEYBOARD               release-key TEST-MOTOR k
      0.615   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  INITIATION-COMPLETE style DELAYED-PUNCH hand LEFT
+     0.650   MOTOR                  INITIATION-COMPLETE 0.5 style DELAYED-PUNCH hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.660   KEYBOARD               output-key TEST-MOTOR s
      0.660   PROCEDURAL             CONFLICT-RESOLUTION
-     0.665   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand RIGHT
+     0.665   MOTOR                  FINISH-MOVEMENT 0.4 style DELAYED-PUNCH hand RIGHT
      0.665   PROCEDURAL             CONFLICT-RESOLUTION
      0.880   KEYBOARD               release-key TEST-MOTOR s
      0.880   PROCEDURAL             CONFLICT-RESOLUTION
-     0.930   MOTOR                  FINISH-MOVEMENT style DELAYED-PUNCH hand LEFT
+     0.930   MOTOR                  FINISH-MOVEMENT 0.5 style DELAYED-PUNCH hand LEFT
      0.930   PROCEDURAL             CONFLICT-RESOLUTION
      0.930   ------                 Stopped because no events left to process
 #####
@@ -4228,12 +4237,12 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  HOLD-PUNCH HAND LEFT FINGER INDEX
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.200   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand LEFT
+     0.200   MOTOR                  PREPARATION-COMPLETE 0.05 style HOLD-PUNCH hand LEFT
      0.200   PROCEDURAL             CONFLICT-RESOLUTION
      0.200   PROCEDURAL             PRODUCTION-SELECTED TEST8-1
      0.200   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.200   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.250   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand LEFT
+     0.250   MOTOR                  INITIATION-COMPLETE 0.05 style HOLD-PUNCH hand LEFT
      0.250   PROCEDURAL             PRODUCTION-FIRED TEST8-1
      0.250   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.250   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4242,14 +4251,14 @@ MANUAL-RIGHT:
      0.250   PROCEDURAL             CONFLICT-RESOLUTION
      0.260   KEYBOARD               output-key TEST-MOTOR f
      0.260   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand LEFT
+     0.300   MOTOR                  FINISH-MOVEMENT 0.05 style HOLD-PUNCH hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.350   MOTOR                  PREPARATION-COMPLETE 0.25 style HOLD-PUNCH hand RIGHT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST8-2
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.350   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.400   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.400   MOTOR                  INITIATION-COMPLETE 0.25 style HOLD-PUNCH hand RIGHT
      0.400   PROCEDURAL             PRODUCTION-FIRED TEST8-2
      0.400   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.400   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4257,27 +4266,27 @@ MANUAL-RIGHT:
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
      0.410   KEYBOARD               output-key TEST-MOTOR j
      0.410   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.25 style HOLD-PUNCH hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand LEFT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.4 style HOLD-PECK hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.650   PROCEDURAL             PRODUCTION-SELECTED TEST8-3
      0.650   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.650   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.700   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand LEFT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.4 style HOLD-PECK hand LEFT
      0.700   PROCEDURAL             PRODUCTION-FIRED TEST8-3
      0.700   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.700   PROCEDURAL             MODULE-REQUEST MANUAL
      0.700   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand LEFT
+     0.800   MOTOR                  FINISH-MOVEMENT 0.4 style HOLD-PECK hand LEFT
      0.800   KEYBOARD               output-key TEST-MOTOR z
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand RIGHT
+     0.900   MOTOR                  PREPARATION-COMPLETE 0.7 style HOLD-PECK hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
-     0.950   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand RIGHT
+     0.950   MOTOR                  INITIATION-COMPLETE 0.7 style HOLD-PECK hand RIGHT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
-     1.050   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand RIGHT
+     1.050   MOTOR                  FINISH-MOVEMENT 0.7 style HOLD-PECK hand RIGHT
      1.050   KEYBOARD               output-key TEST-MOTOR o
      1.050   PROCEDURAL             CONFLICT-RESOLUTION
      1.050   PROCEDURAL             PRODUCTION-SELECTED TEST8-4
@@ -4288,16 +4297,19 @@ MANUAL-RIGHT:
      1.100   PROCEDURAL             CLEAR-BUFFER GOAL
      1.100   PROCEDURAL             CLEAR-BUFFER MANUAL
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  PREPARATION-COMPLETE style ALL-HOME hand BOTH
+     1.200   MOTOR                  PREPARATION-COMPLETE 1.1 style ALL-FINGERS-TO-HOME hand BOTH
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
-     1.250   MOTOR                  INITIATION-COMPLETE style ALL-HOME hand BOTH
+     1.250   MOTOR                  INITIATION-COMPLETE 1.1 style ALL-FINGERS-TO-HOME hand BOTH
      1.250   PROCEDURAL             CONFLICT-RESOLUTION
      1.290   KEYBOARD               release-key TEST-MOTOR f
      1.290   KEYBOARD               release-key TEST-MOTOR z
      1.290   KEYBOARD               release-key TEST-MOTOR j
      1.290   KEYBOARD               release-key TEST-MOTOR o
      1.290   PROCEDURAL             CONFLICT-RESOLUTION
-     1.450   MOTOR                  FINISH-MOVEMENT style ALL-HOME hand BOTH
+     1.400   MOTOR                  ALL-FINGERS-TO-HOME LEFT
+     1.400   MOTOR                  ALL-FINGERS-TO-HOME RIGHT
+     1.400   PROCEDURAL             CONFLICT-RESOLUTION
+     1.450   MOTOR                  FINISH-MOVEMENT 1.1 style ALL-FINGERS-TO-HOME hand BOTH
      1.450   PROCEDURAL             CONFLICT-RESOLUTION
      1.450   ------                 Stopped because no events left to process
 MANUAL-LEFT:
@@ -4313,7 +4325,7 @@ MANUAL-LEFT:
   processor busy        : NIL
   execution free        : T
   execution busy        : NIL
-  last-command          : ALL-HOME
+  last-command          : ALL-FINGERS-TO-HOME
   index  free           : T
   index  down           : NIL
   middle free           : T
@@ -4338,7 +4350,7 @@ MANUAL-RIGHT:
   processor busy        : NIL
   execution free        : T
   execution busy        : NIL
-  last-command          : ALL-HOME
+  last-command          : ALL-FINGERS-TO-HOME
   index  free           : T
   index  down           : NIL
   middle free           : T
@@ -4392,12 +4404,12 @@ MANUAL-RIGHT:
      0.050   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.050   MOTOR                  HOLD-PUNCH HAND LEFT FINGER INDEX
      0.050   PROCEDURAL             CONFLICT-RESOLUTION
-     0.200   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand LEFT
+     0.200   MOTOR                  PREPARATION-COMPLETE 0.05 style HOLD-PUNCH hand LEFT
      0.200   PROCEDURAL             CONFLICT-RESOLUTION
      0.200   PROCEDURAL             PRODUCTION-SELECTED TEST9-1
      0.200   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.200   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.250   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand LEFT
+     0.250   MOTOR                  INITIATION-COMPLETE 0.05 style HOLD-PUNCH hand LEFT
      0.250   PROCEDURAL             PRODUCTION-FIRED TEST9-1
      0.250   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.250   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4406,14 +4418,14 @@ MANUAL-RIGHT:
      0.250   PROCEDURAL             CONFLICT-RESOLUTION
      0.260   KEYBOARD               output-key TEST-MOTOR f
      0.260   PROCEDURAL             CONFLICT-RESOLUTION
-     0.300   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand LEFT
+     0.300   MOTOR                  FINISH-MOVEMENT 0.05 style HOLD-PUNCH hand LEFT
      0.300   PROCEDURAL             CONFLICT-RESOLUTION
-     0.350   MOTOR                  PREPARATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.350   MOTOR                  PREPARATION-COMPLETE 0.25 style HOLD-PUNCH hand RIGHT
      0.350   PROCEDURAL             CONFLICT-RESOLUTION
      0.350   PROCEDURAL             PRODUCTION-SELECTED TEST9-2
      0.350   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.350   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.400   MOTOR                  INITIATION-COMPLETE style HOLD-PUNCH hand RIGHT
+     0.400   MOTOR                  INITIATION-COMPLETE 0.25 style HOLD-PUNCH hand RIGHT
      0.400   PROCEDURAL             PRODUCTION-FIRED TEST9-2
      0.400   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.400   PROCEDURAL             MODULE-REQUEST MANUAL
@@ -4421,27 +4433,27 @@ MANUAL-RIGHT:
      0.400   PROCEDURAL             CONFLICT-RESOLUTION
      0.410   KEYBOARD               output-key TEST-MOTOR j
      0.410   PROCEDURAL             CONFLICT-RESOLUTION
-     0.450   MOTOR                  FINISH-MOVEMENT style HOLD-PUNCH hand RIGHT
+     0.450   MOTOR                  FINISH-MOVEMENT 0.25 style HOLD-PUNCH hand RIGHT
      0.450   PROCEDURAL             CONFLICT-RESOLUTION
-     0.650   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand LEFT
+     0.650   MOTOR                  PREPARATION-COMPLETE 0.4 style HOLD-PECK hand LEFT
      0.650   PROCEDURAL             CONFLICT-RESOLUTION
      0.650   PROCEDURAL             PRODUCTION-SELECTED TEST9-3
      0.650   PROCEDURAL             BUFFER-READ-ACTION GOAL
      0.650   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
-     0.700   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand LEFT
+     0.700   MOTOR                  INITIATION-COMPLETE 0.4 style HOLD-PECK hand LEFT
      0.700   PROCEDURAL             PRODUCTION-FIRED TEST9-3
      0.700   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      0.700   PROCEDURAL             MODULE-REQUEST MANUAL
      0.700   PROCEDURAL             CLEAR-BUFFER MANUAL
      0.700   PROCEDURAL             CONFLICT-RESOLUTION
-     0.800   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand LEFT
+     0.800   MOTOR                  FINISH-MOVEMENT 0.4 style HOLD-PECK hand LEFT
      0.800   KEYBOARD               output-key TEST-MOTOR z
      0.800   PROCEDURAL             CONFLICT-RESOLUTION
-     0.900   MOTOR                  PREPARATION-COMPLETE style HOLD-PECK hand RIGHT
+     0.900   MOTOR                  PREPARATION-COMPLETE 0.7 style HOLD-PECK hand RIGHT
      0.900   PROCEDURAL             CONFLICT-RESOLUTION
-     0.950   MOTOR                  INITIATION-COMPLETE style HOLD-PECK hand RIGHT
+     0.950   MOTOR                  INITIATION-COMPLETE 0.7 style HOLD-PECK hand RIGHT
      0.950   PROCEDURAL             CONFLICT-RESOLUTION
-     1.050   MOTOR                  FINISH-MOVEMENT style HOLD-PECK hand RIGHT
+     1.050   MOTOR                  FINISH-MOVEMENT 0.7 style HOLD-PECK hand RIGHT
      1.050   KEYBOARD               output-key TEST-MOTOR o
      1.050   PROCEDURAL             CONFLICT-RESOLUTION
      1.050   PROCEDURAL             PRODUCTION-SELECTED TEST9-4
@@ -4451,38 +4463,30 @@ MANUAL-RIGHT:
      1.100   PROCEDURAL             MOD-BUFFER-CHUNK GOAL
      1.100   PROCEDURAL             MODULE-REQUEST MANUAL
      1.100   PROCEDURAL             CLEAR-BUFFER MANUAL
-     1.100   MOTOR                  RELEASE-ALL-FINGERS 
+     1.100   MOTOR                  release-all-fingers
      1.100   PROCEDURAL             CONFLICT-RESOLUTION
-     1.150   MOTOR                  PREPARATION-COMPLETE style RELEASE-ALL-FINGERS hand BOTH
+     1.150   MOTOR                  PREPARATION-COMPLETE 1.1 style RELEASE-ALL-FINGERS hand BOTH
      1.150   PROCEDURAL             CONFLICT-RESOLUTION
-     1.200   MOTOR                  INITIATION-COMPLETE style RELEASE-ALL-FINGERS hand BOTH
+     1.200   MOTOR                  INITIATION-COMPLETE 1.1 style RELEASE-ALL-FINGERS hand BOTH
      1.200   PROCEDURAL             CONFLICT-RESOLUTION
+     1.240   MOTOR                  RELEASING-ALL-FINGERS
      1.240   KEYBOARD               release-key TEST-MOTOR f
      1.240   KEYBOARD               release-key TEST-MOTOR z
      1.240   KEYBOARD               release-key TEST-MOTOR j
      1.240   KEYBOARD               release-key TEST-MOTOR o
      1.240   PROCEDURAL             CONFLICT-RESOLUTION
-     1.290   MOTOR                  releasing-all-fingers
-     1.290   PROCEDURAL             CONFLICT-RESOLUTION
-     1.300   MOTOR                  FINISH-MOVEMENT style RELEASE-ALL-FINGERS hand BOTH
+     1.300   MOTOR                  FINISH-MOVEMENT 1.1 style RELEASE-ALL-FINGERS hand BOTH
      1.300   PROCEDURAL             CONFLICT-RESOLUTION
      1.300   PROCEDURAL             PRODUCTION-SELECTED TEST9-5
      1.300   PROCEDURAL             BUFFER-READ-ACTION GOAL
      1.300   PROCEDURAL             QUERY-BUFFER-ACTION MANUAL
      1.350   PROCEDURAL             PRODUCTION-FIRED TEST9-5
      1.350   PROCEDURAL             MODULE-REQUEST MANUAL
+#|Warning: Release-all-fingers action called when no fingers need to be released. |#
      1.350   PROCEDURAL             CLEAR-BUFFER GOAL
      1.350   PROCEDURAL             CLEAR-BUFFER MANUAL
-     1.350   MOTOR                  RELEASE-ALL-FINGERS 
-     1.350   MOTOR                  PREPARATION-COMPLETE style RELEASE-ALL-FINGERS hand BOTH
      1.350   PROCEDURAL             CONFLICT-RESOLUTION
-     1.400   MOTOR                  INITIATION-COMPLETE style RELEASE-ALL-FINGERS hand BOTH
-     1.400   PROCEDURAL             CONFLICT-RESOLUTION
-     1.440   MOTOR                  releasing-all-fingers
-     1.440   PROCEDURAL             CONFLICT-RESOLUTION
-     1.450   MOTOR                  FINISH-MOVEMENT style RELEASE-ALL-FINGERS hand BOTH
-     1.450   PROCEDURAL             CONFLICT-RESOLUTION
-     1.450   ------                 Stopped because no events left to process
+     1.350   ------                 Stopped because no events left to process
 MANUAL-LEFT:
   buffer empty          : T
   buffer full           : NIL

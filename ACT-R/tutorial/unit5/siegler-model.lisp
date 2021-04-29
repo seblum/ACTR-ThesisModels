@@ -6,19 +6,19 @@
 
   
 (chunk-type plus-fact addend1 addend2 sum)
-(chunk-type number value name)
+(chunk-type number aural-rep vocal-rep)
 
 (add-dm
- (zero ISA number value 0 name "zero")
- (one ISA number value 1 name "one")
- (two ISA number value 2 name "two")
- (three ISA number value 3 name "three")
- (four ISA number value 4 name "four")
- (five ISA number value 5 name "five")
- (six ISA number value 6 name "six")
- (seven ISA number value 7 name "seven")
- (eight ISA number value 8 name "eight")
- (nine ISA number value 9 name "nine")
+ (zero  ISA number aural-rep 0 vocal-rep "zero")
+ (one   ISA number aural-rep 1 vocal-rep "one")
+ (two   ISA number aural-rep 2 vocal-rep "two")
+ (three ISA number aural-rep 3 vocal-rep "three")
+ (four  ISA number aural-rep 4 vocal-rep "four")
+ (five  ISA number aural-rep 5 vocal-rep "five")
+ (six   ISA number aural-rep 6 vocal-rep "six")
+ (seven ISA number aural-rep 7 vocal-rep "seven")
+ (eight ISA number aural-rep 8 vocal-rep "eight")
+ (nine  ISA number aural-rep 9 vocal-rep "nine")
  (f00 ISA plus-fact addend1 zero addend2 zero sum zero)
  (f01 ISA plus-fact addend1 zero addend2 one sum one)
  (f02 ISA plus-fact addend1 zero addend2 two sum two)
@@ -74,7 +74,7 @@
   ==>
    +retrieval>
      isa        number
-     value      =val)
+     aural-rep  =val)
 
 (p harvest-arg1
    =retrieval>
@@ -133,7 +133,7 @@
      sum         =result
    =retrieval>
      ISA         number
-     name        =name
+     vocal-rep   =name
    ?vocal>
      state       free
   ==>

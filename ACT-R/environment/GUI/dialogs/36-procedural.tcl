@@ -60,6 +60,12 @@ proc update_production_list {list text_box model} {
 
   set productions [lindex [call_act_r_command "all-productions" $model] 0]
 
+  global options_array
+
+  if {$options_array(sort_lists) == 1} {
+    set productions [lsort -dictionary $productions]
+  }
+
   global $list.var
 
   set selection [$list curselection]

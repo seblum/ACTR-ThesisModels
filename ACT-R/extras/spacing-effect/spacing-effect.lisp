@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : spacing-effect.lisp
-;;; Version     : 2.0
+;;; Version     : 2.1
 ;;; 
 ;;; Description : A module to allow one to toggle the base-level learning
 ;;;             : equation from the default to the one proposed by 
@@ -42,6 +42,9 @@
 ;;;             : * Added the provide so that it works well with require-extra.
 ;;; 2018.08.21 Dan [2.0]
 ;;;             : * Updated for 7.6+ with a lock to protect the internals.
+;;; 2020.01.10 Dan [2.1]
+;;;             : * Removed the #' from the module interface functions since 
+;;;             :   that's not allowed in the general system now.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -241,25 +244,29 @@
   (bt:with-recursive-lock-held ((spacing-effect-lock module))
     (setf (spacing-effect-enabled module) nil)))
 
+(defun create-spacing-module (name) 
+  (declare (ignore name))
+  (make-spacing-effect))
+
 (define-module-fct 'spacing-effect 
     nil
-  (list (define-parameter :eblse :owner t :default-value nil :valid-test #'tornil
+  (list (define-parameter :eblse :owner t :default-value nil :valid-test 'tornil
           :documentation "Enable base level spacing effect - turning this on replaces the base level equation with one sensitive to spacing effects"
           :warning "T or nil")
-        (define-parameter :se-intercept :owner t :default-value .5 :valid-test #'numberp
+        (define-parameter :se-intercept :owner t :default-value .5 :valid-test 'numberp
           :warning "a number"
           :documentation "Spacing effect intercept parameter (a)")
-        (define-parameter :se-scale :owner t :default-value 0 :valid-test #'numberp
+        (define-parameter :se-scale :owner t :default-value 0 :valid-test 'numberp
           :warning "a number"
           :documentation "Spacing effect scale parameter (c)")
         (define-parameter :ol :owner nil)
         (define-parameter :bl-hook :owner nil)
         (define-parameter :bll :owner nil))
   
-  :creation (lambda (name) (declare (ignore name)) (make-spacing-effect))
-  :reset #'reset-spacing-effect-module
-  :params #'spacing-effect-params
-  :version "2.0" 
+  :creation 'create-spacing-module
+  :reset 'reset-spacing-effect-module
+  :params 'spacing-effect-params
+  :version "2.1" 
   :documentation 
   "Module to add the option of the Pavlik & Anderson spacing effect equation for base level activation"
   )

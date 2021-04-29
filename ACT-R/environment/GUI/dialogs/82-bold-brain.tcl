@@ -239,13 +239,7 @@ proc save_brain_history_data {model} {
 
       set brain_graph_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "brain_graph_record_warnings" "Environment command for capturing warnings during Save BOLD brain trace."
+      set warning_monitor [add_new_cmd warning_monitor "brain_graph_record_warnings" "Environment command for capturing warnings during Save BOLD brain trace."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -317,13 +311,7 @@ proc get_brain_history_data {win model canvas scale {fname ""}} {
     global brain_graph_history_warnings
     set brain_graph_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "brain_graph_record_warnings" "Environment command for capturing warnings during Load BOLD brain data."
+    set warning_monitor [add_new_cmd warning_monitor "brain_graph_record_warnings" "Environment command for capturing warnings during Load BOLD brain data."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -382,6 +370,4 @@ proc get_brain_history_data {win model canvas scale {fname ""}} {
   }
 }
 
-button [control_panel_name].brain_graph -command make_bold_brains -text "BOLD 2D brain" -font button_font
-
-pack [control_panel_name].brain_graph
+add_bold_trace_type "2D brain" make_bold_brains

@@ -393,7 +393,8 @@
        finger index
      +imaginal>
        screen-x 450
-       screen-y 300)
+       screen-y 300
+       distance 1080)
   
   (p do-tap-hold-left
      =goal>
@@ -413,7 +414,8 @@
        finger index
      +imaginal>
        screen-x 250
-       screen-y 200)
+       screen-y 200
+       distance 1080)
     
   (p do-tapped-dragging-release
      =goal>
@@ -424,6 +426,7 @@
      =imaginal>
        screen-x =x
        screen-y =y
+       distance =d
      ==>
      =goal>
        op tapped-dragging-release

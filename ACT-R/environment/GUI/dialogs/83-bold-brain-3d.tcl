@@ -962,13 +962,7 @@ proc save_3dbrain_history_data {model} {
 
       set brain_3d_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "brain_3d_record_warnings" "Environment command for capturing warnings during Save BOLD 3D brain trace."
+      set warning_monitor [add_new_cmd warning_monitor "brain_3d_record_warnings" "Environment command for capturing warnings during Save BOLD 3D brain trace."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -1038,13 +1032,7 @@ proc get_3dbrain_history_data {win model scale {fname ""}} {
     global brain_3d_history_warnings
     set brain_3d_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "brain_3d_record_warnings" "Environment command for capturing warnings during Load BOLD 3D brain data."
+    set warning_monitor [add_new_cmd warning_monitor "brain_3d_record_warnings" "Environment command for capturing warnings during Load BOLD 3D brain data."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -1132,9 +1120,4 @@ proc get_3dbrain_history_data {win model scale {fname ""}} {
 }
 
 
-
-
-
-button [control_panel_name].brain3d -command main_bold_brains -text "BOLD 3D brain" -font button_font
-
-pack [control_panel_name].brain3d
+add_bold_trace_type "3D brain" main_bold_brains

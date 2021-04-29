@@ -2,6 +2,7 @@
 ;;; ----- ----- ----- ----- ----- ;;;
 ;;; -----                   ----- ;;;
 ;;; -----    ENGINE FIRE    ----- ;;;
+;;; -----    TOPICS PAPER   ----- ;;;
 ;;; -----                   ----- ;;;
 ;;; ----- ----- ----- ----- ----- ;;;
 
@@ -456,9 +457,10 @@
     isa                 time
   +imaginal>
     isa                 mentalmodel
-    AOIpT               "PFD" ; This needs to be AOIpT =focus   "PFD";
+    AOIpT               =focus ; This needs to be AOIpT =focus   "PFD";
   =goal>
     state         	    respond
+!eval! ("write-actrtime" "actrtime.alert")
   )
 
 
@@ -568,6 +570,7 @@
     state               simulate-submodel
     action              1
   =imaginal>
+!eval! ("write-actrtime" "actrtime.focus")  
   )
 
 
@@ -583,8 +586,11 @@
     state               simulate-submodel
     action              0
   =imaginal>
+!eval! ("write-counter" "count.focus" 1)
   )
 
+(spp match-focus      :u 40)
+(spp not-match-focus  :u 40)
 
 (spp match-focus     :reward 50)
 (spp not-match-focus :reward 0)
@@ -831,6 +837,11 @@
     state               simulate-submodel
     action              2
     keepinmind          =ticktime
+!eval! ("write-actrtime" "actrtime.1")
+!eval! ("write-protocol" "lowertime.action.1" =lowertime)
+!eval! ("write-protocol" "ticktime.action.1" =ticks)
+!eval! ("write-protocol" "uppertime.action.1" =uppertime)
+!eval! ("write-protocol" "correct.1" "successful")
   )
 
 (spp action-1-found-in-range-keepinmind :u 120)
@@ -858,6 +869,11 @@
   =goal>
     state               simulate-submodel
     action              2
+!eval! ("write-actrtime" "actrtime.1")
+!eval! ("write-protocol" "lowertime.action.1" =lowertime)
+!eval! ("write-protocol" "ticktime.action.1" =ticks)
+!eval! ("write-protocol" "uppertime.action.1" =uppertime)
+!eval! ("write-protocol" "correct.1" "successful")
   )
 
 (spp action-1-found-in-range :u 120)
@@ -885,6 +901,7 @@
     state               simulate-submodel
     action              1
     keepinmind          =ticks
+!eval! ("write-counter" "count.1" 1)
   )
 
 (spp action-1-found-above-range :u 120)
@@ -913,6 +930,7 @@
     state               simulate-submodel
     action              1
     keepinmind          =ticktime
+!eval! ("write-counter" "count.1" 1)
   )
 
 (spp action-1-found-above-range-keepinmind :u 120)
@@ -940,6 +958,7 @@
     state               simulate-submodel
     action              1
     keepinmind          =ticks
+!eval! ("write-counter" "count.1" 1)
   )
 
 (spp action-1-found-below-range :u 120)
@@ -968,6 +987,7 @@
     state               simulate-submodel
     action              1
     keepinmind          =ticktime
+!eval! ("write-counter" "count.1" 1)
   )
 
 (spp action-1-found-below-range-keepinmind :u 120)
@@ -1081,6 +1101,7 @@
     state               simulate-submodel
     action              2
     keepinmind          =ticks
+!eval! ("write-counter" "count.2" 1)
   )
 
 (spp action-2-found-above-range :u 120)
@@ -1109,6 +1130,7 @@
     state               simulate-submodel
     action              2
     keepinmind          =ticktime
+!eval! ("write-counter" "count.2" 1)
   )
 
 (spp action-2-found-above-range-keepinmind :u 120)
@@ -1136,6 +1158,7 @@
     state               simulate-submodel ; change this -below
     action              2
     keepinmind          =ticks 
+!eval! ("write-counter" "count.2" 1)
   )
 
 (spp action-2-found-below-range :u 120)
@@ -1164,6 +1187,7 @@
     state               simulate-submodel
     action              2
     keepinmind          =ticktime
+!eval! ("write-counter" "count.2" 1)
   )
 
 (spp action-2-found-below-range-keepinmind :u 120)
@@ -1179,6 +1203,7 @@
   =goal>
     state               successful
     keepinmind          =ticktime
+    action              =action
   =imaginal>
     uppertime           =uppertime
     lowertime           =lowertime
@@ -1197,6 +1222,12 @@
   =goal>
     state               back-to-monitoring
     keepinmind          =ticktime
+    action              =action
+!eval! ("write-actrtime" "actrtime.2")
+!eval! ("write-protocol" "lowertime.action.2" =lowertime)
+!eval! ("write-protocol" "ticktime.action.2" =ticks)
+!eval! ("write-protocol" "uppertime.action.2" =uppertime)
+!eval! ("write-protocol" "correct.2" "successful")
   )
 
 
@@ -1222,6 +1253,11 @@
   =goal>
     state               simulate-submodel
     action              2
+!eval! ("write-actrtime" "actrtime.1")
+!eval! ("write-protocol" "lowertime.action.1" =lowertime)
+!eval! ("write-protocol" "ticktime.action.1" =ticks)
+!eval! ("write-protocol" "uppertime.action.1" =uppertime)
+!eval! ("write-protocol" "correct.1" "failed")
   )
 
 
@@ -1250,6 +1286,11 @@
     state               back-to-monitoring
     action              =action
     keepinmind          =ticktime
+!eval! ("write-actrtime" "actrtime.2")
+!eval! ("write-protocol" "lowertime.action.2" =lowertime)
+!eval! ("write-protocol" "ticktime.action.2" =ticks)
+!eval! ("write-protocol" "uppertime.action.2" =uppertime)
+!eval! ("write-protocol" "correct.2" "failed")
   )
 
 
@@ -1342,9 +1383,34 @@
   )
 
 
+(p break-loop-end-program-temp
+  =goal>
+    state               idle ;attending-display
+  =imaginal>
+  =temporal>
+  >= ticks              100
+==>
+  -imaginal>
+  =temporal>
+  =goal>
+    state               end
+!eval! ("quit-simulation" 1)
+  )
 
 
-
+(p break-loop-end-program-temp-2
+  =goal>
+    state               back-to-monitoring ;attending-display
+  =imaginal>
+  =temporal>
+  >= ticks              100
+==>
+  -imaginal>
+  -temporal>
+  =goal>
+    state               end
+!eval! ("quit-simulation" 1)
+  )
 
 (goal-focus goal)
 

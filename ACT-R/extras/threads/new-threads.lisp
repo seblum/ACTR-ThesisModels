@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : new-threads.lisp
-;;; Version     : 2.3
+;;; Version     : 2.4
 ;;; 
 ;;; Description : Reimplementation of the threaded cognition module using
 ;;;             : the new searchable multi-buffer capability.
@@ -41,6 +41,12 @@
 ;;; 2018.08.24 Dan [2.3]
 ;;;             : * Use the goal module's lock to protect the internals so it's
 ;;;             :   safe to use with 7.6+.
+;;; 2020.01.10 Dan [2.4]
+;;;             : * Removed the #' from a scheduled function sincethat's not 
+;;;             :   allowed in the general system now.
+;;; 2020.08.26 Dan
+;;;             : * Removed the path for require-compiled since it's not needed
+;;;             :   and results in warnings in SBCL.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -109,7 +115,7 @@
 
 ;;; Rely on the general functions in the goal-style-module 
 
-(require-compiled "GOAL-STYLE-MODULE" "ACT-R-support:goal-style-module")
+(require-compiled "GOAL-STYLE-MODULE")
 
 ;;; Remove the default goal module because we are going to replace it.
 
@@ -218,7 +224,7 @@
 
 (define-module-fct 'goal '((goal (:ga 1.0) nil nil nil :search))
   nil
-  :version "2.3"
+  :version "2.4"
   :documentation "Threaded cognition version of the goal module"
   :creation 'create-threaded-goal-module
   :reset (list nil 'threaded-goal-reset)
@@ -299,7 +305,7 @@
                         (schedule-set-buffer-chunk 'goal n-chunk 0 :time-in-ms t :module 'goal :priority :max :requested nil)  
                       (schedule-overwrite-buffer-chunk 'goal n-chunk 0 :time-in-ms t :module 'goal :priority :max :requested nil))
                     (setf (tgm-delayed g-module) n-chunk)
-                    (schedule-event-after-module 'goal #'clear-delayed-goal :module 'goal 
+                    (schedule-event-after-module 'goal 'clear-delayed-goal :module 'goal 
                                                  :output nil :destination 'goal :maintenance t)
                     chunk-name)
                 (print-warning "~S is not the name of a chunk in the current model - goal-focus failed" chunk-name))

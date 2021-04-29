@@ -247,13 +247,7 @@ proc load_dm_history_data {lb1 lb2 tb1 tb2 tb3 label model data_var} {
 
     set dm_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "dm_record_warnings" "Environment command for capturing warnings during Load Retrieval History."
+    set warning_monitor [add_new_cmd warning_monitor "dm_record_warnings" "Environment command for capturing warnings during Load Retrieval History."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -314,13 +308,7 @@ proc save_dm_history_data {model} {
 
       set dm_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "dm_record_warnings" "Environment command for capturing warnings during Save Retrieval History."
+      set warning_monitor [add_new_cmd warning_monitor "dm_record_warnings" "Environment command for capturing warnings during Save Retrieval History."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 

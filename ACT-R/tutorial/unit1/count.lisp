@@ -5,16 +5,16 @@
 (sgp :esc t :lf .05 :trace-detail high)
 
 
-(chunk-type count-order first second)
+(chunk-type number number next)
 (chunk-type count-from start end count)
 
 (add-dm
- (b ISA count-order first 1 second 2)
- (c ISA count-order first 2 second 3)
- (d ISA count-order first 3 second 4)
- (e ISA count-order first 4 second 5)
- (f ISA count-order first 5 second 6)
- (first-goal ISA count-from start 2 end 4))
+ (one ISA number number one next two)
+ (two ISA number number two next three)
+ (three ISA number number three next four)
+ (four ISA number number four next five)
+ (five ISA number number five)
+ (first-goal ISA count-from start two end four))
 
 (goal-focus first-goal)
 
@@ -28,9 +28,9 @@
       ISA         count-from
       count       =num1
    +retrieval>
-      ISA         count-order
-      first       =num1
-)
+      ISA         number
+      number      =num1
+   )
 
 (P increment
    =goal>
@@ -38,26 +38,29 @@
       count       =num1
     - end         =num1
    =retrieval>
-      ISA         count-order
-      first       =num1
-      second      =num2
+      ISA         number
+      number      =num1
+      next        =num2
  ==>
    =goal>
       ISA         count-from
       count       =num2
    +retrieval>
-      ISA         count-order
-      first       =num2
+      ISA         number
+      number      =num2
    !output!       (=num1)
-)
+   )
 
 (P stop
    =goal>
       ISA         count-from
       count       =num
       end         =num
+   =retrieval>
+      ISA         number
+      number      =num
  ==>
    -goal>
    !output!       (=num)
-)
+   )
 )

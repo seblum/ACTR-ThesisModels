@@ -203,18 +203,6 @@ client.on('data',function(data) {
               }
             break;
 
-            case "clear" :
-
-              w = windows[p[1]];
-              if (w != undefined) { 
-                // just send a remove for all the items
-                for (var i in w["items"]) {
-                  io.emit("remove",i);
-                }
-                w["items"] = {};
-              }
-
-            break;
 
             case "close" :
 
@@ -224,6 +212,7 @@ client.on('data',function(data) {
                 for (var i in w["items"]) {
                   io.emit("remove",i);
                 }
+                w["items"] = {};
               }
       
               // get rid of the window 

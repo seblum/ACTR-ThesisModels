@@ -9,8 +9,7 @@
      :BLL 0.5  
      :ANs 0.1   
      :EGs 0.2   
-     :mas   3.5 
-     :imaginal-activation 1.0
+     :mas  3.5 
      :LF 0.5
      :RT 0.5
      :epl t

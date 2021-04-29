@@ -14,36 +14,37 @@ def respond_to_key_press (model,key):
 def person():
     global response
 
-    window = actr.open_exp_window("Choice Experiment",visible=True)
+    if actr.visible_virtuals_available():
+        window = actr.open_exp_window("Choice Experiment",visible=True)
     
-    actr.add_command("choice-response",respond_to_key_press,"Choice task key response")
-    actr.monitor_command("output-key","choice-response")
+        actr.add_command("choice-response",respond_to_key_press,"Choice task key response")
+        actr.monitor_command("output-key","choice-response")
 
-    actr.add_text_to_exp_window (window, 'choose', x=50, y=100)
+        actr.add_text_to_exp_window (window, 'choose', x=50, y=100)
 
-    response = ''
+        response = ''
             
-    while response == '':
-        actr.process_events()
+        while response == '':
+            actr.process_events()
 
-    actr.clear_exp_window(window)
+        actr.clear_exp_window(window)
     
-    if actr.random(1.0) < .9:
-        answer = 'heads'
-    else:
-        answer = 'tails'
+        if actr.random(1.0) < .9:
+            answer = 'heads'
+        else:
+            answer = 'tails'
 
-    actr.add_text_to_exp_window (window, answer, x=50, y=100)
+        actr.add_text_to_exp_window (window, answer, x=50, y=100)
 
-    start = actr.get_time(False)
+        start = actr.get_time(False)
             
-    while (actr.get_time(False) - start) < 1000:
-        actr.process_events()
+        while (actr.get_time(False) - start) < 1000:
+            actr.process_events()
 
-    actr.remove_command_monitor("output-key","choice-response")
-    actr.remove_command("choice-response")
+        actr.remove_command_monitor("output-key","choice-response")
+        actr.remove_command("choice-response")
  
-    return response
+        return response
 
 
 def model ():

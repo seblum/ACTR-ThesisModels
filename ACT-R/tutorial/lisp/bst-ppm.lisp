@@ -31,10 +31,10 @@
   (setf *current-line* nil)
   (setf *window* (open-exp-window "Building Sticks Task" :visible *visible* :width 600 :height 400))
   
-  (add-button-to-exp-window *window* :text "A" :x 5 :y 23 :action (list "bst-button-pressed" a 'under) :height 24 :width 40)
-  (add-button-to-exp-window *window* :text "B" :x 5 :y 48 :action (list "bst-button-pressed" b 'over) :height 24 :width 40)
-  (add-button-to-exp-window *window* :text "C" :x 5 :y 73 :action (list "bst-button-pressed" c 'under) :height 24 :width 40)
-  (add-button-to-exp-window *window* :text "Reset" :x 5 :y 123 :action "bst-reset-button-pressed" :height 24 :width 65)
+  (add-button-to-exp-window *window* :text "A" :x 5 :y 23 :action (list "bst-ppm-button-pressed" a "under") :height 24 :width 40)
+  (add-button-to-exp-window *window* :text "B" :x 5 :y 48 :action (list "bst-ppm-button-pressed" b "over") :height 24 :width 40)
+  (add-button-to-exp-window *window* :text "C" :x 5 :y 73 :action (list "bst-ppm-button-pressed" c "under") :height 24 :width 40)
+  (add-button-to-exp-window *window* :text "Reset" :x 5 :y 123 :action "bst-ppm-reset-button-pressed" :height 24 :width 65)
   
   (add-line-to-exp-window *window* (list 75 35)  (list (+ a 75) 35) 'black)
   (add-line-to-exp-window *window* (list 75 60)  (list (+ b 75) 60) 'black)
@@ -58,8 +58,8 @@
     (update-current-line)))
 
 
-(add-act-r-command "bst-button-pressed" 'button-pressed "Choice button action for the Building Sticks Task.  Do not call directly")
-(add-act-r-command "bst-reset-button-pressed" 'reset-display "Reset button action for the Building Sticks Task.  Do not call directly")
+(add-act-r-command "bst-ppm-button-pressed" 'button-pressed "Choice button action for the Building Sticks Task.  Do not call directly")
+(add-act-r-command "bst-ppm-reset-button-pressed" 'reset-display "Reset button action for the Building Sticks Task.  Do not call directly")
 
 
 (defun update-current-line ()
@@ -79,7 +79,8 @@
 (defun do-experiment (sticks &optional human)
   (apply 'build-display sticks)
   (if human
-      (wait-for-human)
+      (when (visible-virtuals-available?)
+        (wait-for-human))
     (progn
       (install-device *window*)
       (start-hand-at-mouse)
@@ -112,7 +113,7 @@
         (setf result (mapcar '+ 
                        result 
                        (mapcar (lambda (x) 
-                                 (if (equal x 'over) 1 0))
+                                 (if (string-equal x "over") 1 0))
                          (bst-set human (or human (= n 1)) stims nil))))))))
 
 (defun bst-ppm-experiment (n &optional human)
@@ -124,7 +125,7 @@
         (reset)
         (setf result (mapcar '+ result 
                        (mapcar (lambda (x) 
-                                 (if (equal x 'over) 1 0)) 
+                                 (if (string-equal x "over") 1 0)) 
                          (bst-set human human stims))))
         (no-output
          (setf p-values (mapcar (lambda (x) 

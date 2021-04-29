@@ -45,8 +45,9 @@ def experiment (human=False):
     response = ''
     
     if human == True:
-        while response == '':
-            actr.process_events()
+        if actr.visible_virtuals_available():
+            while response == '':
+                actr.process_events()
       
     else:
         actr.install_device(window)

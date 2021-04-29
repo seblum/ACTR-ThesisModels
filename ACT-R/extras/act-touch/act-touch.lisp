@@ -35,7 +35,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : act-touch.lisp
-;;; Revision    : 13
+;;; Revision    : 16
 ;;; 
 ;;; Description : Add a new device called "touch" which represents a touch screen/pad 
 ;;;             : and defines new motor actions for using that device.
@@ -297,6 +297,15 @@
 ;;;   reports that there is a finger down.
 ;;; 2018.11.08 Dan Bothell
 ;;; * Provide an external command for start-hand-at-touch.
+;;; 2020.01.13 Dan Bothell [2.1]
+;;; * Remove lambda from module interface functions.
+;;; 2020.03.30 Dan Bothell [3.0]
+;;; * Apply the fixes needed to address the preparation/processor free issues.
+;;; * Requires using the hand-pos struct instead of just being able to interact
+;;;   with the interface.
+;;; * Start-hand-at-touch actually moves the hand to the appropriate position.
+;;; * Index-thumb uses any finger and passes that to the interface (basically 
+;;;   a one finger swipe).
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -431,27 +440,34 @@
         (:touch-rotate-width
            (touch-module-rotate-width module))))))
 
+
+(defun create-touch-module (x)
+  (declare (ignore x))
+  (make-touch-module))
+
+(defun touch-hand-start-value-test (x)
+  (and (listp x)
+       (= (length x) 2)
+       (every 'integerp x)))
+
+(defun swipe-speed-value-test (x)
+  (and (integerp x) (<= 1 x 5)))
+
 (define-module-fct :touch-interface nil
   (list
    (define-parameter :finger-height :default-value 1 :valid-test 'posnum :warning "A positive number" :documentation "Default height of the finger above the screen in inches.")
-   (define-parameter :swipe-speed :default-value 3 :valid-test (lambda (x) (and (integerp x) (<= 1 x 5))) :warning "An integer from 1-5" :documentation "Default speed for a swipe action.")
+   (define-parameter :swipe-speed :default-value 3 :valid-test 'swipe-speed-value-test :warning "An integer from 1-5" :documentation "Default speed for a swipe action.")
    (define-parameter :swipe-width :default-value 500 :valid-test 'posnum :warning "A positive number" :documentation "Default width of the target for computing the cost with Fitts law in pixels.")
    (define-parameter :thumb-width :default-value 1 :valid-test 'posnum :warning "A positive number" :documentation "Width of the model's thumb in inches used for computing the cost with Fitts law in pinch and rotate actions.")
    (define-parameter :finger-spacing :default-value .75 :valid-test 'posnum :warning "A positive number" :documentation "Distance between finger tips measured in inches.")
-   (define-parameter :left-start :default-value (list 0 300) :valid-test (lambda (x)
-                                                                           (and (listp x)
-                                                                                (= (length x) 2)
-                                                                                (every 'integerp x)))
+   (define-parameter :left-start :default-value (list 0 300) :valid-test 'touch-hand-start-value-test
      :warning "A list of two integers" :documentation "Default starting location for left index finger.")
-   (define-parameter :right-start :default-value (list 1024 300) :valid-test (lambda (x)
-                                                                               (and (listp x)
-                                                                                    (= (length x) 2)
-                                                                                    (every 'integerp x)))
+   (define-parameter :right-start :default-value (list 1024 300) :valid-test 'touch-hand-start-value-test
      :warning "A list of two integers" :documentation "Default starting location for right index finger.")
    (define-parameter :show-fingers :default-value nil :valid-test 'tornil :warning "t or nil" :documentation "Whether to send finger information to the associated experiment window for possible display.")
    (define-parameter :touch-noise :default-value nil :valid-test 'tornil :warning "t or nil" :documentation "Whether to add noise to move-hand-touch target location.")
    (define-parameter :touch-drag-delay
-       :valid-test (lambda (x) (or (tornil x) (posnum x)))
+       :valid-test 'posnumorbool
      :warning "T, nil, or a positive number"
      :default-value nil
      :documentation "Control order increment for touch drag actions.")
@@ -463,9 +479,9 @@
    (define-parameter :pixels-per-inch :owner nil)
    (define-parameter :cursor-fitts-coeff :owner nil)
    (define-parameter :peck-fitts-coeff :owner nil))
-  :creation (lambda (name) (declare (ignore name)) (make-touch-module))
+  :creation 'create-touch-module
   :params 'touch-params
-  :version "2.0"
+  :version "3.0"
   :documentation "Module to support the Touch device and corresponding motor extensions.")
 
 
@@ -483,9 +499,18 @@
      (unless installed-touch
        (print-warning "Installing a default touch device for start-hand-at-touch.")
        (setf installed-touch (install-device '("motor" "touch"))))
-     (if (valid-hand hand)
-         (notify-interface "motor" (list 'set-hand-device hand installed-touch))
-       (print-warning "Invalid hand ~s in call to start-hand-at-touch." hand)))))
+     (let ((module (get-module :touch-interface)))
+       (if module
+           (if (valid-hand hand)
+               (let ((pos (bt:with-lock-held ((touch-module-lock module)) (touch-module-position module))))
+                 
+                 (notify-interface "motor" (list 'set-hand-device hand installed-touch))
+                 
+                 (notify-interface "motor" (list 'set-hand-position hand (px pos) (py pos)))
+                 )
+             (print-warning "Invalid hand ~s in call to start-hand-at-touch." hand))
+         (print-warning "Touch interface not available. Could not start hands there."))))))
+
 
 (defun external-start-hand-at-touch (&optional (hand 'right))
   (start-hand-at-touch (decode-string-names hand)))
@@ -637,7 +662,7 @@
               
               ((and (every 'listp features)
                     (second (find 'style features :key 'first))
-                    (find (second (find 'style features :key 'first)) '(tap tap-hold tap-release swipe move-hand-touch pinch rotate)))
+                    (find (second (find 'style features :key 'first)) '(tap tap-hold tap-release swipe index-thumb move-hand-touch pinch rotate)))
                (case (second (find 'style features :key 'first))
                  (tap
                   (let* ((m (second (find 'model features :key 'first)))
@@ -692,11 +717,12 @@
                  (index-thumb
                   (let ((m (second (find 'model features :key 'first)))
                         (h (second (find 'hand features :key 'first)))
+                        (f (second (find 'finger features :key 'first)))
                         (dist (second (find 'distance features :key 'first)))
                         (dir (second (find 'direction features :key 'first))))
-                    (if (and m (valid-hand h) (numberp dist) (numberp dir))
+                    (if (and m (valid-hand h) (valid-finger f) (numberp dist) (numberp dir))
                         (with-model-eval m
-                          (schedule-event-now "touch-index-thumb" :params (list m h dist dir) :output t :module :touch-interface :maintenance t))
+                          (schedule-event-now "touch-index-thumb" :params (list m h f dist dir) :output t :module :touch-interface :maintenance t))
                       (print-warning "Touch device received invalid index-thumb action having features ~s." features))))
                  (move-hand-touch
                   (let* ((m (second (find 'model features :key 'first)))
@@ -739,38 +765,31 @@
   (let ((touch (get-module :touch-interface)))
     (when touch
       (bt:with-recursive-lock-held ((touch-module-lock touch))
-        (let* ((dir (if (eq hand 'right) 1 -1))
-               (dist (* (touch-module-ppi touch) (touch-module-finger-spacing touch)))
+        (let* ((dist (* (touch-module-ppi touch) (touch-module-finger-spacing touch)))
                (start (if (eq hand 'right) 
                           (touch-module-right-start touch) 
                         (touch-module-left-start touch)))
                (sx (round (first start)))
                (sy (round (second start)))
                (window (and (touch-module-show-fingers touch) 
-                            (touch-module-window touch))))
+                            (touch-module-window touch)))
+               (finger-offsets (if (eq hand 'right)
+                                   (right-standard-offsets)
+                                 (left-standard-offsets))))
           
           ;; indicate the hand is on the device
           (setf (aref (touch-module-hands touch) (valid-hand hand)) t)
-  
-          (setf (aref (touch-module-fingers touch) (valid-hand hand) (valid-finger 'index)) (list sx sy 1))
-          (when window
-            (notify-device window (list "showfinger" (string-downcase (symbol-name hand)) "index" sx sy 1)))
           
-          (setf (aref (touch-module-fingers touch) (valid-hand hand) (valid-finger 'middle)) (list (round (+ (* dir dist) sx)) sy 1))
-          (when window
-            (notify-device window (list "showfinger" (string-downcase (symbol-name hand)) "middle" (round (+ (* dir dist) sx)) sy 1)))
-          
-          (setf (aref (touch-module-fingers touch) (valid-hand hand) (valid-finger 'ring)) (list (round (+ (* 2 dir dist) sx)) sy 1))
-          (when window
-            (notify-device window (list "showfinger" (string-downcase (symbol-name hand)) "ring" (round (+ (* 2 dir dist) sx)) sy 1)))
-          
-          (setf (aref (touch-module-fingers touch) (valid-hand hand) (valid-finger 'pinkie)) (list (round (+ (* 3 dir dist) sx)) sy 1))
-          (when window
-            (notify-device window (list "showfinger" (string-downcase (symbol-name hand)) "pinkie" (round (+ (* 3 dir dist) sx)) sy 1)))
-          
-          (setf (aref (touch-module-fingers touch) (valid-hand hand) (valid-finger 'thumb)) (list (round (+ (* -1 dir dist) sx)) (round (+ (* 2 dist) sy)) 1))
-          (when window
-            (notify-device window (list "showfinger" (string-downcase (symbol-name hand)) "thumb" (round (+ (* -1 dir dist) sx)) (round (+ (* 2 dist) sy)) 1))))))))
+          (dolist (f finger-offsets)
+            (let ((p (list (round (+ (* (px (second f)) dist) sx)) (round (+ (* (py (second f)) dist) sy)) 1)))
+              (setf (aref (touch-module-fingers touch) (valid-hand hand) (valid-finger (first f))) p)
+              (when window
+                (notify-device window (list "showfinger" 
+                                            (string-downcase (symbol-name hand))
+                                            (string-downcase (symbol-name (first f)))
+                                            (first p)
+                                            (second p)
+                                            1))))))))))
 
 (add-act-r-command "touch-set-hand" 'hand-moved-to-touch "Internal command for the touch device. Do not call.")
 
@@ -794,7 +813,7 @@
 
 (define-device "touch" "install-touch-device" "remove-touch-device" "touch-device-interface" "touch-set-hand" "touch-unset-hand")
 
-(add-act-r-command "touch-index-thumb" nil "Signal that an index-thumb action has been performed on the touch device. Params: model hand distance direction")
+(add-act-r-command "touch-index-thumb" nil "Signal that an index-thumb action has been performed on the touch device. Params: model hand finger distance direction")
 (add-act-r-command "touch-point" nil "Signal that a hand has moved to a new locaiton on the touch device. Params: model hand x y")
 (add-act-r-command "touch-swipe" nil "Signal that a swipe action has been performed on the touch device. Params: model hand initial-finger distance direction finger-count speed")
 (add-act-r-command "touch-tap" nil "Signal that a finger tap has been performed on the touch device. Params: model hand finger x y")
@@ -808,6 +827,68 @@
 ;;;; ---------------------------------------------------------------------- ;;;;
 
 
+
+;;; These are general actions which could be used with other devices.
+;;;
+
+;;; First create a function which will get the finger positions from
+;;; the device, or if it doesn't return any use the default motor-module
+;;; position.
+
+(defun touch-finger-position (hand finger &key (current t))
+  (let ((device (device-for-hand hand :current current)))
+    (if (and device (string-equal (second device) "touch"))
+        (progn
+          (if current
+              (coerce (notify-device device (list 'finger-position hand finger)) 'vector)
+            (let* ((hand-pos (hand-position hand :current nil))
+                   (touch-pos (find 'touch-positions (hand-pos-other hand-pos) :key 'first))
+                   (f (find finger (rest touch-pos) :key 'first)))
+              (if f
+                  (vector (second f) (third f))
+                (coerce (notify-device device (list 'finger-position hand finger)) 'vector)))))
+      (print-warning "Touch-finger-position called for ~s ~s but hand not on touch device." hand finger))))
+
+
+(defun touch-finger-down (hand finger &key (current t))
+  (let ((device (device-for-hand hand :current current)))
+    (if (and device (string-equal (second device) "touch"))
+        (progn
+          (if current
+              (notify-device device (list 'finger-down hand finger))
+            (let* ((hand-pos (hand-position hand :current nil))
+                   (touch-pos (find 'touch-positions (hand-pos-other hand-pos) :key 'first))
+                   (f (find finger (rest touch-pos) :key 'first)))
+              (if f
+                  (zerop (fourth f))
+                (notify-device device (list 'finger-down hand finger))))))
+      (print-warning "Touch-finger-down called for ~s ~s but hand not on touch device." hand finger))))
+
+
+(defun touch-any-finger-down (hand &key (current t))
+  (let ((device (device-for-hand hand :current current)))
+    (if (and device (string-equal (second device) "touch"))
+        (progn
+          (if current
+              (notify-device device (list 'any-finger-down hand))
+            (let* ((hand-pos (hand-position hand :current nil))
+                   (touch-pos (find 'touch-positions (hand-pos-other hand-pos) :key 'first))
+                   )
+              (dolist (finger '(thumb index middle ring pinkie) nil)
+                (let* ((f (find finger (rest touch-pos) :key 'first))
+                       (val (if f
+                                (zerop (fourth f))
+                              (notify-device device (list 'finger-down hand finger)))))
+                  
+                  (when val
+                    (return-from touch-any-finger-down t)))))))
+      (print-warning "Touch-any-finger-down called for ~s but hand not on touch device." hand))))
+
+
+
+
+
+
 ;;; This is touch device specific
 
 (defmethod hand-to-touch ((mtr-mod motor-module) request)
@@ -818,31 +899,73 @@
                   (hand (if (null hand-spec) 'right
                           (verify-single-explicit-value request 'hand :touch-interface "hand-to-touch"))))
              (if (and touch (valid-hand hand))
-                 (let ((h (case hand (right (right-hand mtr-mod)) (left (left-hand mtr-mod))))
-                       (touch-pos (bt:with-recursive-lock-held ((touch-module-lock touch)) (touch-module-position touch))))
-                   (bt:with-lock-held ((hand-lock h))
-                     (unless (and (vpt= (loc h) touch-pos)
-                                  (string-equal (second (device h)) "touch"))
-                       (let ((polar (xy-to-polar (loc h) touch-pos)))
-                         (point-hand mtr-mod :hand hand :r (vr polar) :theta (vtheta polar) :twidth 4.0 
-                                     :device installed-touch :offsets 'standard :request-spec request)))))
+                 (let* ((touch-pos (bt:with-recursive-lock-held ((touch-module-lock touch)) (touch-module-position touch)))
+                        (hand-pos (hand-position hand :current nil))
+                        (hand-loc (hand-pos-loc hand-pos))
+                        (polar (xy-to-polar hand-loc touch-pos))
+                        (device (device-for-hand hand :current nil)))
+                   
+                   (if (and (= (vr polar) 0)
+                            device
+                            (string-equal (second device) "touch"))
+                       (model-warning "HAND-TO-TOUCH requested but hand already is (or will be) at the touch position.")
+                     
+                     (point-hand mtr-mod :hand hand :r (vr polar) :theta (vtheta polar) :twidth 4.0 
+                                 :device installed-touch :offsets 'standard :request-spec request
+                                 :style 'to-touch-ply)))
                (model-warning "Hand-to-touch request received invalid hand information ~s" hand-spec))))
           (t
            (model-warning "Hand-to-touch requested but no touch device available.")))))
 
+(defclass to-touch-ply (hand-ply)
+  ())
 
-;;; These are general actions which could be used with other devices.
-;;;
+(defmethod prepare-features ((mtr-mod motor-module) (self to-touch-ply))
+  (let ((new-pos (move-a-hand mtr-mod (hand self) (r self) (theta self) :current nil)))
+    (unless (eq (offsets self) 'standard)
+      (model-warning "Hand-to-touch action specified non-standard finger offsets but that is not currently supported."))
+    
+    (setf (hand-pos-fingers new-pos) (ecase (hand self)
+                                       (right (right-standard-offsets))
+                                       (left (left-standard-offsets))))
+    
+    ;; Since the device won't set the positions
+    ;; until the hand moves to it we need to set the
+    ;; updated positions here as well because we
+    ;; can't assume that falling through to current
+    ;; will be valid if a subsequent action wants the "next" ones
+    
+    (let ((touch (get-module :touch-interface)))
+      (when touch
+        (bt:with-recursive-lock-held ((touch-module-lock touch))
+          (let* ((dist (* (touch-module-ppi touch) (touch-module-finger-spacing touch)))
+                 (start (if (eq (hand self) 'right) 
+                            (touch-module-right-start touch) 
+                          (touch-module-left-start touch)))
+                 (sx (round (first start)))
+                 (sy (round (second start)))
+                 (finger-offsets (hand-pos-fingers new-pos))
+                 (positions (list 'touch-positions))
+                 (others (hand-pos-other new-pos)))
+          
+          
+            (dolist (f finger-offsets)
+              (push-last (list (first f)
+                               (round (+ (* (px (second f)) dist) sx))
+                               (round (+ (* (py (second f)) dist) sy))
+                               1)
+                         positions))
+            
+            (awhen (find 'touch-positions others :key 'first)
+                   (setf others (remove it others)))
+            
+            (push positions others)
+            (setf (hand-pos-other new-pos) others)))))
+    
+    (setf (hand-pos-device new-pos) (device self))
+    (setf (updated-pos self) new-pos)))
 
-;;; First create a function which will get the finger positions from
-;;; the device, or if it doesn't return any use the default motor-module
-;;; position.
 
-(defun touch-finger-position (hand finger)
-  (aif (and (device-for-hand hand)
-            (notify-device (device-for-hand hand) (list 'finger-position hand finger)))
-       (coerce it 'vector)
-       (finger-loc-m (get-module :motor) hand finger)))
 
 ;;; move-hand-touch
 ;;; Allows the model to move its hand (referenced by index finger position) to what it sees. 
@@ -850,12 +973,29 @@
 
 (defstyle touch-ply hand-ply hand finger r theta)
 
+(defmethod prepare-features ((mtr-mod motor-module) (self touch-ply))
+  (let* ((starting-point (copy-hand-pos (hand-position (hand self) :current nil)))
+         (others (copy-seq (hand-pos-other starting-point))))
+    (awhen (find 'touch-positions (hand-pos-other starting-point) :key 'first)
+           (setf others (remove it others)))
+    (let ((updated-fingers (list 'touch-positions)))
+      (dolist (finger '(index middle ring pinkie thumb))
+        (let ((new-pos (polar-move-xy (touch-finger-position (hand self) finger :current nil) 
+                                      (vector (r self) (theta self)))))
+          (push-last (list finger (px new-pos) (py new-pos) 
+                           (if (touch-finger-down (hand self) finger :current nil)
+                               0 1))
+                     updated-fingers)))
+        
+      (push updated-fingers others))
+    (setf (hand-pos-other starting-point) others)
+    (setf (updated-pos self) starting-point)))
+
 (defmethod queue-output-events ((mtr-mod motor-module) (self touch-ply))
-  (let* ((start-pos (touch-finger-position (hand self) 'index))
-         (move-vector (vector (r self) (theta self)))
-         (end-pos (polar-move-xy start-pos move-vector))
-         (device (device-for-hand (hand self)))
-         (action-time (seconds->ms (exec-time self))))
+  (let* ((device (device-for-hand (hand self)))
+         (action-time (seconds->ms (exec-time self)))
+         (finger-positions (rest (find 'touch-positions (hand-pos-other (updated-pos self)) :key 'first)))
+         (hand-position (find 'index finger-positions :key 'first)))
     
     ;; Send the move-hand-touch action to the device
     
@@ -864,75 +1004,71 @@
                              :params `(,device 
                                        ((model ,(current-model)) 
                                         (style move-hand-touch) (hand ,(hand self)) 
-                                        (loc ,(px end-pos) ,(py end-pos)))))
+                                        (loc ,(second hand-position) ,(third hand-position)))))
+    
+    ;; update the hand-position
+    
+    (schedule-event-relative action-time 'set-hand-position :time-in-ms t :module :motor 
+                             :destination :motor :params (list (hand self) (updated-pos self))
+                             :output nil)
     
     ;; schedule calls to move all of the fingers
-    ;; if there is a device
     
-    (when device
-    
-      (schedule-event-relative action-time 'notify-motor-device 
-                               :time-in-ms t :module :motor :output nil
-                               :params `(,device 
-                                         (set-finger-position ,(hand self) index ,(px end-pos) ,(py end-pos))))
-      
-      (dolist (finger '(middle ring pinkie thumb))
-        
-        (setf end-pos (polar-move-xy (touch-finger-position (hand self) finger)
-                                     move-vector))
-        
+    (dolist (finger finger-positions)
+      (let ((f finger))
         (schedule-event-relative action-time 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,device
-                                           (set-finger-position ,(hand self) ,finger ,(px end-pos) ,(py end-pos))))))))
+                                 :params `(,device 
+                                           (set-finger-position ,(hand self) ,(first f) ,(second f) ,(third f))))))))
 
 
 
 (defmethod move-hand-touch ((mtr-mod motor-module) &key loc object hand request-spec)
-  (unless (or (check-jam mtr-mod) (check-specs (or loc object)))
-    (let ((target (or (and (chunk-p-fct object) object) (and (chunk-p-fct loc) loc)))
-          (target-loc (or (and object (chunk-to-visual-position object))
-                          (and loc (chunk-to-visual-position loc)))))
+  (let ((real-device (device-for-hand hand :current nil)))
+    (when (or (null real-device) (not (string-equal (second real-device) "touch")))
+      (print-warning "Hand is not on a touch device in request to move-hand-touch.")
+      (return-from move-hand-touch nil))
       
-      (unless (and target target-loc)
-        (print-warning "No valid location could be generated from ~s or ~s when trying to move hand on touch device." object loc)
-        (return-from move-hand-touch nil))
+      (unless (or (check-jam mtr-mod) (check-specs 'move-hand-touch (or loc object)))
+        (let ((target (or (and (chunk-p-fct object) object) (and (chunk-p-fct loc) loc)))
+              (target-loc (or (and object (chunk-to-visual-position object))
+                              (and loc (chunk-to-visual-position loc)))))
       
-      ;; need parameters from the module
-      (let ((touch (get-module :touch-interface))
-            drag-delay coeff noise)
-        (bt:with-recursive-lock-held ((touch-module-lock touch))
-          (setf drag-delay (touch-module-drag-delay touch)
-            coeff (touch-module-cursor-coeff touch)
-            noise (touch-module-noise touch)))
-        
-        ;; hand position is index finger position
-        (let* ((current-loc (touch-finger-position hand 'index))
-               (r-theta (xy-to-polar current-loc (coerce target-loc 'vector))))
-          (if (= 0 (vr r-theta))        ; r=0 is a no-op 
-              (model-warning "Move-hand-touch action aborted because hand is at requested target ~S" (if object object loc)))
-          (let* ((w (pm-angle-to-pixels (approach-width target (vtheta r-theta) (px current-loc) (py current-loc)))) ;;approach-width returns DVA but we're working in pixels
-                 (r-theta-new (if noise
-                                  (noisy-loc-em? mtr-mod target-loc w (vtheta r-theta))
-                                r-theta))
-                 )
+          (unless (and target target-loc)
+            (print-warning "No valid location could be generated from ~s or ~s when trying to move hand on touch device." object loc)
+            (return-from move-hand-touch nil))
+          
+          ;; need parameters from the module
+          (let ((touch (get-module :touch-interface))
+                drag-delay coeff noise)
+            (bt:with-recursive-lock-held ((touch-module-lock touch))
+              (setf drag-delay (touch-module-drag-delay touch)
+                coeff (touch-module-cursor-coeff touch)
+                noise (touch-module-noise touch)))
             
-            (prepare-movement 
-             mtr-mod
-             (make-instance 
-                 'touch-ply
-               :request-spec request-spec
-               :hand hand
-               :r (vr r-theta-new)
-               :theta (vtheta r-theta-new)
-               :target-width w
-               :fitts-coeff ;; mouse-fitts-coeff with control-order 0 or drag-delay if finger down
-               (if (and drag-delay
-                        (device-for-hand hand)
-                        (notify-device (device-for-hand hand) (list 'any-finger-down hand)))
-                   (* (expt-coerced 2 (if (eq drag-delay t) .8 drag-delay))
-                      coeff)
-                 coeff)))))))))
+            ;; hand position is index finger position
+            (let* ((current-loc (touch-finger-position hand 'index :current nil))
+                   (r-theta (xy-to-polar current-loc (coerce target-loc 'vector))))
+              (if (= 0 (vr r-theta))        ; r=0 is a no-op 
+                  (model-warning "Move-hand-touch action aborted because hand is at requested target ~S" (if object object loc)))
+              (let* ((w (pm-angle-to-pixels (approach-width target (vtheta r-theta) (px current-loc) (py current-loc)))) ;;approach-width returns DVA but we're working in pixels
+                     (r-theta-new (if noise
+                                      (noisy-loc-em? target-loc w (vtheta r-theta))
+                                    r-theta)))
+                
+                (prepare-movement mtr-mod
+                                  (make-instance 'touch-ply
+                                    :request-spec request-spec
+                                    :hand hand
+                                    :r (vr r-theta-new)
+                                    :theta (vtheta r-theta-new)
+                                    :target-width w
+                                    :fitts-coeff (if (and drag-delay (touch-any-finger-down hand :current nil))
+                                                     ;; because control order is 0
+                                                     ;; just use drag-delay directly
+                                                     ;; and don't need 2^0 in normal
+                                                     (* (expt-coerced 2 (if (eq drag-delay t) .8 drag-delay)) coeff)
+                                                   coeff))))))))))
 
 (defmethod move-hand-touch-request ((mtr-mod motor-module) chunk-spec)
   (let ((object (if (slot-in-chunk-spec-p chunk-spec 'object) 
@@ -979,11 +1115,29 @@
 ;;; analogous to punch movement style, the indicated finger strikes the surface 
 ;;; of the display at the finger's current position and returns the finger 
 ;;; to a z-position where it is ready to act again
-;;; Actually executed as a peck since it must move to the display and 
+;;; Actually executed like a peck-recoil since it must move to the display and 
 ;;; back based on the distance parameter.
 
-(defStyle tap () hand finger) 
+(defstyle tap () hand finger)
 
+(defmethod tap :around ((mtr-mod motor-module) &key hand finger request-spec)
+  (declare (ignore request-spec))
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to tap."))
+          
+          ((null (valid-hand hand))
+           (print-warning "Tap request has invalid hand ~s." hand))
+          
+          ((null (valid-finger finger))
+           (print-warning "Tap request has invalid finger ~s." finger))
+                    
+          ((touch-finger-down hand finger :current nil)
+           (print-warning "Tap requested for ~a ~a but that finger is (or will be) down." hand finger))
+          
+          (t
+           (call-next-method)))))
+        
 (defmethod compute-exec-time ((mtr-mod motor-module) (self tap))
   (let ((touch (get-module :touch-interface)))
     (bt:with-recursive-lock-held ((touch-module-lock touch))
@@ -1008,35 +1162,71 @@
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self tap))
   ;; Send the tap action at execution time to whatever device is current for the hand
-            
-  (bt:with-recursive-lock-held ((param-lock mtr-mod))
-    
-    (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
-                             :time-in-ms t :module :motor :output nil
-                             :params `(,(device-for-hand (hand self)) 
+  (let ((device (device-for-hand (hand self))))
+    (bt:with-recursive-lock-held ((param-lock mtr-mod))
+      
+      (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+                               :time-in-ms t :module :motor :output nil
+                               :params `(,device 
                                          ((model ,(current-model)) 
                                           (style tap) (hand ,(hand self)) 
                                           (finger ,(finger self)))))
-    
-    
-    ;; also set the finger-down at execution time
-    ;; and finger-up at burst time after exec time
-    
-    (when (device-for-hand (hand self))
+      
+      
+      ;; also set the finger-down at execution time
+      ;; and finger-up at burst time after exec time
+      
       (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                                :time-in-ms t :module :motor :output nil
-                               :params `(,(device-for-hand (hand self)) (set-finger-down ,(hand self) ,(finger self))))
+                               :params `(,device (set-finger-down ,(hand self) ,(finger self))))
       
       
       (schedule-event-relative (seconds->ms (+ (exec-time self) (burst-time mtr-mod))) 'notify-motor-device 
                                :time-in-ms t :module :motor :output nil
-                               :params `(,(device-for-hand (hand self)) (set-finger-up ,(hand self) ,(finger self)))))))
+                               :params `(,device (set-finger-up ,(hand self) ,(finger self)))))))
 
 
 ;;; tap-hold movement style
 ;;; Performs a tap movement, but holds the finger to the multitouch display surface.
 
 (defstyle tap-hold tap hand finger)
+
+(defmethod tap-hold :around ((mtr-mod motor-module) &key hand finger request-spec)
+  (declare (ignore request-spec))
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to tap-hold."))
+          
+          ((null (valid-hand hand))
+           (print-warning "Tap-hold request has invalid hand ~s." hand))
+          
+          ((null (valid-finger finger))
+           (print-warning "Tap-hold request has invalid finger ~s." finger))
+                    
+          ((touch-finger-down hand finger :current nil)
+           (print-warning "Tap-hold requested for ~a ~a but that finger is (or will be) down." hand finger))
+          
+          (t
+           (call-next-method)))))
+
+(defmethod prepare-features ((mtr-mod motor-module) (self tap-hold))
+  (let* ((starting-point (copy-hand-pos (hand-position (hand self) :current nil)))
+         (others (copy-seq (hand-pos-other starting-point))))
+    (awhen (find 'touch-positions (hand-pos-other starting-point) :key 'first)
+           (setf others (remove it others)))
+    (let ((updated-fingers (list 'touch-positions)))
+      (dolist (finger '(index middle ring pinkie thumb))
+        (let ((pos (touch-finger-position (hand self) finger :current nil)))
+          (push-last (list finger (px pos) (py pos) 
+                           (if (eq finger (finger self))
+                               0
+                             (if (touch-finger-down (hand self) finger :current nil)
+                               0 1)))
+                     updated-fingers)))
+        
+      (push updated-fingers others))
+    (setf (hand-pos-other starting-point) others)
+    (setf (updated-pos self) starting-point)))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self tap-hold))
   
@@ -1048,15 +1238,19 @@
                                        ((model ,(current-model)) 
                                         (style tap-hold) (hand ,(hand self)) 
                                         (finger ,(finger self)))))
-      
+  
+  ;; update the hand-position information
+  
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                             :destination :motor :params (list (hand self) (updated-pos self))
+                             :output nil)
+  
   ;; also send the finger-down notice
   
-  (when (device-for-hand (hand self))
-    (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
-                             :time-in-ms t :module :motor :output nil
-                             :params `(,(device-for-hand (hand self)) 
-                                         (set-finger-down ,(hand self) ,(finger self))))))
-
+  (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+                           :time-in-ms t :module :motor :output nil
+                           :params `(,(device-for-hand (hand self)) 
+                                       (set-finger-down ,(hand self) ,(finger self)))))
 
 
 ;;; tap-release movement style
@@ -1066,15 +1260,49 @@
 
 (defstyle tap-release tap hand finger)
 
+(defmethod tap-release :around ((mtr-mod motor-module) &key hand finger request-spec)
+  (declare (ignore request-spec))
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to tap-release."))
+          
+          ((null (valid-hand hand))
+           (print-warning "Tap-release request has invalid hand ~s." hand))
+          
+          ((null (valid-finger finger))
+           (print-warning "Tap-release request has invalid finger ~s." finger))
+                    
+          ((not (touch-finger-down hand finger :current nil))
+           (print-warning "Tap-release requested for ~a ~a but that finger is (or will be) up." hand finger))
+          
+          (t
+           (call-next-method)))))
+
+(defmethod prepare-features ((mtr-mod motor-module) (self tap-release))
+  (let* ((starting-point (copy-hand-pos (hand-position (hand self) :current nil)))
+         (others (copy-seq (hand-pos-other starting-point))))
+    (awhen (find 'touch-positions (hand-pos-other starting-point) :key 'first)
+           (setf others (remove it others)))
+    (let ((updated-fingers (list 'touch-positions)))
+      (dolist (finger '(index middle ring pinkie thumb))
+        (let ((pos (touch-finger-position (hand self) finger :current nil)))
+          (push-last (list finger (px pos) (py pos) 
+                           (if (eq finger (finger self))
+                               1
+                             (if (touch-finger-down (hand self) finger :current nil)
+                               0 1)))
+                     updated-fingers)))
+        
+      (push updated-fingers others))
+    (setf (hand-pos-other starting-point) others)
+    (setf (updated-pos self) starting-point)))
 
 (defmethod compute-exec-time ((mtr-mod motor-module) (self tap-release))
-  (let ((touch (get-module :touch-interface)))
-    (bt:with-recursive-lock-held ((touch-module-lock touch))
-      (bt:with-recursive-lock-held ((param-lock mtr-mod))
-        (+ (init-time mtr-mod)  
-           ;; just costs a burst-time since it's not a targeted
-           ;; motion -- just lifting a finger
-           (burst-time mtr-mod))))))
+  (bt:with-recursive-lock-held ((param-lock mtr-mod))
+    (+ (init-time mtr-mod)  
+       ;; just costs a burst-time since it's not a targeted
+       ;; motion -- just lifting a finger
+       (burst-time mtr-mod))))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self tap-release))
   
@@ -1087,14 +1315,18 @@
                                         (style tap-release) (hand ,(hand self)) 
                                         (finger ,(finger self)))))
       
+  ;; update the hand-position information
+  
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                             :destination :motor :params (list (hand self) (updated-pos self))
+                           :output nil)
+  
   ;; also send the finger-up notice
   
-  (when (device-for-hand (hand self))
-    
-    (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+  (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                            :time-in-ms t :module :motor :output nil
                            :params `(,(device-for-hand (hand self)) 
-                                       (set-finger-up ,(hand self) ,(finger self))))))
+                                       (set-finger-up ,(hand self) ,(finger self)))))
 
 
 
@@ -1102,6 +1334,8 @@
 ;;; Index-Thumb
 ;;; Subclass this for pinch and rotate
 ;;; on its own basically a thumb swipe
+
+;; want an extra slot so skip defstyle to avoid complications
 
 (defclass index-thumb (hfrt-movement)
   ((move-time :accessor move-time))
@@ -1130,56 +1364,78 @@
             (randomize-time (move-time self))))))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self index-thumb))
-  (let* ((start-pos (touch-finger-position (hand self) 'index))
+  (let* ((finger (finger self))
+         (hand (hand self))
+         (start-pos (touch-finger-position hand finger))
          (move-vector (vector (r self) (theta self)))
-         (end-pos (polar-move-xy start-pos move-vector)))
+         (end-pos (polar-move-xy start-pos move-vector))
+         (device (device-for-hand hand)))
         
     ;; Send the index-thumb action at execution time to whatever device is current for the hand
     ;; with the distance and direction
         
     (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                              :time-in-ms t :module :motor :output nil
-                             :params `(,(device-for-hand (hand self)) 
-                                         ((model ,(current-model)) 
-                                          (style index-thumb) (hand ,(hand self)) 
-                                          (distance ,(vr move-vector)) (direction ,(vtheta move-vector)))))
+                             :params `(,device 
+                                       ((model ,(current-model)) 
+                                        (style index-thumb) (hand ,hand) (finger ,finger) 
+                                        (distance ,(vr move-vector)) (direction ,(vtheta move-vector)))))
     
-    ;; schedule the thumb to go down after init-time
+    ;; schedule the finger to go down after init-time
     ;; move to the target point at exec-time
     ;; lift up after exec-time + burst-time
     ;; move back to start at finish-time
     
-    (when (device-for-hand (hand self))
-      (bt:with-recursive-lock-held ((param-lock mtr-mod))
-        
-        
-        (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
-                                 :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-down ,(hand self) thumb)))
-        
-        (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
-                                 :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,(px end-pos) ,(py end-pos))))
-        
-        (schedule-event-relative (seconds->ms (+ (exec-time self) (bt:with-recursive-lock-held ((param-lock mtr-mod)) (burst-time mtr-mod))))
-                                 'notify-motor-device 
-                                 :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-up ,(hand self) thumb)))
-        
-        (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
-                                 :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,(px start-pos) ,(py start-pos))))))))
+    (bt:with-recursive-lock-held ((param-lock mtr-mod))
+      
+      
+      (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
+                               :time-in-ms t :module :motor :output nil
+                               :params `(,device 
+                                         (set-finger-down ,hand ,finger)))
+      
+      (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+                               :time-in-ms t :module :motor :output nil
+                               :params `(,device 
+                                         (set-finger-position ,hand ,finger ,(px end-pos) ,(py end-pos))))
+      
+      (schedule-event-relative (seconds->ms (+ (exec-time self) (bt:with-recursive-lock-held ((param-lock mtr-mod)) (burst-time mtr-mod))))
+                               'notify-motor-device 
+                               :time-in-ms t :module :motor :output nil
+                               :params `(,device 
+                                         (set-finger-up ,hand ,finger)))
+      
+      (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
+                               :time-in-ms t :module :motor :output nil
+                               :params `(,device 
+                                         (set-finger-position ,hand ,finger ,(px start-pos) ,(py start-pos)))))))
 
 
-(defmethod index-thumb ((mtr-mod motor-module) &key hand r theta request-spec)
-  (unless (or (check-jam mtr-mod) (check-specs 'index-thumb hand r theta))
-    (when (symbolp theta)
-      (setf theta (symbol-value theta)))
-    (prepare-movement mtr-mod (make-instance 'index-thumb :hand hand :finger 'thumb :r r :theta theta :request-spec request-spec))))
+
+(defmethod index-thumb ((mtr-mod motor-module) &key hand finger r theta request-spec)
+  
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to index-thumb."))
+                
+          ((check-jam mtr-mod) ; prints own warning
+           )
+          
+          ((null (valid-hand hand))
+           (print-warning "Index-thumb request has invalid hand ~s." hand))
+          
+          ((null (valid-finger finger))
+           (print-warning "Index-thumb request has invalid finger ~s." finger))
+          
+          ((touch-finger-down hand finger :current nil)
+           (print-warning "Index-thumb requested for ~a ~a but that finger is (or will be) down." hand finger))
+          
+          (t
+           (when (symbolp theta)
+             (setf theta (symbol-value theta)))
+           
+           (prepare-movement mtr-mod (make-instance 'index-thumb :hand hand :finger finger :r r :theta theta :request-spec request-spec))))))
+
 
 
 ;; Pinch is finger and thumb down start-width apart then move to end-width apart lift and return to starting
@@ -1205,25 +1461,27 @@
   
   ;; Send the pinch action at execution time to whatever device is current for the hand
   ;; with the distances
-  
-  (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
-                           :time-in-ms t :module :motor :output nil
-                           :params `(,(device-for-hand (hand self)) 
+  (let* ((hand (hand self))
+         (finger (finger self))
+         (device (device-for-hand hand)))
+    
+    (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+                             :time-in-ms t :module :motor :output nil
+                             :params `(,device 
                                        ((model ,(current-model)) 
-                                        (style pinch) (hand ,(hand self)) (finger ,(finger self))
+                                        (style pinch) (hand ,hand) (finger ,finger)
                                         (range ,(start-width self) ,(end-width self)))))
   
-  ;; move the finger and thumb to be start-width apart and put them
-  ;; down at init-time
-  ;; move to end-width distance at exec-time 
-  ;; lift up a burst-time after exec-time
-  ;; move back to start at finish-time
-  
-  (when (device-for-hand (hand self))
+    ;; move the finger and thumb to be start-width apart and put them
+    ;; down at init-time
+    ;; move to end-width distance at exec-time 
+    ;; lift up a burst-time after exec-time
+    ;; move back to start at finish-time
+    
     (bt:with-recursive-lock-held ((param-lock mtr-mod))
       
-      (let* ((thumb-start-pos (touch-finger-position (hand self) 'thumb))
-             (finger-start-pos (touch-finger-position (hand self) (finger self)))
+      (let* ((thumb-start-pos (touch-finger-position hand 'thumb))
+             (finger-start-pos (touch-finger-position hand finger))
              (theta (atan (- (py finger-start-pos) (py thumb-start-pos)) (- (px finger-start-pos) (px thumb-start-pos))))
              (r (round (- (dist thumb-start-pos finger-start-pos) (start-width self))))
              (thumb-init-pos (if (zerop r) thumb-start-pos
@@ -1249,54 +1507,77 @@
         
         (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,(px thumb-init-pos) ,(py thumb-init-pos))))
+                                 :params `(,device 
+                                           (set-finger-position ,hand thumb ,(px thumb-init-pos) ,(py thumb-init-pos))))
         
         (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) ,(finger self) ,(px finger-init-pos) ,(py finger-init-pos))))
+                                 :params `(,device 
+                                           (set-finger-position ,hand ,finger ,(px finger-init-pos) ,(py finger-init-pos))))
         
         (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-down ,(hand self) thumb)))
+                                 :params `(,device 
+                                           (set-finger-down ,hand thumb)))
         
         (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-down ,(hand self) ,(finger self))))
+                                 :params `(,device 
+                                           (set-finger-down ,hand ,finger)))
         
         (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,(px thumb-end-pos) ,(py thumb-end-pos))))
+                                 :params `(,device
+                                           (set-finger-position ,hand thumb ,(px thumb-end-pos) ,(py thumb-end-pos))))
         
         (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) ,(finger self) ,(px finger-end-pos) ,(py finger-end-pos))))
+                                 :params `(,device
+                                           (set-finger-position ,hand ,finger ,(px finger-end-pos) ,(py finger-end-pos))))
         
         (schedule-event-relative (seconds->ms (+ (exec-time self) bt)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-up ,(hand self) thumb)))
+                                 :params `(,device
+                                           (set-finger-up ,hand thumb)))
         
         (schedule-event-relative (seconds->ms (+ (exec-time self) bt)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-up ,(hand self) ,(finger self))))
-        
-        
-        (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
-                                 :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,(px thumb-start-pos) ,(py thumb-start-pos))))
+                                 :params `(,device
+                                           (set-finger-up ,hand ,finger)))
         
         (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) ,(finger self) ,(px finger-start-pos) ,(py finger-start-pos))))))))
+                                 :params `(,device
+                                           (set-finger-position ,hand thumb ,(px thumb-start-pos) ,(py thumb-start-pos))))
+        
+        (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
+                                 :time-in-ms t :module :motor :output nil
+                                 :params `(,device 
+                                           (set-finger-position ,hand ,finger ,(px finger-start-pos) ,(py finger-start-pos))))))))
+
+
+(defmethod pinch :around ((mtr-mod motor-module) &key hand finger start-width end-width request-spec)
+  (declare (ignore start-width end-width request-spec))
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to pinch."))
+      
+          ((null (valid-hand hand))
+           (print-warning "Pinch request has invalid hand ~s." hand))
+          
+          ((null (valid-finger finger))
+           (print-warning "Pinch request has invalid finger ~s." finger))
+          
+          ((touch-finger-down hand finger :current nil)
+           (print-warning "Pinch requested for ~a ~a but that finger is (or will be) down." hand finger))
+          
+          ((touch-finger-down hand 'thumb :current nil)
+           (print-warning "Pinch requested for ~a hand but that thumb is (or will be) down." hand))
+          
+          (t
+           (call-next-method)))))
+
+
 
 ;; Rotate is thumb and finger down and then moved along a circular path
 ;; the indicated number of radians (positive is clockwise negative counter-clockwise).
@@ -1308,10 +1589,6 @@
         width)
     (bt:with-recursive-lock-held ((touch-module-lock touch))
       (setf width (touch-module-rotate-width touch)))
-    
-    ;; don't think it can get here without it, but just to be safe
-    (unless (finger self)
-      (setf (finger self) 'index))
     
     (let ((diameter (dist (touch-finger-position (hand self) 'thumb)
                           (touch-finger-position (hand self) (finger self)))))
@@ -1340,28 +1617,30 @@
                 (randomize-time (move-time self))))))))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self rotate))
+  (let* ((hand (hand self))
+         (finger (finger self))
+         (device (device-for-hand hand)))
+    
+    ;; Send the rotate action at execution time to whatever device is current for the hand
+    ;; with the rotation angle
   
-  ;; Send the rotate action at execution time to whatever device is current for the hand
-  ;; with the rotation angle
+    (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+                             :time-in-ms t :module :motor :output nil
+                             :params `(,device
+                                         ((model ,(current-model)) 
+                                          (style rotate) (hand ,hand) (finger ,finger)
+                                          (direction ,(rotation self)))))
   
-  (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
-                           :time-in-ms t :module :motor :output nil
-                           :params `(,(device-for-hand (hand self)) 
-                                       ((model ,(current-model)) 
-                                        (style rotate) (hand ,(hand self)) (finger ,(finger self))
-                                        (direction ,(rotation self)))))
+    ;; move the finger and thumb down at init-time
+    ;; move by rotation angle at exec-time (positive is clockwise)
+    ;; lift up a burst-time after exec-time
+    ;; move back to start at finish-time
   
-  ;; move the finger and thumb down at init-time
-  ;; move by rotation angle at exec-time (positive is clockwise)
-  ;; lift up a burst-time after exec-time
-  ;; move back to start at finish-time
+    ;; just compute the final location -- not doing incremental movement along the arc
   
-  ;; just compute the final location -- not doing incremental movement along the arc
-  
-  (when (device-for-hand (hand self))
     (bt:with-recursive-lock-held ((param-lock mtr-mod))
-      (let* ((thumb-start-pos (touch-finger-position (hand self) 'thumb))
-             (finger-start-pos (touch-finger-position (hand self) (finger self)))
+      (let* ((thumb-start-pos (touch-finger-position hand 'thumb))
+             (finger-start-pos (touch-finger-position hand finger))
              (center (vector (+ (px thumb-start-pos) (/ (- (px finger-start-pos) (px thumb-start-pos)) 2))
                              (+ (py thumb-start-pos) (/ (- (py finger-start-pos) (py thumb-start-pos)) 2))))
              (tx1 (- (px thumb-start-pos) (px center)))
@@ -1375,50 +1654,69 @@
              (fx (round (+ (- (* fx1 c) (* fy1 s)) (px center))))
              (fy (round (+ (+ (* fy1 c) (* fx1 s)) (py center))))
              (bt (burst-time mtr-mod)))
-        
+                
+        (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
+                                 :time-in-ms t :module :motor :output nil
+                                 :params `(,device 
+                                             (set-finger-down ,hand thumb)))
         
         (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-down ,(hand self) thumb)))
-        
-        (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
-                                 :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-down ,(hand self) ,(finger self))))
+                                 :params `(,device
+                                             (set-finger-down ,hand ,finger )))
         
         
         (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,tx ,ty)))
+                                 :params `(,device
+                                             (set-finger-position ,hand thumb ,tx ,ty)))
         
         (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) ,(finger self) ,fx ,fy)))
+                                 :params `(,device
+                                             (set-finger-position ,hand ,finger ,fx ,fy)))
         
         
         (schedule-event-relative (seconds->ms (+ (exec-time self) bt)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-up ,(hand self) thumb)))
+                                 :params `(,device
+                                             (set-finger-up ,hand thumb)))
         
         (schedule-event-relative (seconds->ms (+ (exec-time self) bt)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-up ,(hand self) ,(finger self))))
+                                 :params `(,device
+                                             (set-finger-up ,hand ,finger)))
         
         
         (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) thumb ,(px thumb-start-pos) ,(py thumb-start-pos))))
+                                 :params `(,device
+                                             (set-finger-position ,hand thumb ,(px thumb-start-pos) ,(py thumb-start-pos))))
         
         (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
                                  :time-in-ms t :module :motor :output nil
-                                 :params `(,(device-for-hand (hand self)) 
-                                             (set-finger-position ,(hand self) ,(finger self) ,(px finger-start-pos) ,(py finger-start-pos))))))))
+                                 :params `(,device
+                                             (set-finger-position ,hand ,finger ,(px finger-start-pos) ,(py finger-start-pos))))))))
+
+
+(defmethod rotate :around ((mtr-mod motor-module) &key hand finger rotation request-spec)
+  (declare (ignore rotation request-spec))
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to rotate."))
+          ((null (valid-hand hand))
+           (print-warning "Rotate request has invalid hand ~s." hand))
+          ((null (valid-finger finger))
+           (print-warning "Rotate request has invalid finger ~s." finger))
+          ((touch-finger-down hand finger :current nil)
+           (print-warning "Rotate requested for ~a ~a but that finger is (or will be) down." hand finger))
+          
+          ((touch-finger-down hand 'thumb :current nil)
+           (print-warning "Rotate requested for ~a hand but that thumb is (or will be) down." hand))
+          
+          (t
+           (call-next-method)))))
+
 
 ;; Swipe is multiple fingers down moved together for a given distance
 ;; and direction at a specified speed (where speed is 1-5 with 5 being fastest
@@ -1428,21 +1726,40 @@
 
 (defStyle swipe index-thumb hand finger r theta num-fngrs swipe-speed)
 
-;; Cheat a little and redefine the swipe method so a default speed can be swapped in
-;; which depends on knowing how defstyle works.  Also check that it's a possible
-;; action -- only 5 fingers on the hand in the order index, middle, ring, pinkie, thumb
 
-(defmethod swipe ((mtr-mod motor-module) &key hand finger r theta num-fngrs swipe-speed request-spec)
-  (unless (or (check-jam mtr-mod) (check-specs 'swipe hand finger r theta num-fngrs)
-              (not (numberp num-fngrs)) (not (valid-finger finger))
-              (> (+ (valid-finger finger) num-fngrs) 5))
-    
-    (when (null swipe-speed)
-      (let ((touch (get-module :touch-interface)))
-        (bt:with-recursive-lock-held ((touch-module-lock touch)) 
-          (setf swipe-speed (touch-module-swipe-speed touch)))))
-    
-    (prepare-movement mtr-mod (make-instance 'swipe :hand hand :finger finger :r r :theta theta :num-fngrs num-fngrs :swipe-speed swipe-speed :request-spec request-spec))))
+(defmethod swipe :around ((mtr-mod motor-module) &key hand finger r theta num-fngrs swipe-speed request-spec)
+  
+  (let ((real-device (device-for-hand hand :current nil)))
+    (cond ((or (null real-device) (not (string-equal (second real-device) "touch")))
+           (print-warning "Hand is not on a touch device in request to swipe."))
+          ((null (valid-hand hand))
+           (print-warning "Swipe request has invalid hand ~s." hand))
+          ((null (valid-finger finger))
+           (print-warning "Swipe request has invalid finger ~s." finger))
+          ((touch-any-finger-down hand :current nil)
+           (print-warning "Swipe requested for ~a hand but there are (or will be) one or more fingers down." hand))
+          ((< num-fngrs 1)
+           (print-warning "Swipe for ~a hand requested with less than 1 finger ~s." hand num-fngrs))
+          ((> (+ num-fngrs (valid-finger finger)) 5)
+           (print-warning "Swipe for ~a hand requested with too many fingers (~s) starting with the ~a finger."
+                          hand num-fngrs finger))
+          ((not (or (numberp swipe-speed) (null swipe-speed)))
+           (print-warning "Swipe for ~a hand requested with invalid swipe-speed ~s." hand swipe-speed))
+          ((and swipe-speed (or (< swipe-speed 1) (> swipe-speed 5)))
+           (print-warning "Swipe for ~a hand requested with invalid swipe-speed ~s." hand swipe-speed))
+
+          (t
+           
+           ;; fill in the default speed if not provided
+           
+           (when (null swipe-speed)
+             (let ((touch (get-module :touch-interface)))
+               (bt:with-recursive-lock-held ((touch-module-lock touch)) 
+                 (setf swipe-speed (touch-module-swipe-speed touch)))))
+           
+           (call-next-method mtr-mod :hand hand :finger finger :r r :theta theta 
+                             :num-fngrs num-fngrs :swipe-speed swipe-speed :request-spec request-spec)))))
+
   
   
 (defmethod compute-exec-time ((mtr-mod motor-module) (self swipe))
@@ -1466,21 +1783,23 @@
   ;; Send the swipe action at execution time to whatever device is current for the hand
   ;; with the distance, direction, and number
   
-  (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
-                           :time-in-ms t :module :motor :output nil
-                           :params `(,(device-for-hand (hand self)) 
+  (let* ((hand (hand self))
+         (device (device-for-hand hand)))
+    
+    (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
+                             :time-in-ms t :module :motor :output nil
+                             :params `(,device
                                        ((model ,(current-model)) 
-                                        (style swipe) (hand ,(hand self)) (finger ,(finger self))
+                                        (style swipe) (hand ,hand) (finger ,(finger self))
                                         (distance ,(r self)) (direction ,(theta self))
                                         (count ,(num-fngrs self))
                                         (speed ,(swipe-speed self)))))
-  
-  ;; move the fingers down at init-time
-  ;; move to end-points at exec-time 
-  ;; lift up a burst-time after exec-time
-  ;; move back to start at finish-time
-  
-  (when (device-for-hand (hand self))
+    
+    ;; move the fingers down at init-time
+    ;; move to end-points at exec-time 
+    ;; lift up a burst-time after exec-time
+    ;; move back to start at finish-time
+    
     (bt:with-recursive-lock-held ((param-lock mtr-mod)) 
       (let* ((move-vector (vector (r self) (theta self)))
              (bt (burst-time mtr-mod))
@@ -1490,29 +1809,29 @@
         
         (dotimes (i count)
           (let* ((finger (nth (+ i start-finger) fingers))
-                 (start (touch-finger-position (hand self) finger))
+                 (start (touch-finger-position hand finger))
                  (end (polar-move-xy start move-vector)))
             
             (schedule-event-relative (seconds->ms (init-time mtr-mod)) 'notify-motor-device 
                                      :time-in-ms t :module :motor :output nil
-                                     :params `(,(device-for-hand (hand self)) 
-                                                 (set-finger-down ,(hand self) ,finger)))
+                                     :params `(,device
+                                               (set-finger-down ,hand ,finger)))
             
             (schedule-event-relative (seconds->ms (exec-time self)) 'notify-motor-device 
                                      :time-in-ms t :module :motor :output nil
-                                     :params `(,(device-for-hand (hand self)) 
-                                                 (set-finger-position ,(hand self) ,finger ,(px end) ,(py end))))
+                                     :params `(,device 
+                                               (set-finger-position ,hand ,finger ,(px end) ,(py end))))
             
             (schedule-event-relative (seconds->ms (+ (exec-time self) bt)) 'notify-motor-device 
                                      :time-in-ms t :module :motor :output nil
-                                     :params `(,(device-for-hand (hand self)) 
-                                                 (set-finger-up ,(hand self) ,finger)))
+                                     :params `(,device 
+                                               (set-finger-up ,hand ,finger)))
             
             
             (schedule-event-relative (seconds->ms (finish-time self)) 'notify-motor-device 
                                      :time-in-ms t :module :motor :output nil
-                                     :params `(,(device-for-hand (hand self)) 
-                                                 (set-finger-position ,(hand self) ,finger ,(px start) ,(py start))))))))))
+                                     :params `(,device 
+                                               (set-finger-position ,hand ,finger ,(px start) ,(py start))))))))))
 
 
 

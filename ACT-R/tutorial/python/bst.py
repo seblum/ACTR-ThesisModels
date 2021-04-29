@@ -87,7 +87,8 @@ def do_experiment(sticks, human=False):
     build_display(*sticks)
   
     if human:
-        wait_for_human()
+        if actr.visible_virtuals_available():
+            wait_for_human()
     else:
         actr.install_device(window)
         actr.start_hand_at_mouse()

@@ -60,23 +60,29 @@ class actr():
         else:
             return False
 
-    def add_command(self,name,function,documentation="No documentation provided.",single=True,actr_name=None):
-        if name not in self.interface.commands.keys():
-            self.interface.add_command(name,function)
-        elif self.interface.commands[name] == function:
-            print("Command ",name," already exists for function ",function)
-        else:
-            print("Command ",name," already exists and is now being replaced by ",function)
-            self.interface.add_command(name,function)
+    def add_command(self,name,function,documentation="No documentation provided.",single=True,actr_name=None,encoded=False):
+        if name in self.interface.commands.keys():
+            if self.interface.commands[name] == function:
+                print("Command ",name," already exists for function ",function)
+            else:
+                print("Command ",name," already exists and is now being replaced by ",function)
+                self.interface.add_command(name,function)
  
         existing = self.interface.send("check",name)
 
+        if function :
+            call_name = name
+        else:
+            call_name = None
+
         if existing[0] == True:
             if existing[1] == None:
-                result = self.interface.send("add",name,name,documentation,single,actr_name)
+                result = self.interface.send("add",name,call_name,documentation,single,actr_name,encoded)
                 if result[0]:
+                    self.interface.add_command(name,function)
                     return result[1]
                 else:
+                    print(result[1])
                     return False
             elif existing[2] == None:
                 print("Cannot add command ",name, " because it has already been added by a different owner.")
@@ -499,8 +505,8 @@ def random(value):
     return current_connection.evaluate_single("act-r-random",value)
 
 
-def add_command(name,function=None,documentation="No documentation provided.",single=True,local_name=None):
-    return current_connection.add_command(name,function,documentation,single,local_name)
+def add_command(name,function=None,documentation="No documentation provided.",single=True,local_name=None,encoded=False):
+    return current_connection.add_command(name,function,documentation,single,local_name,encoded)
 
 def monitor_command(original,monitor):
     return current_connection.monitor_command(original,monitor)
@@ -848,6 +854,9 @@ def hide_output():
 def unhide_output():
     current_connection.interface.show_output = True
 
+def visible_virtuals_available():
+    return current_connection.evaluate_single("visible-virtuals-available?")
+
 def process_events():
     time.sleep(0)
 
@@ -859,3 +868,6 @@ def permute_list(l):
     for i in new_indexes:
         result.append(l[i])
     return result
+
+def call_command(command,*parameters):
+    return current_connection.evaluate_single(command,*parameters)

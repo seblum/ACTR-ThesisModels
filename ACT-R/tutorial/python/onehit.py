@@ -299,21 +299,23 @@ def show_human_results(own_cards,others_cards,own_result,others_result):
 def play_against_model(count,print_games=False):
     global opponent_rule,opponent_feedback
 
-    old_rule = opponent_rule
-    old_feedback = opponent_feedback
+    if actr.visible_virtuals_available():
+        old_rule = opponent_rule
+        old_feedback = opponent_feedback
 
-    opponent_rule = play_human
-    opponent_feedback = show_human_results
+        opponent_rule = play_human
+        opponent_feedback = show_human_results
     
-    result = ()
-    try: 
-        result = hands(count,print_games)
-    finally:
-        opponent_rule = old_rule
-        opponent_feedback = old_feedback
+        result = ()
+        try: 
+            result = hands(count,print_games)
+        finally:
+            opponent_rule = old_rule
+            opponent_feedback = old_feedback
 
-    return(result)
-
+        return(result)
+    else:
+        actr.print_warning("Cannot play against the model without a visible window available.")
 
 def show_opponent_cards(ocards,mc1):
     return opponent_rule(ocards,mc1)

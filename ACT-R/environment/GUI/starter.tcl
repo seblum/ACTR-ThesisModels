@@ -11,7 +11,11 @@ image create photo onr_logo -file [file join [pwd] "logo.gif"]
 
 #create a window for it with no border and hide it
 toplevel .splash
-wm overrideredirect .splash 1
+
+if {$tcl_platform(os) != "Darwin"} {
+  wm overrideredirect .splash 1
+}
+
 wm withdraw .splash
 
 # make a label to hold the image and put it in the window

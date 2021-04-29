@@ -36,56 +36,60 @@ def respond_to_key_press (model,key):
     
 def do_experiment(size, trials, human):
 
-    actr.reset()
+    if human and not(actr.visible_virtuals_available()):
+        actr.print_warning("Cannot run the task as a person without a visible window available.")
+    else:
 
-    result = []
-    model = not(human)
-    window = actr.open_exp_window("Paired-Associate Experiment", visible=human)
+        actr.reset()
 
-    if model:
-        actr.install_device(window)
+        result = []
+        model = not(human)
+        window = actr.open_exp_window("Paired-Associate Experiment", visible=human)
 
-    for i in range(trials):
-        score = 0
-        time = 0
+        if model:
+            actr.install_device(window)
 
-        for prompt,associate in actr.permute_list(pairs[20 - size:]):
+        for i in range(trials):
+            score = 0
+            time = 0
+
+            for prompt,associate in actr.permute_list(pairs[20 - size:]):
          
-            actr.clear_exp_window(window)
-            actr.add_text_to_exp_window (window, prompt, x=150 , y=150)
+                actr.clear_exp_window(window)
+                actr.add_text_to_exp_window (window, prompt, x=150 , y=150)
 
-            global response
-            response = ''
-            start = actr.get_time(model)
+                global response
+                response = ''
+                start = actr.get_time(model)
 
-            if model:
-                actr.run_full_time(5)
-            else:
-                while (actr.get_time(False) - start) < 5000:
-                    actr.process_events()
+                if model:
+                    actr.run_full_time(5)
+                else:
+                    while (actr.get_time(False) - start) < 5000:
+                        actr.process_events()
 
-            if response == associate:
-                score += 1
-                time += response_time - start
+                if response == associate:
+                    score += 1
+                    time += response_time - start
             
-            actr.clear_exp_window(window)
-            actr.add_text_to_exp_window (window, associate, x=150 , y=150)
-            start = actr.get_time(model)
+                actr.clear_exp_window(window)
+                actr.add_text_to_exp_window (window, associate, x=150 , y=150)
+                start = actr.get_time(model)
            
-            if model:
-                actr.run_full_time(5)
+                if model:
+                    actr.run_full_time(5)
+                else:
+                    while (actr.get_time(False) - start) < 5000:
+                        actr.process_events()
+
+            if score > 0:
+                average_time = time / score / 1000.0
             else:
-                while (actr.get_time(False) - start) < 5000:
-                    actr.process_events()
+                average_time = 0
 
-        if score > 0:
-            average_time = time / score / 1000.0
-        else:
-            average_time = 0
+            result.append((score/size,average_time))
 
-        result.append((score/size,average_time))
-
-    return result
+        return result
 
 def experiment(n):
     

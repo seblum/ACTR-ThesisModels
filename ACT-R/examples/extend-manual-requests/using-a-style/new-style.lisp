@@ -56,6 +56,30 @@
 ;;; to find the details and there are no guarantees that the
 ;;; motor module's internal details will not change in the future.
 
+;;; If the style will be moving the hand, finger(s), or depends 
+;;; upon the current position of the hand to generate the features,
+;;; then the prepare-features method should be written for the style.
+;;; That method should compute the necessary features based on
+;;; the expected hand position (not the current position since
+;;; it may be in the process of moving), and set the updated-pos
+;;; slot of the movement-style to the position where the hand
+;;; will be when it finishes execution if it will change.
+
+;;; This example does not require that, but as an example here
+;;; is the method for the peck style movement which moves a finger.
+;;; The move-a-finger method of the motor module returns the new
+;;; position after a finger is moved, and that is being computed 
+;;; based on the expected position since the :current nil flag is
+;;; provided.  If that was not provided, or provided as non-nil, 
+;;; then the current hand position would have been used.
+
+#|
+(defmethod prepare-features ((mtr-mod motor-module) (self peck))
+  (setf (updated-pos self)
+    (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self) :current nil)))
+|#
+
+
 ;;; The preparation cost for a style action will require the
 ;;; time to prepare n+1 features where n is the number of features
 ;;; specified for the style, and the +1 is for the style itself.
@@ -115,10 +139,26 @@
   ;; of the request at the execution time.
   
   (schedule-event-relative (exec-time self) 
-                           (lambda (w x y z) 
-                             (format t "Features are ~S and ~S~%~s seconds spent in preparation~%finishing after ~f seconds~%" w x y z))
-                           :params (list (arg1 self) (arg2 self) (fprep-time self) (finish-time self))))
+                           'demo-print-style-info
+                           :params (list (arg1 self) (arg2 self) (fprep-time self) (finish-time self)))
+  
+  ;; If the action were moving the hand then it should schedule that
+  ;; here using the set-hand-position action with the value that was
+  ;; stored in updated-pos by the prepare-features method.  Again, this
+  ;; example does not need to do so, but this example is from the peck 
+  ;; style movement:
+  
+  #|
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                           :output nil :destination :motor 
+                           :params (list (hand self) (updated-pos self)))
+  |#
+  )
 
+;;; The function that will be called:
+
+(defun demo-print-style-info (w x y z) 
+  (format t "Features are ~S and ~S~%~s seconds spent in preparation~%finishing after ~f seconds~%" w x y z))
 
 ;;; To add the new style use extend-manual-requests and provide the 
 ;;; style name and features as the description of the action and

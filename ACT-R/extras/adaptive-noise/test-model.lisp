@@ -21,7 +21,7 @@
 
 (clear-all)
 
-(written-for-act-r-version "7.12" "test model for adaptive noise")
+(written-for-act-r-version "7.15" "test model for adaptive noise")
 
 (require-extra "adaptive-noise")
 
@@ -156,6 +156,9 @@
 
 
 #| To generate the data files the following runs were performed:
+
+This however will take several minutes to complete, and shorter 
+runs can be done for testing purposes.
 
 CG-USER(1): (generate-data 5000 300)
 (...)

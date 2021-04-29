@@ -1,0 +1,17 @@
+,Run,Session,actrtime.alert,left.focus,count.focus,middle.focus,actrtime.focus,middle.action.1,actrtime.1,lowertime.action.1,ticktime.action.1,uppertime.action.1,correct.1,middle.action.2,count.2,actrtime.2,lowertime.action.2,ticktime.action.2,uppertime.action.2,correct.2,right.focus,right.action.1,right.action.2,count.1,left.action.1,left.action.2
+0,0,10,20440,ND,1.0,PFD,21460,m,38675,14.0,18.0,20.0,successful,m,8.0,62540,19.0,41.0,25.0,failed,,,,,,
+0,1,3,20445,ND,8.0,PFD,24160,,31585,7.0,11.0,13.0,successful,,,37575,13.0,17.0,19.0,successful,MFD,s,s,,,
+0,2,9,20470,ND,10.0,PFD,,,,,,,,,,,,,,,MFD,,,,,
+0,3,7,20445,,1.0,PFD,21465,m,42730,7.0,22.0,13.0,successful,m,10.0,63140,34.0,42.0,40.0,failed,MFD,s,s,5.0,l,l
+0,4,13,20445,ND,4.0,PFD,22620,,49320,22.0,28.0,28.0,successful,,,55065,34.0,34.0,40.0,successful,,,,,l,l
+0,5,2,20445,ND,2.0,PFD,21850,m,40620,14.0,19.0,20.0,successful,m,8.0,62230,34.0,41.0,40.0,failed,MFD,,s,,,l
+0,6,2,20445,,,PFD,21080,m,40515,14.0,20.0,20.0,successful,m,8.0,62400,19.0,42.0,25.0,failed,,,,,,
+0,7,5,20435,ND,1.0,,21455,,44285,22.0,23.0,28.0,successful,,,58945,34.0,38.0,40.0,successful,MFD,,,,l,l
+0,8,7,20445,ND,10.0,,,,,,,,,,,,,,,,MFD,,,,,
+0,9,13,20445,ND,7.0,,23775,,49300,22.0,28.0,28.0,successful,,5.0,63160,13.0,42.0,19.0,failed,MFD,,s,,l,l
+0,10,9,20470,ND,10.0,PFD,,,,,,,,,,,,,,,MFD,,,,,
+0,11,4,20445,ND,7.0,PFD,23775,,28955,7.0,8.0,13.0,successful,,,35745,13.0,15.0,19.0,successful,MFD,s,s,,,
+0,12,3,20445,ND,2.0,PFD,21850,,31525,7.0,10.0,13.0,successful,,,37615,13.0,16.0,19.0,successful,MFD,s,s,,,
+0,13,10,20440,,10.0,,,,,,,,,,,,,,,,MFD,,,,,
+0,14,5,20445,ND,2.0,PFD,21850,,43990,22.0,23.0,28.0,successful,,,57250,34.0,36.0,40.0,successful,MFD,,,,l,l
+0,15,4,20470,ND,10.0,PFD,,,,,,,,,,,,,,,,,,,,

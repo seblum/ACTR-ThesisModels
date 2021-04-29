@@ -51,21 +51,9 @@ proc delete_current_model {ignore_model name} {
   }
 }
   
-set env_current_add_monitor [new_variable_name "env-current-model-add-monitor"]
+set env_current_add_monitor [add_new_cmd env_current_add_monitor "create_current_model" "Environment command for setting the current model menu when models created."]
 
-while {[send_cmd "check" $env_current_add_monitor] != "null"} {
-  set env_current_add_monitor [new_variable_name "env-current-model-add-monitor"]
-}
-
-add_cmd $env_current_add_monitor "create_current_model" "Environment command for setting the current model menu when models created."
-
-set env_current_delete_monitor [new_variable_name "env-current-model-delete-monitor"]
-
-while {[send_cmd "check" $env_current_delete_monitor] != "null"} {
-  set env_current_delete_monitor [new_variable_name "env-current-model-delete-monitor"]
-}
-
-add_cmd $env_current_delete_monitor "delete_current_model" "Environment command for setting the current model menu when models deleted."
+set env_current_delete_monitor [add_new_cmd env_current_delete_monitor "delete_current_model" "Environment command for setting the current model menu when models deleted."]
 
 
 proc check_current_models {} {
@@ -220,3 +208,19 @@ proc model_for_window {win} {
     return "nil"
   }
 }
+
+
+proc update_registered_windows {} {
+  global window_to_model
+
+  set names [array names window_to_model]
+  
+  foreach n $names {
+    set tag [lindex [bindtags $n] 0]  
+
+    if [regexp {^focus_tag[0-9]+$} $tag] {
+      eval [bind $tag <FocusIn>]
+    }
+  }
+}
+      

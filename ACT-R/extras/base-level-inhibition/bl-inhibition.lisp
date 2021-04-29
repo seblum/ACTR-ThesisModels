@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : bl-inhibition.lisp
-;;; Version     : 2.0a1
+;;; Version     : 2.0a2
 ;;; 
 ;;; Description : A module to add the short term base-level activation inhibition 
 ;;;             : component described in:
@@ -40,6 +40,9 @@
 ;;;             :   checked whether the parameter was already set.
 ;;; 2018.08.21 Dan [2.0a1]
 ;;;             : * Added a lock for protection to work well with 7.6+.
+;;; 2020.01.10 Dan [2.0a2]
+;;;             : * Removed the #' from the parameter valid functions since 
+;;;             :   that's not allowed in the general system now.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -127,22 +130,26 @@
              (:inhibition-decay  (bl-inhibition-decay module)))))))
           
 
+(defun create-bl-inhibition-module (name)
+  (declare (ignore name))
+  (make-bl-inhibition))
+
 (define-module-fct 'base-level-inhibition
     nil
-  (list (define-parameter :enable-inhibition :owner t :default-value t :valid-test #'tornil
+  (list (define-parameter :enable-inhibition :owner t :default-value t :valid-test 'tornil
           :documentation "Enable base-level inhibition calculation"
           :warning "T or nil")
-        (define-parameter :inhibition-scale :owner t :default-value 5 :valid-test #'plusp
+        (define-parameter :inhibition-scale :owner t :default-value 5 :valid-test 'plusp
           :warning "a positive number"
           :documentation "Base-level inhibition scale (ts)")
-        (define-parameter :inhibition-decay :owner t :default-value 1.0 :valid-test #'plusp
+        (define-parameter :inhibition-decay :owner t :default-value 1.0 :valid-test 'plusp
           :warning "a positive number"
           :documentation "Base-level inhibition decay (ds)")
         (define-parameter :activation-offsets :owner nil))
   
-  :creation (lambda (name) (declare (ignore name)) (make-bl-inhibition))
+  :creation 'create-bl-inhibition-module
   :params 'bl-inhibition-params
-  :version "2.0a1" 
+  :version "2.0a2" 
   :documentation 
   "Module to add the option of the Lebiere & Best base-level inhibition component to activation calculations"
   )

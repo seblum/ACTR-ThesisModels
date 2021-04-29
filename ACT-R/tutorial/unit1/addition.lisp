@@ -5,21 +5,22 @@
 
 (sgp :esc t :lf .05)
 
-(chunk-type count-order first second)
+(chunk-type number number next)
 (chunk-type add arg1 arg2 sum count)
 
 (add-dm
-   (a ISA count-order first 0 second 1)
-   (b ISA count-order first 1 second 2)
-   (c ISA count-order first 2 second 3)
-   (d ISA count-order first 3 second 4)
-   (e ISA count-order first 4 second 5)
-   (f ISA count-order first 5 second 6)
-   (g ISA count-order first 6 second 7)
-   (h ISA count-order first 7 second 8)
-   (i ISA count-order first 8 second 9)
-   (j ISA count-order first 9 second 10)
-   (second-goal ISA add arg1 5 arg2 2))
+ (zero isa number number zero next one)
+ (one isa number number one next two)
+ (two isa number number two next three)
+ (three isa number number three next four)
+ (four isa number number four next five)
+ (five isa number number five next six)
+ (six isa number number six next seven)
+ (seven isa number number seven next eight)
+ (eight isa number number eight next nine)
+ (nine isa number number nine next ten)
+ (ten isa number number ten)
+ (second-goal ISA add arg1 five arg2 two))
 
 (P initialize-addition
    =goal>
@@ -31,10 +32,10 @@
    =goal>
       ISA         add
       sum         =num1
-      count       0
+      count       zero
    +retrieval>
-      ISA        count-order
-      first      =num1
+      ISA         number
+      number      =num1
 )
 
 (P terminate-addition
@@ -43,6 +44,9 @@
       count       =num
       arg2        =num
       sum         =answer
+   =retrieval>
+      ISA         number
+      number      =answer
   ==>
    =goal>
       ISA         add
@@ -56,16 +60,16 @@
       sum         =sum
       count       =count
    =retrieval>
-      ISA         count-order
-      first       =count
-      second      =newcount
+      ISA         number
+      number      =count
+      next        =newcount
   ==>
    =goal>
       ISA         add
       count       =newcount
    +retrieval>
-      ISA        count-order
-      first      =sum
+      ISA         number
+      number      =sum
 )
 
 (P increment-sum
@@ -75,16 +79,16 @@
       count       =count
     - arg2        =count
    =retrieval>
-      ISA         count-order
-      first       =sum
-      second      =newsum
+      ISA         number
+      number      =sum
+      next        =newsum
   ==>
    =goal>
       ISA         add
       sum         =newsum
    +retrieval>
-      ISA        count-order
-      first      =count
+      ISA         number
+      number      =count
 )
 
 (goal-focus second-goal)

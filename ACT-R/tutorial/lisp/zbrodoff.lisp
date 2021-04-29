@@ -54,8 +54,9 @@
 
   (if *run-model* 
       (run (* 10 count))        
-    (while (< (length *results*) count)
-      (process-events)))
+    (if (visible-virtuals-available?)
+        (while (< (length *results*) count)
+          (process-events))))
   
   (remove-act-r-command-monitor "output-key" "zbrodoff-response")
   (remove-act-r-command "zbrodoff-response"))

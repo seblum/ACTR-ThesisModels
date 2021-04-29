@@ -4,9 +4,51 @@ global tutor_ans
 global tutor_bindings
 global tutor_answers
 global step_now
-global run_over
 global stepper_tutorable
 global stepper_tutored
+
+global current_stepper_id
+
+
+frame [control_panel_name].step_frame -borderwidth 0 
+
+checkbutton [control_panel_name].step_frame.step_all_events -text "Step All" -font checkbox_font \
+                -variable step_for_all -command {change_step_all} 
+
+set current_stepper_id -1
+set step_for_all 0
+set revert_step_all 0
+
+proc stepper_pause {} {
+  global step_for_all
+  global revert_step_all
+  global current_stepper_id
+
+  if {$step_for_all == 0} {
+    set step_for_all 1
+    call_act_r_command "set-stepper-step-all" nil [list $current_stepper_id true]
+    set revert_step_all 1
+  }
+
+  select_stepper
+}
+
+
+proc change_step_all {} {
+  global step_for_all
+  global current_stepper_id
+
+  if {$current_stepper_id != -1} {
+
+    if {$step_for_all == 0} {
+      set step false
+    } else {
+      set step true
+    }
+
+    call_act_r_command "set-stepper-step-all" nil [list $current_stepper_id $step]
+  }
+}
 
 proc stepper_button_state_control {state} {
  .stepper.step configure -state $state
@@ -14,47 +56,36 @@ proc stepper_button_state_control {state} {
  .stepper.run_until configure -state $state
 } 
 
-proc run_starts {model time} {
-  global run_over
 
-  set run_over 0
-  call_act_r_command "stepper-condition" nil [list false false]
-  stepper_button_state_control normal
-}
-
-proc run_ends {model time} {
-  global run_over
-
-  set run_over 1
-  stepper_button_state_control disabled
-}
 
 proc select_stepper {} {
-  global options_array
+  global current_stepper_id
+  global step_for_all
+  global stepper_wait
+  global stepper_stepped
+  global close_stepper
+  global reset_stepper
 
   if {[winfo exists .stepper] == 1} {
     wm deiconify .stepper
     raise .stepper
   } else {
 
-    if {[call_act_r_command "act-r-running-p"] == "true"} {
-      tk_messageBox -icon info -type ok -title "ACT-R running" \
-                    -message "Cannot open the stepper while ACT-R is currently running."
+    if {$step_for_all == 0} {
+      set s null
+    } else {
+      set s true
+    }
+
+    set start [call_act_r_command "start-stepper" nil [list $s false $stepper_wait $stepper_stepped]]
+
+    if {[lindex $start 0]  != "true" } {
+      tk_messageBox -icon info -type ok -title "Stepper" \
+                    -message [lindex $start 1]
       return 0
     }
 
-    set stepper_temp [call_act_r_command "stepper-status-check"]
-
-    if {$stepper_temp == "already" } {
-      tk_messageBox -icon info -type ok -title "Stepper" \
-                    -message "There is already a stepper window open in a connected Environment and only one stepper is allowed."
-      return 0
-    }
-
-    if {$stepper_temp == "none"} {
-      tk_messageBox -icon info -type ok -title "Stepper" \
-                    -message "All models currently have :v set to nil which means there will be no events for the stepper to use."
-    }
+    set current_stepper_id [lindex $start 1]
 
     toplevel .stepper
     wm withdraw .stepper
@@ -204,54 +235,34 @@ proc select_stepper {} {
 
     pack .stepper.prod_frame.f2.f -side top -expand 1 -fill both
 
-    add_cmd "stepper_run_start" "run_starts" "Monitor function for stepper button control."
-    add_cmd "stepper_run_stop" "run_ends" "Monitor function for stepper button control."
-    add_cmd "wait_for_stepper" "wait_for_stepper" "Internal command for stepper tool wait during pre-event hook. Do not call."
-    add_cmd "display_stepper_stepped" "display_stepper_stepped" "Internal command for stepper tool update. Do not call."
-    add_cmd "close-stepper-tool" "close_stepper_tool" "Internal command for closing the stepper when a clear-all occurs. Do not call."
-    add_cmd "reset-stepper-tool" "reset_stepper_tool" "Internal command for monitoring resets in stepper. Do not call."
 
-    send_cmd "monitor" [list "run-start" "stepper_run_start"]
-    send_cmd "monitor" [list "run-stop" "stepper_run_stop"]
-    send_cmd "monitor" [list "clear-all-start" "close-stepper-tool"]
-    send_cmd "monitor" [list "reset-step1" "reset-stepper-tool"]
+    send_cmd "monitor" [list "clear-all-start" $close_stepper]
+    send_cmd "monitor" [list "reset-step1" $reset_stepper]
 
     bind .stepper.step <Destroy> {
 
-      send_cmd "remove-monitor" [list "run-start" "stepper_run_start"]
-      send_cmd "remove-monitor" [list "run-stop" "stepper_run_stop"]
-      send_cmd "remove-monitor" [list "clear-all-start" "close-stepper-tool"]
-      send_cmd "remove-monitor" [list "reset-step1" "reset-stepper-tool"]
+      send_cmd "remove-monitor" [list "clear-all-start" $close_stepper]
+      send_cmd "remove-monitor" [list "reset-step1" $reset_stepper]
       
-      remove_cmd "stepper_run_start"
-      remove_cmd "stepper_run_stop"
-      remove_cmd "wait_for_stepper"
-      remove_cmd "display_stepper_stepped"
-      remove_cmd "close-stepper-tool"
-      remove_cmd "reset-stepper-tool"
+      call_act_r_command "stop-stepper" nil [list $current_stepper_id]
 
-      call_act_r_command "uninstall-stepper-hooks"
-      
-      global step_now
+      global step_for_all
+      global revert_step_all
 
-      set step_now 999 
+      if {$revert_step_all == 1} {
+        set step_for_all 0
+        set revert_step_all 0
+      }
+
+      set current_stepper_id -1
     }
 
     reset_stepper_tool ""
 
-#    if {[call_act_r_command "act-r-running-p"] == "true"} {
-#      run_starts 0 0
-#    } else {
-    run_ends 0 0
-#    }
+    wm deiconify .stepper
 
-    if {[call_act_r_command "install-stepper-hooks"] != "true"} {
-      tk_messageBox -icon warning -type ok -title "Stepper problem" \
-                    -message "There was a problem initializing the stepper controls and it cannot be used."
-      destroy .stepper
-    } else {
-      wm deiconify .stepper
-    }
+    call_act_r_command "set-stepper-ready" nil [list $current_stepper_id]
+    
   }
 }
 
@@ -270,6 +281,7 @@ proc reset_stepper_tool {model} {
   global stepper_tutor
   global stepper_tutored
   global stepper_tutorable
+  global current_stepper_id
 
   if {[winfo exists .tutor_response] == 1} {
 
@@ -296,8 +308,11 @@ proc reset_stepper_tool {model} {
   set stepper_tutored 0
   set stepper_tutorable 0
 
-}
+  stepper_button_state_control disabled
 
+  call_act_r_command "set-stepper-tutoring" nil [list $current_stepper_id false]
+
+}
 
 
 proc select_tutor_mode {} {
@@ -306,7 +321,7 @@ proc select_tutor_mode {} {
   global stepper_tutored
   global stepper_tutor
   global stepper_tutorable
-
+  global current_stepper_id
 
   if {[winfo exists .tutor_response] == 1} {
 
@@ -329,11 +344,10 @@ proc select_tutor_mode {} {
   }
 
   if {$stepper_tutor} {
-    call_act_r_command "turn-on-stepper-tutoring" nil ""
+    call_act_r_command "set-stepper-tutoring" nil [list $current_stepper_id true]
   } else {
-    call_act_r_command "turn-off-stepper-tutoring" nil ""
+    call_act_r_command "set-stepper-tutoring" nil [list $current_stepper_id false]
   }
-
 
   update_instantiation_viewers .stepper.prod_frame.f4.f.list
 }
@@ -341,25 +355,12 @@ proc select_tutor_mode {} {
 
 proc wait_for_stepper {model event} {
 
-  global step_now
-  global run_over
   global .stepper.next_text.var
 
   set .stepper.next_text.var $event
 
-  if {$run_over == 1} {
-    return "true"
-  } else {
+  stepper_button_state_control normal
 
-    set step_now 0
-    tkwait variable step_now
-
-    if {$step_now < 0} {
-      return "break"
-    } else {
-      return "true"
-    }
-  }
 }
 
 proc display_stepper_stepped {model text items tutorable p1 p2 p3 p4} {
@@ -372,11 +373,12 @@ proc display_stepper_stepped {model text items tutorable p1 p2 p3 p4} {
   global stepper_tutor
   global .stepper.next_text.var
   global stepper_tutorable
+  global options_array
 
   set .stepper.next_text.var ""
 
   set .stepper.current_text.var $text
- 
+
   set .stepper.prod_frame.f4.list_title.var $p1
   set .stepper.prod_frame.f5.production.var $p2
   set .stepper.prod_frame.f2.bindings.var $p3
@@ -390,9 +392,13 @@ proc display_stepper_stepped {model text items tutorable p1 p2 p3 p4} {
 
   if {$items == "null"} {set items ""}
 
-  set stepper_tutorable $tutorable
+  if {$tutorable =="null"} {
+    set stepper_tutorable 0
+  } else {
+    set stepper_tutorable 1
+  }
   
-  if {$tutorable && $stepper_tutor} {
+  if {$tutorable != "null" && $stepper_tutor} {
     set stepper_tutored 1
     
     if {[llength $items] > 1} {
@@ -402,20 +408,31 @@ proc display_stepper_stepped {model text items tutorable p1 p2 p3 p4} {
     set stepper_tutored 0
   }
   update_list_box .stepper.prod_frame.f4.f.list $items 1 1
+
+  if $options_array(update_when_stepped) {
+    update_registered_windows
+  }
 }
 
 
 proc stepper_step_button {} {
   global stepper_tutor
   global tutor_bindings
-  global step_now
+  global current_stepper_id
 
   if {!$stepper_tutor || [array names tutor_bindings] == ""} { 
 
-    call_act_r_command "stepper-condition" nil [list false false]
+    stepper_button_state_control disabled
+    set result [call_act_r_command "step-stepper" nil [list $current_stepper_id]]
 
-    # make sure it changes to avoid race condition with tkwait
-    set step_now [expr $step_now + 1] 
+    if {[lindex $result 0] == "null"} {
+      tk_messageBox -icon info -type ok -title "Step error" \
+                    -message [lindex $result 1]
+
+      stepper_button_state_control normal
+    }
+     
+
   } else {
     tk_messageBox -icon info -type ok -title "Tutoring" \
                   -message "You must complete the instantiation before continuing in tutor mode."
@@ -425,15 +442,19 @@ proc stepper_step_button {} {
 
 proc stepper_stop_button {} { # always let the user stop even in tutor mode now
 
-  global step_now
-    
-  if {$step_now < 0} { 
-    # make sure it changes to avoid race condition with tkwait
-    set step_now [expr $step_now - 1]
-  } else {
-    set step_now -1
+  global current_stepper_id
+
+  stepper_button_state_control disabled
+  set result [call_act_r_command "step-stepper" nil [list $current_stepper_id true]]
+
+  if {[lindex $result 0] == "null"} {
+    tk_messageBox -icon info -type ok -title "Stop error" \
+                  -message [lindex $result 1]
+
+    stepper_button_state_control normal
   }
 }
+
 
 proc stepper_run_until {} {
 
@@ -441,6 +462,7 @@ proc stepper_run_until {} {
   global stop_type
   global run_until_time
   global step_now
+  global current_stepper_id
 
 
   if $stepper_tutor {
@@ -448,13 +470,16 @@ proc stepper_run_until {} {
                   -message "Run Until not allowed when in tutor mode."
   } else {
 
-    set result [lindex [call_act_r_command "stepper-condition" nil [list $stop_type $run_until_time]] 0]
+    stepper_button_state_control disabled
 
-    if {$result == 1} {
-      # make sure it changes to avoid race condition with tkwait
-      set step_now [expr $step_now + 1] 
-    } else {
-      tk_messageBox -icon info -type ok -title "Run Until Issue" -message $result
+    set result [call_act_r_command "step-stepper" nil [list $current_stepper_id false $stop_type $run_until_time]]
+
+
+    if {[lindex $result 0] == "null"} {
+      tk_messageBox -icon info -type ok -title "Run Until error" \
+                    -message [lindex $result 1]
+
+      stepper_button_state_control normal
     }
   }
 }  
@@ -467,48 +492,24 @@ proc update_instantiation_viewers {list} {
 
   if {[$list curselection] != ""} {
   
-    set data [call_act_r_command "update-stepper-info" nil [list [$list get [$list curselection]]]]
+    set data [call_act_r_command "update-stepper" nil [list [$list get [$list curselection]]]]
 
     set params [lindex $data 0]
     set bindings [lindex $data 1]
-    set request [lindex $data 2]
-    set display [lindex $data 3]
-    set tutored_display [lindex $data 4]
+    set display [lindex $data 2]
+    set tutored_display [lindex $data 3]
+
 
     update_text_pane .stepper.prod_frame.f5.f.text $params
 
+    update_text_pane .stepper.prod_frame.f3.f.text $display
+
     if $stepper_tutored {
 
-      set b "" 
+      set b ""
       set line 1
 
-      foreach i $bindings {
-        append b [format "%s : \n" [lindex $i 0]]
-        set tutor_answers([lindex $i 0]) [list [lindex $i 1] 0 $line]
-        incr line
-      }
-    
-      update_text_pane .stepper.prod_frame.f2.f.text $b
-
-      update_text_pane .stepper.prod_frame.f3.f.text $tutored_display
-
-    } elseif {$request != ""} {
-      update_text_pane .stepper.prod_frame.f2.f.text $request
-      update_text_pane .stepper.prod_frame.f3.f.text $display
-
-    } else {
-      set b "" 
-      foreach i $bindings {
-        append b [format "%s : %s\n" [lindex $i 0] [lindex $i 1]]
-      }
-    
-      update_text_pane .stepper.prod_frame.f2.f.text $b
-      update_text_pane .stepper.prod_frame.f3.f.text $display
-    }
-
-    if $stepper_tutored {
-
-      foreach i $bindings {
+      foreach i $tutored_display {
      
         set var_name [lindex $i 0]
         set strt 1.0
@@ -517,6 +518,21 @@ proc update_instantiation_viewers {list} {
         set match "$var_name"  
                   # " $var_name"
         set is_buffer 0
+
+
+        if {$i != "null"} {
+          append b [format "%s: \n" [lindex $i 0]]
+        }
+
+        if [regexp {^\'(.*)\'$} [lindex $i 1] all sub] {
+          set val [format "\"%s\"" $sub]
+        } else {
+          set val [lindex $i 1]
+        }
+
+        set tutor_answers([lindex $i 0]) [list $val 0 $line]
+        incr line
+
 
         if {[string tolower [lindex $i 2]] == "true"} {
           set is_buffer 1
@@ -585,6 +601,10 @@ proc update_instantiation_viewers {list} {
           set strt $word_end
         }
       }
+      update_text_pane .stepper.prod_frame.f2.f.text $b
+
+    } else {
+      update_text_pane .stepper.prod_frame.f2.f.text $bindings
     }
   }
 } 
@@ -694,9 +714,9 @@ proc tutor_hint {word side buf is_buf} {
   } elseif {$side == "rhs"} {
     set tutor_help "You should find the binding for $word on\nthe left hand side of the production first."
   } elseif $is_buf {
-    set tutor_help "Use the buffer contents tool to determine the chunk in the [string range $word 1 end] buffer."
+    set tutor_help "Use the buffers tool to determine the chunk in the [string range $word 1 end] buffer."
   } elseif {$side == "lhs" && $buf != ""} { 
-    set tutor_help "$word is in a slot of the [string range $buf 1 end] buffer.\nYou can find its value using the buffer contents tool."
+    set tutor_help "$word is in a slot of the [string range $buf 1 end] buffer.\nYou can find its value using the buffers tool."
   } else {
     set tutor_help "No hint is available for this variable.  If it is in a !bind! or !mv-bind! you will need to use the help button to get the answer."
   }
@@ -710,6 +730,23 @@ proc tutor_help {word} {
 }
 
 
-button [control_panel_name].step_button -command {select_stepper} -text "Stepper" -font button_font
 
-pack [control_panel_name].step_button
+
+set stepper_wait [add_new_cmd "wait_for_stepper" "wait_for_stepper" "Internal command for stepper tool wait during pre-event hook. Do not call."]
+set stepper_stepped [add_new_cmd "display_stepper_stepped" "display_stepper_stepped" "Internal command for stepper tool update. Do not call."]
+set close_stepper [add_new_cmd "close-stepper-tool" "close_stepper_tool" "Internal command for closing the stepper when a clear-all occurs. Do not call."]
+set reset_stepper [add_new_cmd "reset-stepper-tool" "reset_stepper_tool" "Internal command for monitoring resets in stepper. Do not call."]
+
+
+
+button [control_panel_name].step_frame.step_button -command {select_stepper} -text "Stepper" -font button_font
+
+pack [control_panel_name].step_frame.step_button -side left
+
+pack [control_panel_name].step_frame.step_all_events -side right
+
+pack [control_panel_name].step_frame
+
+button [control_panel_name].pause_button -command {stepper_pause} -text "Pause" -font button_font
+
+pack [control_panel_name].pause_button

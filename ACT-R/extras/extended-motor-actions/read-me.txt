@@ -21,7 +21,7 @@ Here are the changes introduced with the extensions:
 can be detected by the modeler.  The actions from the existing module 
 (punch, peck, peck-recall, and press-key) all now result in both a press 
 and release of the key/button.   This extension updates the default
-virtual keyboard and mouse devices to now also generate a signals for
+virtual keyboard and mouse devices to now also generate signals for
 the release actions.  The keyboard generates a release-key signal with the
 same parameters as output-key: model and key, and the mouse generates a
 release-mouse signal with the same parameters as click-mouse: model, mouse
@@ -117,17 +117,25 @@ stages for each hand.
 The distance from the center of a key at which a peck action is considered
 to make contact with the key and start depressing it.  The value can be
 from 0 to .5 (the width of a key is 1.0 and movement is computed from 
-center of key to center of key thus the finger movement crosses half of
-the target key when striking it).  This affects when the output-key
-action occurs.  The default motor module assumes that the action occurs 
-after the entire movement completes and ignores the key closure time which
-is what will still happen if the value is set to nil.  
+center of key to center of key thus the finger movement crosses a distance of
+about half of the target key when striking it depending upon the angle).  This
+affects when the output-key action occurs.  
+
+The default motor module assumes that peck sytle actions occur after the entire 
+movement completes and ignore the key closure time parameter for peck actions.
+
+If this parameter is set to nil then that default behavior will occur.
 
 If it is set to a non-nil value then the peck and peck-recoil actions
 will generate the output-key action at the time: ct + t(d - psd) where
 ct is the key-closure-time, t(x) is the time along a minimum jerk velocity
 profile for the whole movement at which the distance is x, d is the
 length of the whole movement and psd is the value of :peck-strike-distance.
+
+Thus, with the default value of 0 the output-key action will be key-closure-time
+later than it would be with the default motor module timing, and values
+larger than 0 will decrease that time.
+
 
 :default-punch-delay (.075s default)
 
@@ -174,7 +182,12 @@ if either the processor or execution stage is busy.
 Each also adds additional queries for the fingers on that hand.  A finger
 query is busy if the finger is holding a key or mouse button down or 
 performing an action which affects the state of a key or mouse button being 
-held down, and free otherwise.
+held down, and free otherwise.  Note however, that because it is possible
+for actions to be queued for exeution, just because a finger reports as
+down does not mean that it will still be down at the time an action requested
+to occur actually executes i.e. the finger could be being held down, but 
+there could already be an action queued that will release it before a new
+request will be executed.
 
 Here is the output of the buffer-status call for the manual-left buffer for
 reference:
@@ -258,8 +271,11 @@ cmd release-all-fingers
 Release all fingers which are currently being held down.  The execution
 cost of the action is two burst-times (default of 50ms) with the release
 happening during the first burst-time (assuming the key release time is
-less than burst-time), and even if no fingers are being held down there 
-is still the full cost to prepare and execute the request.  
+less than burst-time).  Will delay if preparation is not free until 
+preparation is free (should guarantee that it's alway the next action),
+but not recommended to rely upon that.  Will check if any fingers are 
+down and only executes if there is, and only requires execution of a
+hand if it has fingers down.
 
 cmd point-finger
  hand [left | right]
@@ -283,7 +299,9 @@ if delay is provided as a number.  If delay is not provided then
 the default delay time is used.  If delay is either fast or slow, 
 then the value is taken from the corresponding parameter.  If
 :randomize-time is enabled then the delay will be randomized.
-
+If the finger is currently being held down it is released before
+performing this action.  This does not depend on the key-release-time
+and assumes that is already accounted for in the delay given.
 
 
 
@@ -298,6 +316,8 @@ Move the appropriate finger to the indicated key, press and release it.  The
 finger is moved from where it currently is (unlike press-key which assumes
 it's on the home position) and returns to where it was after striking the key
 (which may not be the home row position).
+If the finger is currently being held down it is released before
+performing this action.
 
 
 cmd hit-key
@@ -305,6 +325,8 @@ cmd hit-key
 
 Move the appropriate finger to the key and press and release it.  The
 finger is moved from where it currently is and stays over the key which is hit.
+If the finger is currently being held down it is released before
+performing this action.
 
 
 cmd hold-key
@@ -312,6 +334,8 @@ cmd hold-key
 
 Move the appropriate finger to the key and press it keeping it held down.  The
 finger is moved from where it currently is.
+If the finger is currently being held down it is released before
+performing this action.
 
 
 cmd release-key
@@ -335,6 +359,8 @@ cmd move-to-key
 
 Move the appropriate finger to that key without pressing it.  The finger is moved
 from where it currently is.
+If the finger is currently being held down it is released before
+performing this action.
 
 
 cmd move-finger-to-home
@@ -352,8 +378,9 @@ cmd all-fingers-to-home
 Move all fingers on the specified hand, or both hands if no hand specified,
 to their home positions.  Like move-finger-to-home any finger which is holding
 a key will be released first.  If all the fingers are on the home positions
-do nothing and print a warning.  This action has a fixed cost of 200ms for
-execution.
+do nothing and print a warning.  This action has a cost of the max of 200ms 
+and the time for each of the involved hands to do the necessary hand-ply
+(plus the initilization cost and a burst cost to finish).
 
 
 cmd hold-mouse

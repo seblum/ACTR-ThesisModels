@@ -75,12 +75,33 @@ proc select_options {} {
                 -variable current_options(kill_model_windows) \
                 -onvalue 1 -offvalue 0
 
+    checkbutton .options.update_when_stepped \
+                -text "Update inspector windows automatically when stepping" \
+                -font checkbox_font \
+                -variable current_options(update_when_stepped) \
+                -onvalue 1 -offvalue 0
+
+    checkbutton .options.use_localhost \
+                -text "Use localhost instead of 127.0.0.1" \
+                -font checkbox_font \
+                -variable current_options(use_localhost) \
+                -onvalue 1 -offvalue 0
+
+    checkbutton .options.sort \
+                -text "Sort declarative, procedural, and buffers viewers' item lists" \
+                -font checkbox_font \
+                -variable current_options(sort_lists) \
+                -onvalue 1 -offvalue 0
+
     pack .options.use_env_window -anchor w -expand 1 -fill x
     pack .options.use_smart_load -anchor w -expand 1 -fill x
     pack .options.save_before_reload -anchor w -expand 1 -fill x
     pack .options.show_copyrights -anchor w -expand 1 -fill x
     pack .options.save_backups -anchor w -expand 1 -fill x
     pack .options.multiple_models_close -anchor w -expand 1 -fill x
+    pack .options.update_when_stepped -anchor w -expand 1 -fill x
+    pack .options.use_localhost -anchor w -expand 1 -fill x
+    pack .options.sort -anchor w -expand 1 -fill x
 
     pack .options.but_frame
     wm deiconify .options

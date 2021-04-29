@@ -103,6 +103,7 @@
         state            idle
         action 			 idle
     !eval! ("return-from-submodel" =focus 0 "match-focus" "resultfocus")
+    !eval! ("write-protocol" "middle.focus" =focus)
     )
    
 
@@ -137,6 +138,7 @@
       state 			idle
       action 			idle
     !eval! ("return-from-submodel" =duration 1 "retrieve-action" "resultactionone")
+    !eval! ("write-protocol" "middle.action.1" =duration)
     )
 
 
@@ -171,6 +173,7 @@
       state 			idle
       action 			idle
     !eval! ("return-from-submodel" =duration 2 "retrieve-action" "resultactiontwo")
+    !eval! ("write-protocol" "middle.action.2" =duration)
     )
 
 

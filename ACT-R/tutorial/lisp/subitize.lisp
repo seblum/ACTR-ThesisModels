@@ -30,7 +30,7 @@
     (setf *response-time* nil)
     
     (if human
-        (progn
+        (when (visible-virtuals-available?)
           (add-act-r-command "subitize-response" 'respond-to-key-press 
                              "Subitize task human response")
           (monitor-act-r-command "output-key" "subitize-response")
@@ -54,7 +54,7 @@
         (remove-act-r-command-monitor "output-speech" "subitize-response")
         (remove-act-r-command "subitize-response")))
     
-    (if (string-equal answer *response*)
+    (if (and *response* (string-equal answer *response*))
         (list (/ (- *response-time* start) 1000.0) t)
       (list 30 nil))))
 

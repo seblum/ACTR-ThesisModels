@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : all-components-module.lisp
-;;; Version     : 4.0b1
+;;; Version     : 5.0
 ;;; 
 ;;; Description : A module which uses all the options that were available in '08,
 ;;;               but there are more now which should be added to this at some
@@ -39,6 +39,12 @@
 ;;;             : * Reworked for the new ACT-R 7.6+ software because model-output
 ;;;             :   can't be used during reset, and the query status function 
 ;;;             :   now should return the string not actually output it.
+;;; 2020.01.10 Dan [4.0b2]
+;;;             : * Removed the #' from the parameter valid function since 
+;;;             :   that's not allowed in the general system now.
+;;; 2020.06.01 Dan [5.0]
+;;;             : * Define the chunk-types in the creation function instead of
+;;;             :   the reset function now.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -127,11 +133,19 @@
 (defstruct demo-module model-name busy error jammed param)
 
 
-;;; Creation function just returns a new demo-module structure with
-;;; the model's name recorded.
+;;; Creation function creates the chunk-types needed and returns a 
+;;; new demo-module structure with the model's name recorded.
 
 (defun create-demo-module (model-name)
   (act-r-output "Creating a demo module for model ~S" model-name)
+  
+  ;; create the chunk-types used by the module
+  
+  (chunk-type create-chunk (create-chunk t))
+  (chunk-type result answer (demo-result t))
+  
+  ;; return the structure to use as the module's instance
+  
   (make-demo-module :model-name model-name))
 
 ;;; Deletion function does nothing for demo module except print it was called.
@@ -146,13 +160,6 @@
 
 (defun demo-primary-reset (instance)
   (act-r-output "Demo module's primary reset function called.")
-  
-  ;; create the chunk-types used by the module
-  ;; and set some default slots which will be used in
-  ;; the request testing
-  
-  (chunk-type create-chunk (create-chunk t))
-  (chunk-type result answer (demo-result t))
   
   ;; clear its internal flags
   (setf (demo-module-busy instance) nil)
@@ -381,10 +388,10 @@
 (define-module-fct 'demo '(demo1 (demo2 (:demo2-spread 3) (:value) (detect-jam) demo-query-status))
   (list (define-parameter :esc :owner nil)
         (define-parameter :demo-param :default-value .15
-          :valid-test #'posnum 
+          :valid-test 'posnum 
           :warning "a positive number"
           :documentation "delay for demo2 buffer modification requests"))
-  :version "4.0b1"
+  :version "5.0"
   :documentation "Demo module which exercises most of the module components"
   :creation 'create-demo-module
   :delete 'delete-demo-module

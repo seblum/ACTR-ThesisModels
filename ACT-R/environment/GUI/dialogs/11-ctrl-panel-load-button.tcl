@@ -21,13 +21,7 @@ proc load_model_file {fname {wait ""}} {
 
   set load_result ""
             
-  set load_monitor [new_variable_name "load_monitor"]
-
-  while {[send_cmd "check" $load_monitor] != "null"} {
-    set load_monitor [new_variable_name "load_monitor"]
-  }
-
-  add_cmd $load_monitor "record_load_traces" "Environment command for capturing output during Load ACT-R code."
+  set load_monitor [add_new_cmd load_monitor "record_load_traces" "Environment command for capturing output during Load ACT-R code."]
 
   send_cmd "monitor" [list "model-trace" $load_monitor]
   send_cmd "monitor" [list "command-trace" $load_monitor]

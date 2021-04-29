@@ -35,16 +35,17 @@ def trial (n,human=False):
     response_time = False
 
     if human:
-        actr.add_command("subitize-response",respond_to_key_press,
-                         "Subitize task human response")
-        actr.monitor_command("output-key","subitize-response")
+        if actr.visible_virtuals_available():
+            actr.add_command("subitize-response",respond_to_key_press,
+                             "Subitize task human response")
+            actr.monitor_command("output-key","subitize-response")
 
-        answer = number_to_string(n)
-        while response == '':
-            actr.process_events()
+            answer = number_to_string(n)
+            while response == '':
+                actr.process_events()
 
-        actr.remove_command_monitor("output-key","subitize-response")
-        actr.remove_command("subitize-response")
+            actr.remove_command_monitor("output-key","subitize-response")
+            actr.remove_command("subitize-response")
     else:
         actr.add_command("subitize-response",record_model_speech,
                          "Subitize task model response")
@@ -58,7 +59,7 @@ def trial (n,human=False):
         actr.remove_command_monitor("output-speech","subitize-response")
         actr.remove_command("subitize-response")
 
-    if response.lower() == answer.lower():
+    if response != '' and response.lower() == answer.lower():
         return [(response_time - start) / 1000.0, True]
     else:
         return [30, False]

@@ -22,13 +22,7 @@ button [control_panel_name].r_frame.reset -text "Reset" -font button_font -comma
 
   set reset_warnings ""
 
-  set reset_monitor [new_variable_name "reset_monitor"]
-
-  while {[send_cmd "check" $reset_monitor] != "null"} {
-    set reset_monitor [new_variable_name "reset_monitor"]
-  }
-
-  add_cmd $reset_monitor "record_reset_warnings" "Environment command for capturing warnings during a call to reset."
+  set reset_monitor [add_new_cmd reset_monitor "record_reset_warnings" "Environment command for capturing warnings during a call to reset."]
 
   send_cmd "monitor" [list "warning-trace" $reset_monitor]
 
@@ -75,13 +69,7 @@ button [control_panel_name].r_frame.reload -text "Reload" -font button_font -com
   }
   
 
-  set reload_monitor [new_variable_name "reload_monitor"]
-
-  while {[send_cmd "check" $reload_monitor] != "null"} {
-    set reload_monitor [new_variable_name "reload_monitor"]
-  }
-
-  add_cmd $reload_monitor "record_reset_warnings" "Environment command for capturing output during a call to reload."
+  set reload_monitor [add_new_cmd reload_monitor "record_reset_warnings" "Environment command for capturing output during a call to reload."]
 
 
   send_cmd "monitor" [list "model-trace" $reload_monitor]

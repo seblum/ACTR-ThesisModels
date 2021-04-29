@@ -282,13 +282,7 @@ proc load_blend_history_data {lb1 lb2 tb1 tb2 tb3 tb4 label model data_var} {
 
     set blend_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "blend_record_warnings" "Environment command for capturing warnings during Load Blending History."
+    set warning_monitor [add_new_cmd warning_monitor "blend_record_warnings" "Environment command for capturing warnings during Load Blending History."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -349,13 +343,7 @@ proc save_blend_history_data {model} {
 
       set blend_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "blend_record_warnings" "Environment command for capturing warnings during Save Blending History."
+      set warning_monitor [add_new_cmd warning_monitor "blend_record_warnings" "Environment command for capturing warnings during Save Blending History."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 

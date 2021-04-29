@@ -12,7 +12,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; Filename    : emma.lisp
-;;; Version     : 8.1a1
+;;; Version     : 8.1a2
 ;;;
 ;;; Description : Implementation of Dario Salvucci's EMMA system for eye
 ;;;             : movements based on subclassing the Vision Module and making
@@ -300,13 +300,20 @@
 ;;;             : * Don't compute r-theta and saccade separately, just create
 ;;;             :   the saccade immediately and store the target point in it
 ;;;             :   (using a num-to-prepare to ingore the extra feature).
+;;; 2020.01.10 Dan [8.1a2]
+;;;             : * Removed the #' and lambdas from the module interface 
+;;;             :   functions since that's not allowed in the general system
+;;;             :   now.
+;;; 2020.08.26 Dan
+;;;             : * Removed the path for require-compiled since it's not needed
+;;;             :   and results in warnings in SBCL.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 #+:packaged-actr (in-package :act-r)
 #+(and :clean-actr (not :packaged-actr) :ALLEGRO-IDE) (in-package :cg-user)
 #-(or (not :clean-actr) :packaged-actr :ALLEGRO-IDE) (in-package :cl-user)
 
-(require-compiled "GENERAL-PM" "ACT-R-support:general-pm")
+(require-compiled "GENERAL-PM")
 
 ;;; Note:
 ;;; This module's operation depends upon the get-obj-at-location method from the 
@@ -336,7 +343,7 @@
    (prep-event :accessor prep-event))
   (:default-initargs
       :name :emma
-    :version-string "8.1a1"
+    :version-string "8.1a2"
     :current-marker #(0 0 1)))
 
 
@@ -807,14 +814,19 @@
         (:freq-feature
          (freq-feature emma))))))
 
+(defun emma-buffer-status ()
+  (print-module-status (get-module :emma)))
+
+(defun eye-spot-color-value-test (x)
+  (or (tornil x) (symbolp x) (stringp x)))
+
+(defun freq-feature-value-test (x)
+  (or (symbolp x) (stringp x)))
 
 (define-module-fct :emma 
     (list (define-buffer-fct 'emma  ;; need a buffer for query and module state info
               :queries '(modality preparation execution processor last-command)
-            :status-fn (lambda () 
-                         (let ((emma (get-module :emma)))
-                           (print-module-status emma))))
-          )
+            :status-fn 'emma-buffer-status))
   
   (list 
    (define-parameter :emma :valid-test 'tornil :warning "T or nil" :default-value nil :documentation "enable the EMMA extension for the vision module")
@@ -856,12 +868,12 @@
                       :default-value 0.1
      :documentation "Default visual object frequecny")
    (define-parameter :eye-spot-color
-     :valid-test (lambda (x) (or (tornil x) (symbolp x) (stringp x)))
+     :valid-test 'eye-spot-color-value-test
      :default-value 'blue
      :warning "T, NIL, a symbol, or string"
      :documentation "Show the eye position in the GUI when vision shows the attention ring?  T, a string, or symbol will enable, and some devices will use the value to indicate a color.")
    (define-parameter :freq-feature
-       :valid-test (lambda (x) (or (symbolp x) (stringp x)))
+       :valid-test 'freq-feature-value-test
      :default-value 'value
      :warning "a symbol or string"
      :documentation "The slot of a feature's visual object which is used to determine the frequency.")

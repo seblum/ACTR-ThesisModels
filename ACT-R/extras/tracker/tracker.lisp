@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : tracker.lisp
-;;; Version     : 2.1
+;;; Version     : 5.3
 ;;; 
 ;;; Description : Module to create "trackers" which can learn a mapping of values
 ;;;             : in monitored slots for "good" and/or "bad" events to an output
@@ -112,6 +112,76 @@
 ;;;             :   access to any tracker structure values) except for the 
 ;;;             :   event counter since that's a between module value that 
 ;;;             :   needs its own lock.
+;;; 2019.09.27 Dan [2.3]
+;;;             : * Add a custom query function which has the query "exists" 
+;;;             :   that tests for a tracker with the specfied control-slot.
+;;; 2019.10.10 Dan [3.0]
+;;;             : * Added a name slot to the trackers, the ability to suspend
+;;;             :   and resume a tracker, and two new queries: active and
+;;;             :   available.
+;;;             : * Fixed an issue with the power decay because it should have
+;;;             :   been 1/(1 - decay) instead of 2 since 2 is the specific 
+;;;             :   value for the default decay of .5.
+;;;             : * Only decrease the temperature for the time the tracker is
+;;;             :   active (not suspended).
+;;; 2019.10.14 Dan
+;;;             : * Make sure all the events indicate the module is tracker.
+;;;             : * Display the name in the tracker trace for an update.
+;;; 2019.10.15 Dan [3.1]
+;;;             : * Only require unique names within a control-slot.
+;;; 2019.11.21 Dan 
+;;;             : * Adding the temperature into the list of info returned from
+;;;             :   print-tracker-stats.
+;;; 2019.12.16 Dan [4.0]
+;;;             : * Updated the hook functions to pass more info.  Control-
+;;;             :   scale gets control-slot, name, and value.  Good/bad-scale
+;;;             :   get control-slot, name, value, and weight.
+;;;             : * Store the result instead of calling the control-scale hook
+;;;             :   again so that print-tracker-stats can be used in the hook
+;;;             :   to get the parameters.
+;;; 2020.01.13 Dan [4.1]
+;;;             : * Removed the #' and lambdas from the module interface. 
+;;;             : * Fixed a bug with the trace output when the result is scaled.
+;;; 2020.04.15 Dan
+;;;             : * Suspending a tracker was still updating the control-slot
+;;;             :   when it was done, but that has been fixed.
+;;; 2020.08.26 Dan
+;;;             : * Removed the path for require-compiled since it's not needed
+;;;             :   and results in warnings in SBCL.
+;;; 2020.09.10 Dan [5.0]
+;;;             : * Added a request to create a new tracker which starts as a
+;;;             :   copy of an existing tracker for a specified control-slot.
+;;;             :   The existing tracker is suspended, and a new tracker starts
+;;;             :   with the same internal information as that existing tracker
+;;;             :   except that it has a new name and the initial temperature.
+;;;             : * Also moved the chunk-types to the creation function instead
+;;;             :   of the reset function.
+;;; 2020.09.11 Dan
+;;;             : * Removed some debug code that was still in the request fn.
+;;;             : * Fixed some calls to the failure function in the request fn.
+;;;             : * Added a declare ignore into tracker-calc-quad to avoid a
+;;;             :   compile time warning.
+;;;             : * Allow the new-name to be optional for a copy-tracker 
+;;;             :   request and generate a new name if one not provided.
+;;; 2020.09.22 Dan [5.1]
+;;;             : * Don't allow changing the temp-scale or init-temp in the
+;;;             :   modification request.
+;;;             : * Fixed a bug with the modification requests because it only
+;;;             :   used the control-slot to find the tracker to modify, but
+;;;             :   since there can be multiple it wasn't guaranteed to find
+;;;             :   the appropriate one.
+;;;             : * In the copy request added a copy-temp slot that if non-nil
+;;;             :   will copy all the necessary temperature values as well.
+;;;             :   Also, allow a value of :new for reweight which creates a new 
+;;;             :   history as if it were a new tracker instead of copying the
+;;;             :   previous history.
+;;; 2020.09.24 Dan [5.2]
+;;;             : * The bug fix for the modification request in the last update
+;;;             :   had a bug of its own, but that one is fixed now too.
+;;; 2020.09.28 Dan [5.3]
+;;;             : * Fixed yet another bug with the modification request -- it
+;;;             :   was modifying the chunk currently in the buffer instead of
+;;;             :   the underlying chunk since it's a copied multi-buffer.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -129,12 +199,16 @@
 ;;; Public API:
 ;;;
 ;;; There is a tracker buffer associated with the module.  It is a searchable
-;;; multi-buffer which holds all of the trackers which have been created.  It
-;;; takes requests to create new trackers and modification requests to change
-;;; the parameters of an existing tracker.
+;;; multi-buffer which holds all of the trackers which have been created and are
+;;; currently active.  It takes requests to create new trackers, suspend a 
+;;; tracker, and resume a suspended tracker, and modification requests to change
+;;; the parameters of an active tracker.
 ;;;
-;;; A tracker request is made using the slots of this chunk-type:
+;;; A tracker request to create a tracker is made using the slots of this 
+;;; chunk-type:
+;;;
 ;;; TRACK-OUTCOME <- TRACKER-PARAMS
+;;;    NAME
 ;;;    CONTROL-SLOT
 ;;;    GOOD-BUFFER
 ;;;    BAD-BUFFER
@@ -155,16 +229,77 @@
 ;;; It must include a control-slot (which is unique among all the trackers
 ;;; which have been created) and at least one of good-slot or bad-slot (it
 ;;; may specify both).  All of the other values are optional and have default
-;;; values which are set with parameters for the module.
+;;; values which are set with parameters for the module except for name 
+;;; which if not provided will be set to a unique value among the current
+;;; trackers.
 ;;;
 ;;; For each tracker created a chunk is added to the tracker buffer, and the 
-;;; best way to access that in a production is by using the control-slot to find
-;;; the appropriate chunk in the set.
+;;; best way to access that in a production is by using the control-slot
+;;; to find the appropriate chunk in the set.
+;;;
+;;; A request to suspend a tracker is made with the slots of this type:
+;;;
+;;; SUSPEND-TRACKER
+;;;    NAME
+;;;    CONTROL-SLOT
+;;;    SUSPEND (T)
+;;;
+;;; The suspend slot must be t and either a name or control-slot must be
+;;; specified (not both).  If there is a unique tracker which matches the
+;;; indicated value(s) (could be multiple with the same name) then it is 
+;;; suspended.
+;;; That means that it will stop accumulating good and bad results, not 
+;;; update its control value, and be removed from the set of chunks in 
+;;; the buffer. It will however continue to decay with time.
+;;;
+;;;
+;;; A request to resume a tracker is made with the slots of this type:
+;;;
+;;; RESUME-TRACKER
+;;;    NAME
+;;;    CONTROL-SLOT
+;;;
+;;; Either a name, control-slot, or both may be specified.  If there is
+;;; a suspended tracker which matches that indicator then it becomes active
+;;; again (added back to the buffer set and begin accumulating results and
+;;; generating updates).  If there is already an active tracker for that 
+;;; slot then it will suspend that tracker before resuming.
+;;;
+;;;
+;;; A new tracker can also be created which starts with the same state
+;;; as an existing tracker using the slots of this type:
+;;; 
+;;; COPY-TRACKER
+;;;    NAME
+;;;    CONTROL-SLOT
+;;;    NEW-NAME
+;;;    COPY (T)
+;;;    REWEIGHT
+;;;    COPY-TEMP
+;;;
+;;; 
+;;; If there is an existing tracker with the name and/or control-slot specified
+;;; then a new tracker will be created which has the new-name specified (or a
+;;; newly created name if one is not provided) for the control-slot of that 
+;;; existing tracker.  That new tracker starts with the same state as the 
+;;; existing tracker (other than any un-updated experiences).  If the copy-temp
+;;; slot is provided as non-nil then it will also have the same temperature, 
+;;; otherwise it will start with the initial temperature like a new tracker.
+;;; If the reweight slot is provided, then the history for the new tracker is
+;;; adjusted.  If the reweight slot is specified as t then the history will be
+;;; scaled to an N equal to the number of possible choices for the tracker, if
+;;; it is provided as a number it will be scaled to the provided N value, and
+;;; if it is :new then the history of experinces will be ignored and a new 
+;;; uniform history will be created as if it were a new tracker.
+;;;
+;;; If that existing tracker was active when this request occurred it will
+;;; be suspended and replaced with the new tracker.
+;;;
 ;;;
 ;;; A tracker can be modified after its creation using a modification request
 ;;; with the slots from this chunk-type:
 ;;;
-;;; TRACKER-MODIFICATION <- TRACKER-PARAMS
+;;; TRACKER-MODIFICATION
 ;;;    CONTROL-SCALE
 ;;;    GOOD-SLOT
 ;;;    BAD-SLOT
@@ -175,8 +310,6 @@
 ;;;    MIN
 ;;;    MAX
 ;;;    CONTROL-COUNT
-;;;    TEMP
-;;;    SCALE
 ;;;    DELAY
 ;;; 
 ;;; The tracker which is currently in the buffer will be updated with the new
@@ -198,9 +331,11 @@
 #-(or (not :clean-actr) :packaged-actr :ALLEGRO-IDE) (in-package :cl-user)
 
 
-(require-compiled "GOAL-STYLE-MODULE" "ACT-R-support:goal-style-module")
+(require-compiled "GOAL-STYLE-MODULE")
 
 (defstruct tracker 
+  name
+  active
   control-buffer
   control-slot
   control-scale
@@ -224,10 +359,12 @@
   init-time
   init-temp
   temperature
+  (active-time 0)
   scale-temp
   chunk
   update-event
   params ;; params are c,b,a for c + bx + ax^2
+  result
   )
   
 
@@ -256,6 +393,19 @@
 
 (defun create-tracker (model-name)
   (declare (ignore model-name))
+  
+  (chunk-type tracker-params control-scale good-slot bad-slot good-weight bad-weight 
+              good-scale bad-scale min max control-count temp scale delay)
+  
+  (chunk-type tracker-modification control-scale good-slot bad-slot good-weight bad-weight 
+              good-scale bad-scale min max control-count delay)
+  
+  (chunk-type (track-outcome (:include tracker-params)) name control-slot good-buffer bad-buffer)
+  (chunk-type resume-tracker name control-slot)
+  (chunk-type copy-tracker name control-slot new-name (copy t) reweight copy-temp)
+  (chunk-type tracker-query exists active available)
+  (chunk-type suspend-tracker name control-slot (suspend t))
+  
   (let ((module (make-instance 'tracker-module)))
     (bt:with-lock-held ((tracker-event-lock module))
       (aif (find 'current-mp (event-trackers module) :key 'first)
@@ -272,12 +422,7 @@
         (setf (event-trackers module) (remove event-tracker (event-trackers module)))))))
 
 (defun reset-tracker (module)
-  (chunk-type tracker-params control-scale good-slot bad-slot good-weight bad-weight 
-              good-scale bad-scale min max control-count temp scale delay)
   
-  (suppress-warnings (chunk-type (tracker-modification (:include tracker-params))))
-  
-  (chunk-type (track-outcome (:include tracker-params)) control-slot good-buffer bad-buffer)
   
   (bt:with-recursive-lock-held ((tracker-lock module))
     (setf (trackers module) nil)))
@@ -336,11 +481,11 @@
                        (format stream  ">"))
 
 
-(defun tracker-apply-scale (setting scale)
+(defun tracker-apply-scale (params scale default)
   (if scale
-      (handler-case (dispatch-apply scale setting)
-        (error (x) (print-warning "Tracker module encountered error ~/tracker-error-message/ while trying to apply the function ~s to value ~s" x scale setting)))
-    setting))
+      (handler-case (dispatch-apply-list scale params)
+        (error (x) (print-warning "Tracker module encountered error ~/tracker-error-message/ while trying to apply the function ~s to values ~s" x scale params)))
+    default))
 
 
 (defun tracker-request-checker (spec slot default)
@@ -371,8 +516,33 @@
 
 (defun create-update-tracker-event (delay module tracker)
   (bt:with-recursive-lock-held ((tracker-lock module))
-    (schedule-event-relative (tracker-update-time delay) 'update-tracker :params (list module tracker) :module :tracker :maintenance t :output 'high :details (format nil "update-tracker ~a" (tracker-control-slot tracker)))))
+    (schedule-event-relative (tracker-update-time delay) 'update-tracker :params (list module tracker) :module :tracker :maintenance t :output 'high :details (format nil "update-tracker ~a ~a" (tracker-name tracker) (tracker-control-slot tracker)))))
 
+
+(defun suspend-tracker (module tracker)
+  (bt:with-recursive-lock-held ((tracker-lock module))
+    (setf (tracker-active tracker) nil)
+    (schedule-event-now 'update-tracker :params (list module tracker :stop t) :maintenance t :output 'high :module :tracker :details (format nil "update-and-suspend-tracker ~a ~a" (tracker-name tracker) (tracker-control-slot tracker)))
+    (remove-m-buffer-chunk 'tracker (tracker-chunk tracker))
+    (when (tracker-update-event tracker) (delete-event (tracker-update-event tracker)))
+    (when (tracker-trace module)
+      (model-output "Tracker ~s for ~s slot will be suspended" (tracker-name tracker) (tracker-control-slot tracker)))))
+
+
+(defun resume-tracker (module tracker)
+  (bt:with-recursive-lock-held ((tracker-lock module))
+    ;; if there's an active one suspend it now
+    (awhen (find-if (lambda (x) 
+                      (and (eql (tracker-control-slot tracker) (tracker-control-slot x))
+                           (tracker-active x)))
+                    (trackers module))
+           (suspend-tracker module it))
+    
+    (setf (tracker-active tracker) t)
+    (schedule-event-now 'update-tracker :params (list module tracker :resume t) :maintenance t :output 'high :module :tracker :details (format nil "update-and-resume-tracker ~a ~a" (tracker-name tracker) (tracker-control-slot tracker)))
+    (store-m-buffer-chunk 'tracker (tracker-chunk tracker))
+    (when (tracker-trace module)
+      (model-output "Tracker ~s for ~s slot has been resumed" (tracker-name tracker) (tracker-control-slot tracker)))))
 
 (defun request-tracker (module buffer chunk-spec)
   (declare (ignore buffer)) ;; only have one
@@ -381,126 +551,392 @@
     (flet ((failure (text)
                     (model-warning "Tracker request failed because ~a" text)))
       
-      (let ((control-buffer (default-control module))
-            (good-buffer (tracker-request-checker chunk-spec 'good-buffer (default-values module)))
-            (bad-buffer (tracker-request-checker chunk-spec 'bad-buffer (default-values module)))
+      (let ((name (tracker-request-checker chunk-spec 'name nil))
+            (new-name (tracker-request-checker chunk-spec 'new-name nil))
             (control-slot (tracker-request-checker chunk-spec 'control-slot nil))
-            (good-slot (tracker-request-checker chunk-spec 'good-slot nil))
-            (bad-slot (tracker-request-checker chunk-spec 'bad-slot nil))
-            (control-scale (tracker-request-checker chunk-spec 'control-scale (default-control-scale module)))
-            (good-weight (tracker-request-checker chunk-spec 'good-weight (default-good-weight module)))
-            (bad-weight (tracker-request-checker chunk-spec 'bad-weight (default-bad-weight module)))
-            (good-scale (tracker-request-checker chunk-spec 'good-scale (default-good-scale module)))
-            (bad-scale (tracker-request-checker chunk-spec 'bad-scale (default-bad-scale module)))
-            (delay (tracker-request-checker chunk-spec 'delay (default-delay module)))
-            (min (tracker-request-checker chunk-spec 'min (default-min module)))
-            (max (tracker-request-checker chunk-spec 'max (default-max module)))
-            (control-count (tracker-request-checker chunk-spec 'control-count (default-count module)))
-            (temp (tracker-request-checker chunk-spec 'temp (initial-temp module)))
-            (scale (tracker-request-checker chunk-spec 'scale (temp-scale module))))
+            (suspend (tracker-request-checker chunk-spec 'suspend nil))
+            (copy (tracker-request-checker chunk-spec 'copy nil))
+            (reweight (tracker-request-checker chunk-spec 'reweight nil))
+            (params (length (chunk-spec-slots chunk-spec)))
+            (copy-temp (tracker-request-checker chunk-spec 'copy-temp nil)))
         
-        (cond ((null control-buffer)
-               (failure "control-buffer not specified."))
-              ((null control-slot)
-               (failure "control-slot not specified."))
-              ((not (or (and good-buffer good-slot)
-                        (and bad-buffer bad-slot)))
-               (failure (cond ((and (null good-buffer) (null bad-buffer))
-                               "neither a good or bad buffer is specified.")
-                              (good-buffer
-                               "The good buffer's slot is not specified.")
-                              (t
-                               "The bad buffer's slot is not specified."))))
-              ((not (local-or-remote-function-or-nil control-scale))
-               (failure (format nil "invalid control-scale ~a provided." control-scale)))
-              ((and good-weight good-buffer good-slot (not (numberp good-weight)))
-               (failure (format nil "invalid good-weight ~a provided." good-weight)))
-              ((and good-buffer good-slot (not (local-or-remote-function-or-nil good-scale)))
-               (failure (format nil "invalid good-scale ~a provided." good-scale)))
-              ((and bad-weight bad-buffer bad-slot (not (numberp bad-weight)))
-               (failure (format nil "invalid bad-weight ~a provided." bad-weight)))
-              ((and bad-buffer bad-slot (not (local-or-remote-function-or-nil bad-scale)))
-               (failure (format nil "invalid bad-scale ~a provided." bad-scale)))
-              ((not (numberp min))
-               (failure "min must be a number."))
-              ((not (numberp max))
-               (failure "max must be a number."))
-              ((not (and (posnum control-count) (integerp control-count)))
-               (failure "prior-count must be a positive integer."))
-              ((not (numberp temp))
-               (failure "temp must be a number."))
-              ((not (posnum scale))
-               (failure "scale must be a number."))
-              ((not (posnum delay))
-               (failure "delay must be a number."))
+        
+        (cond (suspend
+               (cond ((and name control-slot (= params 3))
+                      (let ((tracker (find-if (lambda (x) 
+                                                (and (eql control-slot (tracker-control-slot x))
+                                                     (eql name (tracker-name x))
+                                                     (tracker-active x)))
+                                           (trackers module))))
+                        (if tracker
+                            (suspend-tracker module tracker)
+                          (failure (format nil "no active tracker with name ~s and control-slot ~s found." name control-slot)))))
+                     ((and name (= params 2))
+                      (let ((c (count-if 
+                                (lambda (x) 
+                                  (and (eql name (tracker-name x))
+                                       (tracker-active x)))
+                                (trackers module))))
+                        (if (= 1 c)
+                            (let ((tracker (find-if (lambda (x) 
+                                                      (and (eql name (tracker-name x))
+                                                           (tracker-active x)))
+                                                    (trackers module))))
+                              (suspend-tracker module tracker))
+                          (if (zerop c)
+                              (failure (format nil "no active tracker with name ~s." name))
+                            (failure (format nil "more than one active tracker with name ~s." name))))))
+                     ((and control-slot (= params 2))
+                      (let ((tracker (find-if (lambda (x) 
+                                                (and (eql control-slot (tracker-control-slot x))
+                                                     (tracker-active x)))
+                                              (trackers module))))
+                        (if tracker
+                            (suspend-tracker module tracker)
+                          (failure (format nil "no active tracker with control-slot ~s found." control-slot)))))
+                     (t
+                      (failure "invalid suspend request."))))
+              (copy
+               (let* ((other-slots (+ 1 (if reweight 1 0) (if new-name 1 0) (if copy-temp 1 0)))
+                      (copy-name (if new-name 
+                                     new-name 
+                                   (loop 
+                                     (setf new-name (new-name "tracker"))
+                                     (unless (find new-name (trackers module) :key 'tracker-name)
+                                       (return new-name)))))
+                      (existing 
+                       (cond ((and name control-slot (= params (+ 2 other-slots)))
+                              (let ((tracker (find-if (lambda (x) 
+                                                        (and (eql control-slot (tracker-control-slot x))
+                                                             (eql name (tracker-name x))
+                                                             ))
+                                                      (trackers module))))
+                                (if tracker
+                                    (progn
+                                      (when (tracker-active tracker)
+                                        (suspend-tracker module tracker))
+                                      tracker)
+                                  (failure (format nil "no tracker with name ~s and control-slot ~s found when trying to copy a tracker" name control-slot)))))
+                             ((and name (= params (+ 1 other-slots)))
+                              (let ((c (count-if 
+                                        (lambda (x) 
+                                          (eql name (tracker-name x)))
+                                        (trackers module))))
+                                (if (= 1 c)
+                                    (let ((tracker (find-if (lambda (x) 
+                                                              (eql name (tracker-name x)))
+                                                            (trackers module))))
+                                      (when (tracker-active tracker)
+                                        (suspend-tracker module tracker))
+                                      tracker)
+                                  (if (zerop c)
+                                      (failure (format nil "no tracker with name ~s found when trying to copy a tracker." name))
+                                    (failure (format nil "more than one tracker with name ~s found when trying to copy a tracker." name))))))
+                             ((and control-slot (= params (+ 1 other-slots)))
+                              (let ((c (count-if 
+                                        (lambda (x) 
+                                          (eql control-slot (tracker-control-slot x)))
+                                        (trackers module))))
+                                (if (= 1 c)
+                                    (let ((tracker (find-if (lambda (x) 
+                                                              (eql control-slot (tracker-control-slot x)))
+                                                            (trackers module))))
+                                      (when (tracker-active tracker)
+                                        (suspend-tracker module tracker))
+                                      tracker)
+                                  (if (zerop c)
+                                      (failure (format nil "no tracker with control-slot ~s found when trying to copy a tracker." control-slot))
+                                    (failure (format nil "more than one tracker with control-slot ~s found when trying to copy a tracker." control-slot))))))
+                             (t
+                              (failure "invalid copy request."))))
+                      (weight (when reweight 
+                                (cond ((numberp reweight) reweight)
+                                      ((eq reweight t)
+                                       (when existing (length (tracker-choices existing))))
+                                      ((eq reweight :new)
+                                       :new)
+                                      (t
+                                       (failure (format nil "invalid reweight value ~s when trying to copy a tracker." reweight))
+                                       :bad-weight)))))
+                 (when (and existing (not (eq :bad-weight weight)))
+                   (if copy-name
+                       (if (find-if (lambda (x) 
+                                      (and (eql (tracker-control-slot x) (tracker-control-slot existing))
+                                           (eql copy-name (tracker-name x))))
+                                    (trackers module))
+                           (failure (format nil "a tracker for control-slot ~s with name ~s already exists when trying to copy a tracker."
+                                      (tracker-control-slot existing) copy-name))
+                         (let ((temp (initial-temp module))
+                               (scale (temp-scale module)))
+                           
+                           (awhen (find-if (lambda (x) 
+                                             (and (eql (tracker-control-slot x) (tracker-control-slot existing))
+                                                  (tracker-active x)))
+                                           (trackers module))
+                                  (suspend-tracker module it))
+                           
+                           (unless (chunk-p-fct copy-name)
+                             (define-chunks-fct (list (list copy-name 'name copy-name))))
+                           
+                           (let* ((chunk (car (define-chunks-fct (list (mapcan (lambda (x) (if x x nil))
+                                                                         (list (list 'name copy-name)
+                                                                               (list 'control-slot (tracker-control-slot existing))
+                                                                               (list 'min (tracker-min existing)) 
+                                                                               (list 'max (tracker-max existing))
+                                                                               (awhen (tracker-good-slot existing) 
+                                                                                      (list 'good-slot it))
+                                                                               (awhen (tracker-bad-slot existing)
+                                                                                      (list 'bad-slot it))
+                                                                               (awhen (tracker-control-scale existing)
+                                                                                      (list 'control-scale it))
+                                                                               (list 'good-weight (tracker-good-weight existing))
+                                                                               (awhen (tracker-good-scale existing)
+                                                                                      (list 'good-scale it))
+                                                                               (list 'bad-weight (tracker-bad-weight existing))
+                                                                               (awhen (tracker-bad-scale existing)
+                                                                                      (list 'bad-scale it))))))))
+                                  
+                                  (tracker (make-tracker 
+                                            :name copy-name
+                                            :active t
+                                            :control-buffer (tracker-control-buffer existing)
+                                            :control-slot (tracker-control-slot existing)
+                                            :control-scale (tracker-control-scale existing)
+                                            :choices (tracker-choices existing)
+                                            :statistics (cond ((numberp weight)
+                                                               (let ((cn (first (tracker-statistics existing))))
+                                                                 (mapcar (lambda (x)
+                                                                           (* x (/ weight cn)))
+                                                                   (tracker-statistics existing))))
+                                                              ((eq weight :new)
+                                                               (tracker-prior-statistics (tracker-choices existing)))
+                                                              (t
+                                                               (tracker-statistics existing)))
+                                            :min (tracker-min existing)
+                                            :max (tracker-max existing)
+                                            :params (tracker-params existing)
+                                            :init-temp (if copy-temp
+                                                           (tracker-init-temp existing)
+                                                         temp)
+                                            :temperature (if copy-temp
+                                                             (tracker-temperature existing)
+                                                           temp)
+                                            :delay (tracker-delay existing)
+                                            :scale-temp (if copy-temp
+                                                            (tracker-scale-temp existing)
+                                                          (seconds->ms scale))
+                                            :init-time (if copy-temp
+                                                           (tracker-init-time existing)
+                                                         (mp-time-ms))
+                                            :active-time (if copy-temp
+                                                             (tracker-active-time existing)
+                                                           0)
+                                            :chunk chunk
+                                            :good-buffer (tracker-good-buffer existing)
+                                            :good-slot (tracker-good-slot existing)
+                                            :good-weight (tracker-good-weight existing)
+                                            :good-scale (tracker-good-scale existing)
+                                            :good-value 0 ; don't want unhandled experience (tracker-good-value existing)
+                                            :bad-buffer (tracker-bad-buffer existing)
+                                            :bad-slot (tracker-bad-slot existing)
+                                            :bad-weight (tracker-bad-weight existing)
+                                            :bad-scale (tracker-bad-scale existing)
+                                            :bad-value 0)) ; don't want unhandled experience (tracker-bad-value existing)))
+                                  (setting (tracker-genQuadValue module tracker)))
+                             
+                             (push tracker (trackers module)) ;; need it on the list so that the scale
+                                                              ;; hook can get the info if needed
+                          
+                             (setf (tracker-result tracker) 
+                               (tracker-apply-scale (list (tracker-control-slot tracker) copy-name setting)
+                                                    (tracker-control-scale tracker) setting))
+                          
+                             (setf (tracker-update-event tracker) (create-update-tracker-event (tracker-delay tracker) module tracker))
+                          
+                             (schedule-event-now 'schedule-mod-buffer-chunk :priority -2000 
+                                                 :params (list (tracker-control-buffer tracker) 
+                                                               (list (tracker-control-slot tracker) (tracker-result tracker))
+                                                               0 :module :tracker :output 'medium)
+                                                 :module :tracker :output nil)
+                          
+                             (store-m-buffer-chunk 'tracker chunk)
+                          
+                             (when (and (tracker-trace module) (not (equalp (tracker-result tracker) setting)))
+                               (model-output " Result scaled to value: ~a" (tracker-result tracker))))))
+                     (failure "no new-name was provided when trying to copy a tracker.")))))
+              
+              ((or (and (= params 1) (or name control-slot))
+                   (and (= params 2) name control-slot))
+               (let ((tracker (cond ((= params 2)
+                                     (find-if (lambda (x) 
+                                                (and (eql control-slot (tracker-control-slot x))
+                                                     (eql name (tracker-name x))
+                                                     (not (tracker-active x))))
+                                                (trackers module)))
+                                    (name
+                                     (when (= 1 (count-if 
+                                                  (lambda (x) 
+                                                    (and (eql name (tracker-name x))
+                                                         (not (tracker-active x))))
+                                                 (trackers module)))
+                                       (find-if (lambda (x) 
+                                                  (and (eql name (tracker-name x))
+                                                       (not (tracker-active x))))
+                                                (trackers module))))
+                                     (control-slot
+                                      (when (= 1 (count-if 
+                                                  (lambda (x) 
+                                                    (and (eql control-slot (tracker-control-slot x))
+                                                         (not (tracker-active x))))
+                                                  (trackers module)))
+                                        
+                                        (find-if (lambda (x) 
+                                                   (and (eql control-slot (tracker-control-slot x))
+                                                        (not (tracker-active x))))
+                                                 (trackers module)))))))
+                  (if tracker
+                      (resume-tracker module tracker)
+                    (cond ((= params 2)
+                           (failure (format nil "no tracker with name ~a and control-slot ~a found to resume." name control-slot)))
+                          (name
+                           (failure (format nil "could not find a unique tracker named ~a to resume." name)))
+                          (t 
+                           (failure (format nil "could not find a unique tracker with control-slot ~a to resume." control-slot)))))))
+              
               (t
-               (awhen (find control-slot (trackers module) :key 'tracker-control-slot)
-                      (model-warning "Tracker for control-slot ~a already exists and is being replaced with a new tracker." control-slot)
-                      (setf (trackers module) (remove it (trackers module)))
-                      (remove-m-buffer-chunk 'tracker (tracker-chunk it))
-                      (delete-event (tracker-update-event it))
-                      (purge-chunk-fct (tracker-chunk it)))
-               
-               (let* ((choices (generate-tracker-choices control-count min max))
-                      (params (list 0 0 0))
-                      (chunk (car (define-chunks-fct (list (mapcan (lambda (x) (if x x nil))
-                                                             (list (list 'control-slot control-slot)
-                                                                   (list 'min min) (list 'max max)
-                                                                   (if (and good-buffer good-slot) (list 'good-slot good-slot) nil)
-                                                                   (if (and bad-buffer bad-slot) (list 'bad-slot bad-slot) nil)
-                                                                   (if control-scale (list 'control-scale control-scale) nil)
-                                                                   (list 'good-weight good-weight)
-                                                                   (if (and good-buffer good-slot good-scale) (list 'good-scale good-scale) nil)
-                                                                   (list 'bad-weight bad-weight)
-                                                                   (if (and bad-buffer bad-slot bad-scale) (list 'bad-scale bad-scale) nil)))))))
-                      (tracker (make-tracker 
-                                :control-buffer control-buffer
-                                :control-slot control-slot
-                                :control-scale control-scale
-                                :choices choices
-                                :statistics (tracker-prior-statistics choices)
-                                :min min
-                                :max max
-                                :params params
-                                :init-temp temp
-                                :temperature temp
-                                :delay delay
-                                :scale-temp (seconds->ms scale)
-                                :init-time (mp-time-ms)
-                                :chunk chunk
-                                :good-buffer (when (and good-buffer good-slot)
-                                               good-buffer)
-                                :good-slot (when (and good-buffer good-slot)
-                                             good-slot)
-                                :good-weight good-weight
-                                :good-scale (when (and good-buffer good-slot)
-                                              good-scale)
-                                :bad-buffer (when (and bad-buffer bad-slot)
-                                              bad-buffer)
-                                :bad-slot (when (and bad-buffer bad-slot)
-                                            bad-slot)
-                                :bad-weight bad-weight
-                                :bad-scale (when (and bad-buffer bad-slot)
-                                             bad-scale)))
-                      (setting (tracker-genQuadValue module tracker))
-                      (result (tracker-apply-scale setting control-scale)))
-                 
-                 (push tracker (trackers module))
-                 (setf (tracker-update-event tracker) (create-update-tracker-event delay module tracker))
-                 
-                 (schedule-event-now 'schedule-mod-buffer-chunk  :priority -2000 :params (list control-buffer (list control-slot result) 0 :module :tracker :output 'medium) :module :tracker :output nil)
-                 
-                 
-                 (store-m-buffer-chunk 'tracker chunk)
-                 
-                 (when (and (tracker-trace module) (not (equalp result setting)))
-                   (model-output " Result scaled to value: ~a" result)))))))))
+               (let ((control-buffer (default-control module))
+                     (good-buffer (tracker-request-checker chunk-spec 'good-buffer (default-values module)))
+                     (bad-buffer (tracker-request-checker chunk-spec 'bad-buffer (default-values module)))
+                     (good-slot (tracker-request-checker chunk-spec 'good-slot nil))
+                     (bad-slot (tracker-request-checker chunk-spec 'bad-slot nil))
+                     (control-scale (tracker-request-checker chunk-spec 'control-scale (default-control-scale module)))
+                     (good-weight (tracker-request-checker chunk-spec 'good-weight (default-good-weight module)))
+                     (bad-weight (tracker-request-checker chunk-spec 'bad-weight (default-bad-weight module)))
+                     (good-scale (tracker-request-checker chunk-spec 'good-scale (default-good-scale module)))
+                     (bad-scale (tracker-request-checker chunk-spec 'bad-scale (default-bad-scale module)))
+                     (delay (tracker-request-checker chunk-spec 'delay (default-delay module)))
+                     (min (tracker-request-checker chunk-spec 'min (default-min module)))
+                     (max (tracker-request-checker chunk-spec 'max (default-max module)))
+                     (control-count (tracker-request-checker chunk-spec 'control-count (default-count module)))
+                     (temp (tracker-request-checker chunk-spec 'temp (initial-temp module)))
+                     (scale (tracker-request-checker chunk-spec 'scale (temp-scale module))))
+                  
+                 (cond ((null control-buffer)
+                        (failure "control-buffer not specified."))
+                       ((null control-slot)
+                        (failure "control-slot not specified."))
+                       ((not (or (and good-buffer good-slot)
+                                 (and bad-buffer bad-slot)))
+                        (failure (cond ((and (null good-buffer) (null bad-buffer))
+                                        "neither a good or bad buffer is specified.")
+                                       (good-buffer
+                                        "The good buffer's slot is not specified.")
+                                       (t
+                                        "The bad buffer's slot is not specified."))))
+                       ((not (local-or-remote-function-or-nil control-scale))
+                        (failure (format nil "invalid control-scale ~a provided." control-scale)))
+                       ((and good-weight good-buffer good-slot (not (numberp good-weight)))
+                        (failure (format nil "invalid good-weight ~a provided." good-weight)))
+                       ((and good-buffer good-slot (not (local-or-remote-function-or-nil good-scale)))
+                        (failure (format nil "invalid good-scale ~a provided." good-scale)))
+                       ((and bad-weight bad-buffer bad-slot (not (numberp bad-weight)))
+                        (failure (format nil "invalid bad-weight ~a provided." bad-weight)))
+                       ((and bad-buffer bad-slot (not (local-or-remote-function-or-nil bad-scale)))
+                        (failure (format nil "invalid bad-scale ~a provided." bad-scale)))
+                       ((not (numberp min))
+                        (failure "min must be a number."))
+                       ((not (numberp max))
+                        (failure "max must be a number."))
+                       ((not (and (posnum control-count) (integerp control-count)))
+                        (failure "prior-count must be a positive integer."))
+                       ((not (numberp temp))
+                        (failure "temp must be a number."))
+                       ((not (posnum scale))
+                        (failure "scale must be a number."))
+                       ((not (posnum delay))
+                        (failure "delay must be a number."))
+                       ((and name (find name (remove-if-not (lambda (x) (eql control-slot (tracker-control-slot x))) (trackers module)) :key 'tracker-name))
+                        (failure (format nil "tracker named ~s already exists for control-slot ~s." name control-slot)))
+                       (t
+                        (awhen (find-if (lambda (x) 
+                                          (and (eql control-slot (tracker-control-slot x))
+                                               (tracker-active x)))
+                                        (trackers module))
+                               (suspend-tracker module it))
+                        
+                        (when (null name)
+                          (loop 
+                            (setf name (new-name "tracker"))
+                            (unless (find name (trackers module) :key 'tracker-name)
+                              (return)))
+                          (unless (chunk-p-fct name)
+                            (define-chunks-fct (list (list name 'name name)))))
+                        
+                        (let* ((choices (generate-tracker-choices control-count min max))
+                               (params (list 0 0 0))
+                               (chunk (car (define-chunks-fct (list (mapcan (lambda (x) (if x x nil))
+                                                                      (list (list 'name name)
+                                                                            (list 'control-slot control-slot)
+                                                                            (list 'min min) (list 'max max)
+                                                                            (if (and good-buffer good-slot) (list 'good-slot good-slot) nil)
+                                                                            (if (and bad-buffer bad-slot) (list 'bad-slot bad-slot) nil)
+                                                                            (if control-scale (list 'control-scale control-scale) nil)
+                                                                            (list 'good-weight good-weight)
+                                                                            (if (and good-buffer good-slot good-scale) (list 'good-scale good-scale) nil)
+                                                                            (list 'bad-weight bad-weight)
+                                                                            (if (and bad-buffer bad-slot bad-scale) (list 'bad-scale bad-scale) nil)))))))
+                               (tracker (make-tracker 
+                                         :name name
+                                         :active t
+                                         :control-buffer control-buffer
+                                         :control-slot control-slot
+                                         :control-scale control-scale
+                                         :choices choices
+                                         :statistics (tracker-prior-statistics choices)
+                                         :min min
+                                         :max max
+                                         :params params
+                                         :init-temp temp
+                                         :temperature temp
+                                         :delay delay
+                                         :scale-temp (seconds->ms scale)
+                                         :init-time (mp-time-ms)
+                                         :chunk chunk
+                                         :good-buffer (when (and good-buffer good-slot)
+                                                        good-buffer)
+                                         :good-slot (when (and good-buffer good-slot)
+                                                      good-slot)
+                                         :good-weight good-weight
+                                         :good-scale (when (and good-buffer good-slot)
+                                                       good-scale)
+                                         :bad-buffer (when (and bad-buffer bad-slot)
+                                                       bad-buffer)
+                                         :bad-slot (when (and bad-buffer bad-slot)
+                                                     bad-slot)
+                                         :bad-weight bad-weight
+                                         :bad-scale (when (and bad-buffer bad-slot)
+                                                      bad-scale)))
+                               (setting (tracker-genQuadValue module tracker)))
+                          
+                          (push tracker (trackers module)) ;; need it on the list so that the scale
+                                                           ;; hook can get the info if needed
+                          
+                          (setf (tracker-result tracker) (tracker-apply-scale (list control-slot name setting) control-scale setting))
+                          
+                          (setf (tracker-update-event tracker) (create-update-tracker-event delay module tracker))
+                          
+                          (schedule-event-now 'schedule-mod-buffer-chunk  :priority -2000 :params (list control-buffer (list control-slot (tracker-result tracker)) 0 :module :tracker :output 'medium) :module :tracker :output nil)
+                          
+                          (store-m-buffer-chunk 'tracker chunk)
+                          
+                          (when (and (tracker-trace module) (not (equalp (tracker-result tracker) setting)))
+                            (model-output " Result scaled to value: ~a" (tracker-result tracker)))))))))))))
 
 (defun mod-request-tracker (module buffer mods)
   (bt:with-recursive-lock-held ((tracker-lock module))
     (let* ((current-chunk (buffer-read buffer))
-           (current-control-slot (when current-chunk (chunk-slot-value-fct current-chunk 'control-slot)))
-           (current-tracker (find current-control-slot (trackers module) :key 'tracker-control-slot)))
+           (actual-chunk (chunk-copied-from-fct current-chunk))
+           (current-tracker (find actual-chunk (trackers module) :key 'tracker-chunk)))
       
       (flet ((failure (text)
                       (model-warning "Tracker modification request failed because ~a" text)
@@ -525,9 +961,8 @@
                     (failure (format nil "slots ~s are not valid for tracker modification." invalid))
                   (failure (format nil "slot ~s is not valid for tracker modification." (first invalid))))))
             
-            (let* ((tracker-chunk (tracker-chunk current-tracker))
-                   changes
-                   (re-size (list nil nil nil)))
+            (let (changes
+                  (re-size (list nil nil nil)))
               
               (unless mods
                 (failure "the modification request did not correspond to valid changes as indicated in the chunk-spec-to-chunk-def warnings."))
@@ -549,8 +984,7 @@
                              (min (setf (first re-size) (get-value 'min 'numberp)))
                              (max (setf (second re-size) (get-value 'max 'numberp)))
                              (control-count (get-value 'control-count 'integerp)
-                                            (setf (third re-size) (get-value 'control-count 'plusp)))
-                             (scale (get-value 'scale 'posnum)))))
+                                            (setf (third re-size) (get-value 'control-count 'plusp))))))
                   (push-last val changes)))
               
               ;; verify that we still have a valid tracker
@@ -601,8 +1035,7 @@
                   (bad-weight (setf (tracker-bad-weight current-tracker)(get-value 'bad-weight 'numberp)))
                   (good-scale (setf (tracker-good-scale current-tracker)(get-value 'good-scale 'local-or-remote-function-or-nil)))
                   (bad-scale (setf (tracker-bad-scale current-tracker)(get-value 'bad-scale 'local-or-remote-function-or-nil)))
-                  (delay (setf (tracker-delay current-tracker)(get-value 'delay 'posnum)))
-                  (scale (setf (tracker-scale-temp current-tracker) (seconds->ms (get-value 'scale 'posnum))))))
+                  (delay (setf (tracker-delay current-tracker)(get-value 'delay 'posnum)))))
               
               ;; set weights to defaults if necessary
               
@@ -618,10 +1051,10 @@
                   (push-last 'bad-weight changes)
                   (push-last (default-bad-weight module) changes)))
               
-              (mod-chunk-fct tracker-chunk changes)
+              (mod-chunk-fct actual-chunk changes)
               
               (when (tracker-trace module)
-                (model-output "Changing tracker for ~s slot values: ~{~s ~^~}" current-control-slot changes))
+                (model-output "Changing tracker for ~s slot values: ~{~s ~^~}" (chunk-slot-value-fct actual-chunk 'control-slot) changes))
               
               
               (delete-event (tracker-update-event current-tracker))
@@ -632,19 +1065,45 @@
               
               (update-tracker module current-tracker))))))))
 
-               
-               
-(define-module-fct :tracker '((tracker nil nil nil nil :search-copy))
+
+(defun tracker-query (instance buffer-name slot value)
+  (cond ((eq slot 'state)
+         (case value
+           (busy nil)
+           (free t)
+           (error nil)
+           (t 
+            (print-warning "Unknown query state ~s to ~s buffer" value buffer-name))))
+        ((eq slot 'exists)
+         (bt:with-recursive-lock-held ((tracker-lock instance))
+           (find value (trackers instance) :key 'tracker-control-slot)))
+        ((eq slot 'active)
+         (bt:with-recursive-lock-held ((tracker-lock instance))
+           (awhen (find value (trackers instance) :key 'tracker-control-slot)
+                  (tracker-active it))))
+        (t (print-warning "Unknown query ~s ~s to the ~s buffer" slot value buffer-name))))
+
+
+(defun tracker-check-buffer-valid (name)
+  (find name (buffers)))
+
+(defun control-count-value-test (x)
+  (and (posnum x) (integerp x)))
+
+(defun tracker-decay-value-test (x)
+  (or (null x) (eq x 'power) (eq x 'exponential)))
+
+(define-module-fct :tracker '((tracker nil nil (exists active) nil :search-copy))
   (list
    (define-parameter :initial-temp :valid-test 'numberp :default-value 1 :warning "must be a number" :documentation "Default initial temperature")
    (define-parameter :temp-scale :valid-test 'posnum :default-value 180 :warning "must be a positive number" :documentation "Default scale for temperature")
-   (define-parameter :control-buffer :valid-test (lambda (x) (find x (buffers))) :default-value 'goal :warning "must be a valid buffer name"
+   (define-parameter :control-buffer :valid-test 'tracker-check-buffer-valid :default-value 'goal :warning "must be a valid buffer name"
      :documentation "The default buffer to use for the control slot.")
    (define-parameter :control-scale :valid-test 'local-or-remote-function-or-nil :default-value nil :warning "must be a function or nil"
      :documentation "The default scaling function for the result in the control slot.")
-   (define-parameter :values-buffer :valid-test (lambda (x) (find x (buffers))) :default-value 'imaginal :warning "must be a valid buffer name"
+   (define-parameter :values-buffer :valid-test 'tracker-check-buffer-valid :default-value 'imaginal :warning "must be a valid buffer name"
      :documentation "The default buffer to use for the good and bad value slots.")
-   (define-parameter :control-count :valid-test (lambda (x) (and (posnum x) (integerp x))) :default-value 21 :warning "must be a positive integer"
+   (define-parameter :control-count :valid-test 'control-count-value-test :default-value 21 :warning "must be a positive integer"
      :documentation "The default number of possible control results between min and max (inclusive of both).")
    (define-parameter :control-min :valid-test 'numberp :default-value 0 :warning "must be a number" :documentation "Default mininum value for the control range")
    (define-parameter :control-max :valid-test 'numberp :default-value 1 :warning "must be a number" :documentation "Default maximum value for the control range")
@@ -660,7 +1119,7 @@
    (define-parameter :update-delay :valid-test 'posnum :default-value 10 :warning "must be a positive number"
      :documentation "The average update time in seconds.")
    (define-parameter :tracker-decay :valid-test 'posnumornil :default-value nil :warning "a positive number or nil" :documentation "The decay parameter for the chosen decay method.")
-   (define-parameter :tracker-decay-method :valid-test (lambda (x) (or (null x) (eq x 'power) (eq x 'exponential))) :warning "nil, power, or exponential"
+   (define-parameter :tracker-decay-method :valid-test 'tracker-decay-value-test :warning "nil, power, or exponential"
      :documentation "Whether to use temporal discounting of past statistics, and if so, whether to use an exponential decay or power law decay."))
   :creation 'create-tracker
   :reset 'reset-tracker
@@ -668,20 +1127,20 @@
   :buffer-mod 'mod-request-tracker
   :request 'request-tracker
   :delete 'delete-tracker
-  :query 'goal-style-query
-  :version "2.2"
+  :query 'tracker-query
+  :version "5.3"
   :documentation "Module which can learn an outcome value based on one or two events monitored in buffer slots.")
 
 (defun updated-tracker-value (module tracker buffer slot value scale which)
   (bt:with-recursive-lock-held ((tracker-lock module))
-    (let ((outcome (tracker-apply-scale value scale)))
+    (let ((outcome (tracker-apply-scale (list (tracker-control-slot tracker) (tracker-name tracker) value (if (eq which 'good) (tracker-good-weight tracker) (tracker-bad-weight tracker))) scale value)))
       (cond ((not (numberp outcome))
-             (print-warning "Tracker for ~s detected a change in the ~s slot of the ~s buffer but the resulting value ~s is not a number." (tracker-control-slot tracker) slot buffer outcome)
+             (print-warning "Tracker ~s for ~s detected a change in the ~s slot of the ~s buffer but the resulting value ~s is not a number." (tracker-name tracker) (tracker-control-slot tracker) slot buffer outcome)
              (print-warning " Cannot update the value for the ~s results." which)
              0)
             (t
              (when (tracker-trace module)
-               (model-output "Tracker for ~s updating the current ~s value" (tracker-control-slot tracker) which)
+               (model-output "Tracker ~s for ~s updating the current ~s value" (tracker-name tracker) (tracker-control-slot tracker) which)
                (model-output " Updating event occurred in the ~s slot of the ~s buffer" slot buffer)
                (if (equalp outcome value)
                    (model-output "  updating with value ~f" value)
@@ -695,18 +1154,19 @@
                (changed-buffer (first (evt-params event))))
              (bt:with-recursive-lock-held ((tracker-lock module))
                (dolist (x (trackers module))
-                 (when (eq changed-buffer (tracker-good-buffer x))
-                   (let* ((chunk (buffer-read changed-buffer))
-                          (slot (tracker-good-slot x))
-                          (slots (and chunk (chunk-filled-slots-list-fct chunk))))
-                     (when (find slot slots)
-                       (incf (tracker-good-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-good-scale x) 'good)))))
-                 (when (eq changed-buffer (tracker-bad-buffer x))
-                   (let* ((chunk (buffer-read changed-buffer))
-                          (slot (tracker-bad-slot x))
-                          (slots (and chunk (chunk-filled-slots-list-fct chunk))))
-                     (when (find slot slots)
-                       (incf (tracker-bad-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-bad-scale x) 'bad)))))))))
+                 (when (tracker-active x)
+                   (when (eq changed-buffer (tracker-good-buffer x))
+                     (let* ((chunk (buffer-read changed-buffer))
+                            (slot (tracker-good-slot x))
+                            (slots (and chunk (chunk-filled-slots-list-fct chunk))))
+                       (when (find slot slots)
+                         (incf (tracker-good-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-good-scale x) 'good)))))
+                   (when (eq changed-buffer (tracker-bad-buffer x))
+                     (let* ((chunk (buffer-read changed-buffer))
+                            (slot (tracker-bad-slot x))
+                            (slots (and chunk (chunk-filled-slots-list-fct chunk))))
+                       (when (find slot slots)
+                         (incf (tracker-bad-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-bad-scale x) 'bad))))))))))
         ((eq (evt-action event) 'mod-buffer-chunk)
          (let* ((module (get-module :tracker))
                 (changed-buffer (first (evt-params event)))
@@ -719,18 +1179,19 @@
                          (chunk-spec-slots mods))))
            (bt:with-recursive-lock-held ((tracker-lock module))
              (dolist (x (trackers module))
-               (when (eq changed-buffer (tracker-good-buffer x))
-                 (let ((slot (tracker-good-slot x)))
-                   (when (find slot slots)
-                     (let ((chunk (buffer-read changed-buffer)))
-                       (when (fast-chunk-slot-value-fct chunk slot)
-                         (incf (tracker-good-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-good-scale x) 'good)))))))
-               (when (eq changed-buffer (tracker-bad-buffer x))
-                 (let ((slot (tracker-bad-slot x)))
-                   (when (find slot slots)
-                     (let ((chunk (buffer-read changed-buffer)))
-                       (when (fast-chunk-slot-value-fct chunk slot)
-                         (incf (tracker-bad-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-bad-scale x) 'bad)))))))))))))
+               (when (tracker-active x)
+                 (when (eq changed-buffer (tracker-good-buffer x))
+                   (let ((slot (tracker-good-slot x)))
+                     (when (find slot slots)
+                       (let ((chunk (buffer-read changed-buffer)))
+                         (when (fast-chunk-slot-value-fct chunk slot)
+                           (incf (tracker-good-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-good-scale x) 'good)))))))
+                 (when (eq changed-buffer (tracker-bad-buffer x))
+                   (let ((slot (tracker-bad-slot x)))
+                     (when (find slot slots)
+                       (let ((chunk (buffer-read changed-buffer)))
+                         (when (fast-chunk-slot-value-fct chunk slot)
+                           (incf (tracker-bad-value x) (updated-tracker-value module x changed-buffer slot (fast-chunk-slot-value-fct chunk slot) (tracker-bad-scale x) 'bad))))))))))))))
 
 (defun safe-exp (x temp)
   (handler-case (exp x)
@@ -753,7 +1214,7 @@
            (p (act-r-random 1.0)))
     
       (when (tracker-trace module)
-        (model-output "Tracker generating value for buffer ~s slot ~s with temperature ~f:" 
+        (model-output "Tracker ~s generating value for buffer ~s slot ~s with temperature ~f:" (tracker-name tracker)
                       (tracker-control-buffer tracker) (tracker-control-slot tracker) temperature)
         (let ((w (apply 'max (mapcar (lambda (x) (length (format nil "~5,3f" x))) choices))))
           (model-output (format nil "  Choices: ~~{~~~d,3f~~^ ~~}" w) choices)
@@ -770,38 +1231,44 @@
         (setf (tracker-setting tracker) result)))))
 
 
-(defun update-tracker (module tracker)
+(defun update-tracker (module tracker &key stop resume)
   (bt:with-recursive-lock-held ((tracker-lock module))
-    (tracker-update-stats module tracker)
+    (tracker-update-stats module tracker resume)
     (tracker-calc-quad tracker)
     
-    (setf (tracker-update-event tracker) (create-update-tracker-event (tracker-delay tracker) module tracker))
+    (setf (tracker-update-event tracker) 
+      (if stop
+          nil
+        (create-update-tracker-event (tracker-delay tracker) module tracker)))
     
     (when (tracker-trace module)
-      (model-output "Tracker for ~s slot updating the equation" (tracker-control-slot tracker))
+      (model-output "Tracker ~s for ~s slot updating the equation" (tracker-name tracker) (tracker-control-slot tracker))
       (model-output "  new equation is ~s + ~sx + ~sx^2" (first (tracker-params tracker)) (second (tracker-params tracker)) (third (tracker-params tracker))))
     
     (let* ((setting (tracker-genQuadValue module tracker))
-           (result (tracker-apply-scale setting (tracker-control-scale tracker))))
+           (result (tracker-apply-scale (list (tracker-control-slot tracker) (tracker-name tracker) setting) (tracker-control-scale tracker) setting)))
+      
+      (setf (tracker-result tracker) result)
       
       (when (and (tracker-trace module) (not (equalp result setting)))
         (model-output " Result scaled to value: ~a" result))
       
-      (if (buffer-read (tracker-control-buffer tracker))
-          (schedule-mod-buffer-chunk (tracker-control-buffer tracker) (list (tracker-control-slot tracker) result) 0 :module :tracker :output 'medium)
-        (progn
-          (model-warning "Tracker update occurred with no chunk in the control buffer ~s." (tracker-control-buffer tracker))
-          (model-warning "Creating a new chunk with only the ~s slot." (tracker-control-slot tracker))
-          (let ((chunk-name (car (define-chunks-fct (list (list (tracker-control-slot tracker) result))))))
-            (schedule-set-buffer-chunk (tracker-control-buffer tracker) chunk-name 0 :module :tracker :output 'medium)
-            ;; because the chunk is only being created to be copied into the buffer
-            ;; just get rid of it after that happens to keep the chunk count down 
-            (schedule-event-relative 0 'clean-up-goal-chunk :module :tracker :output nil 
-                                     :priority :min :params (list chunk-name)
-                                     :details "Clean-up unneeded chunk" :maintenance t)))))))
+      (unless stop
+        (if (buffer-read (tracker-control-buffer tracker))
+            (schedule-mod-buffer-chunk (tracker-control-buffer tracker) (list (tracker-control-slot tracker) result) 0 :module :tracker :output 'medium)
+          (progn
+            (model-warning "Tracker update occurred with no chunk in the control buffer ~s." (tracker-control-buffer tracker))
+            (model-warning "Creating a new chunk with only the ~s slot." (tracker-control-slot tracker))
+            (let ((chunk-name (car (define-chunks-fct (list (list (tracker-control-slot tracker) result))))))
+              (schedule-set-buffer-chunk (tracker-control-buffer tracker) chunk-name 0 :module :tracker :output 'medium)
+              ;; because the chunk is only being created to be copied into the buffer
+              ;; just get rid of it after that happens to keep the chunk count down 
+              (schedule-event-relative 0 'clean-up-goal-chunk :module :tracker :output nil 
+                                       :priority :min :params (list chunk-name)
+                                       :details "Clean-up unneeded chunk" :maintenance t))))))))
 
 
-(defun tracker-update-stats (module tracker)
+(defun tracker-update-stats (module tracker &optional skip)
   (let* ((old-stats (tracker-statistics tracker))
          (weight  (max .05 (ms->seconds (- (mp-time-ms) (tracker-last-update tracker)))))
          (weight2 (tracker-discount-past module tracker (length (tracker-choices tracker)) weight))
@@ -810,10 +1277,14 @@
          (good-Y (/ (tracker-good-value tracker)  weight))
          (bad-Y (/ (tracker-bad-value tracker)  weight))
          (current-stats (list 1 X X2 (* X X2) (* X2 X2) good-y (* X good-Y) (* X2 good-y) bad-y (* X bad-Y) (* X2 bad-y)))
-         (new-stats (mapcar (lambda (x y) (+ (* weight x) (* weight2 y))) current-stats old-stats)))
+         (new-stats (if skip
+                        (mapcar (lambda (x) (* weight2 x)) old-stats)
+                      (mapcar (lambda (x y) (+ (* weight x) (* weight2 y))) current-stats old-stats))))
     (setf (tracker-good-value tracker) 0)
     (setf (tracker-bad-value tracker) 0)
-    (setf (tracker-temperature tracker) (/ (tracker-init-temp tracker) (1+ (/ (- (mp-time-ms) (tracker-init-time tracker)) (tracker-scale-temp tracker)))))
+    (unless skip
+      (incf (tracker-active-time tracker) (- (mp-time-ms) (tracker-last-update tracker)))
+      (setf (tracker-temperature tracker) (/ (tracker-init-temp tracker) (1+ (/ (tracker-active-time tracker) (tracker-scale-temp tracker))))))
     (setf (tracker-statistics tracker) new-stats)))
 
 
@@ -822,15 +1293,21 @@
       1
     (case (decay-method module)
       (exponential (expt (decay-param module) delay))
+
+      ;; Given that time is the factor used in the weighting (essentially each second an observation)
+      ;; I am treating total time as actual time plus the number of possible values. The add on of
+      ;; the prior is because each possible value is treated as if it had a rate-of-return of 0 for
+      ;; 1 second.
+
       (power (let* ((tot (+ prior (ms->seconds (- (mp-time-ms) (tracker-init-time tracker)))))
-                    (pastweight (* 2 tot (/ (- (expt tot (- 1 (decay-param module))) (expt delay (- 1 (decay-param module)))) (- tot delay))))
+                    (pastweight (* (/ 1 (- 1 (decay-param module))) tot (/ (- (expt tot (- 1 (decay-param module))) (expt delay (- 1 (decay-param module)))) (- tot delay))))
                     (currentweight (expt delay (decay-param module))))
                (/ pastweight (+ pastweight currentweight)))))))
 
 (defun tracker-calc-quad (tracker)
   (let (params)
     (handler-case
-        (let* ((stats  (tracker-statistics tracker))
+        (let* ((stats (tracker-statistics tracker))
                (wg (tracker-good-weight tracker))
                (wb (tracker-bad-weight tracker))
                (N (nth 0 stats))
@@ -851,44 +1328,48 @@
                (p1 (/ (- SY (* p2 SX1) (* p3 SX2)) N)))
           (setf params (list p1 p2 p3)))
       (error () (model-warning "Error updating tracker params for tracker ~s.  Using previous values." (tracker-control-slot tracker)))
-      (:no-error (&rest r) (setf (tracker-params tracker) params)))))
+      (:no-error (&rest r) (declare (ignore r)) (setf (tracker-params tracker) params)))))
 
 
-(defmacro get-tracker (control-slot)
-  `(get-tracker-fct ',control-slot))
+(defmacro get-trackers (id &optional name?)
+  `(get-trackers-fct ',id ',name?))
 
-(defun get-tracker-fct (control-slot)
+(defun get-trackers-fct (id &optional name?)
   (let ((module (get-module :tracker)))
     (when module
       (bt:with-recursive-lock-held ((tracker-lock module))
-        (find control-slot (trackers module) :key 'tracker-control-slot)))))
+        (if name?
+            (remove-if-not (lambda (x) (eql id (tracker-name x))) (trackers module))
+          (remove-if-not (lambda (x) (eql id (tracker-control-slot x))) (trackers module)))))))
 
-(defmacro print-tracker-stats (&optional control-slot)
-  `(print-tracker-stats-fct ',control-slot))
+(defmacro print-tracker-stats (&optional id name?)
+  `(print-tracker-stats-fct ',id ',name?))
 
-(defun print-tracker-stats-fct (&optional control-slot)
+(defun print-tracker-stats-fct (&optional id name?)
   (verify-current-model 
    "No current model available for printing tracker stats."
    (let ((module (get-module :tracker)))
      (if module
          (bt:with-recursive-lock-held ((tracker-lock module))
-           (if control-slot
-               (let ((tracker (get-tracker-fct control-slot)))
-                 (if tracker
-                     (output-tracker-stats tracker)
-                   (print-warning "There is no tracker associated with the ~s slot." control-slot)))
-             (let (r)
-               (dolist (x (trackers module) r)
-                 (push-last (list (tracker-control-slot x) (output-tracker-stats x)) r)))))
+           (let ((trackers (if id
+                               (get-trackers-fct id name?)
+                             (trackers module)))
+                 (r nil))
+             (if trackers
+                 (dolist (x trackers r)
+                   (push-last (list (tracker-name x) (tracker-control-slot x) (tracker-temperature x) (output-tracker-stats x)) r))
+               (if id
+                   (print-warning "There are no trackers ~:[associated with the ~s slot~;with the name ~s~]." name? id)
+                 (print-warning "There are no trackers available.")))))
        (print-warning "No tracker module available.")))))
 
-(defun external-print-tracker-stats (&optional control-slot)
-  (print-tracker-stats-fct (string->name control-slot)))
+(defun external-print-tracker-stats (&optional id name?)
+  (print-tracker-stats-fct (string->name id) name?))
 
-(add-act-r-command "print-tracker-stats" 'external-print-tracker-stats "Print the details for a tracker or all trackers and return the equation coefficients. Params: {control-slot}")
+(add-act-r-command "print-tracker-stats" 'external-print-tracker-stats "Print the details for matching trackers or all trackers and return the equation coefficients. Params: {id {name?}}")
 
 (defun output-tracker-stats (tracker)
-  (command-output "Tracker for slot ~s" (tracker-control-slot tracker))
+  (command-output "Tracker named ~s for slot ~s (~:[suspended~;active~])" (tracker-name tracker) (tracker-control-slot tracker) (tracker-active tracker))
   (when (and (tracker-good-buffer tracker) (tracker-good-slot tracker))
     (command-output " Good slot is ~s in buffer ~s with weight ~s" (tracker-good-slot tracker) (tracker-good-buffer tracker) (tracker-good-weight tracker)))
   (when (and (tracker-bad-buffer tracker) (tracker-bad-slot tracker))
@@ -909,7 +1390,7 @@
       (command-output (format nil "  Probs:   ~~{~~~d,3f~~^ ~~}" w) probs)))
   
   (let* ((setting (tracker-setting tracker))
-         (result (tracker-apply-scale setting (tracker-control-scale tracker))))
+         (result (tracker-result tracker)))
     (command-output "  Current setting is: ~s" setting)
     (unless (equalp setting result)
       (command-output "  Scaled to result: ~s by scale: ~s" result (tracker-control-scale tracker))))

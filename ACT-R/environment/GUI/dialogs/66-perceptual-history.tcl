@@ -167,13 +167,7 @@ proc load_percept_history_data {cmd name timelst txt label model data_var} {
 
     set percept_history_warnings ""
             
-    set warning_monitor [new_variable_name "warning_monitor"]
-
-    while {[send_cmd "check" $warning_monitor] != "null"} {
-      set warning_monitor [new_variable_name "warning_monitor"]
-    }
-
-    add_cmd $warning_monitor "percept_record_warnings" "Environment command for capturing warnings during Load $name History."
+    set warning_monitor [add_new_cmd warning_monitor "percept_record_warnings" "Environment command for capturing warnings during Load $name History."]
 
     send_cmd "monitor" [list "warning-trace" $warning_monitor]
 
@@ -235,13 +229,7 @@ proc save_percept_history_data {cmd name model} {
     
       set percept_history_warnings ""
             
-      set warning_monitor [new_variable_name "warning_monitor"]
-
-      while {[send_cmd "check" $warning_monitor] != "null"} {
-        set warning_monitor [new_variable_name "warning_monitor"]
-      }
-
-      add_cmd $warning_monitor "percept_record_warnings" "Environment command for capturing warnings during Save $name History."
+      set warning_monitor [add_new_cmd warning_monitor "percept_record_warnings" "Environment command for capturing warnings during Save $name History."]
 
       send_cmd "monitor" [list "warning-trace" $warning_monitor]
 

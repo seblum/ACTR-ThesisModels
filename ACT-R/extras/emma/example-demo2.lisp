@@ -3,6 +3,10 @@
 ;; comments at the end show the results of running the original task
 ;; without enabling EMMA and then with EMMA.
 
+(clear-all)
+
+(require-extra "emma")
+
 (load-act-r-code "ACT-R:tutorial;lisp;demo2.lisp")
 
 (defun demo2-emma ()

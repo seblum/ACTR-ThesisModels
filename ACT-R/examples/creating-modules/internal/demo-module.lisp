@@ -98,7 +98,7 @@
                :documentation 
                   "time to create the chunk for the demo module"
                :default-value .1
-               :valid-test (lambda (x) (and (numberp x) (>= x 0)))
+               :valid-test 'nonneg
                :warning "Non-negative number"
                :owner t)
         (define-parameter :esc :owner nil))

@@ -382,6 +382,9 @@ while {$not_connected} {
     } else {
       if {$try_again == "no"} {
         set connect_addr [ip:address_local]
+        if {$connect_addr == $actr_address} {
+          set connect_addr "localhost"
+        }
       } else {
         set connect_addr "" 
       }

@@ -32,48 +32,52 @@
 
 
 (defun do-experiment (size trials human)
-  (reset)
   
-  (let* ((result nil)
-         (model (not human))
-         (window (open-exp-window "Paired-Associate Experiment" :visible human)))
-    
-    (when model
-      (install-device window))
-    
-    (dotimes (i trials) 
-      (let ((score 0.0)
-            (time 0.0))
+  (if (and human (not (visible-virtuals-available?)))
+      (print-warning "Cannot run the task as a person without a visible window available.")
+    (progn
+      (reset)
+      
+      (let* ((result nil)
+             (model (not human))
+             (window (open-exp-window "Paired-Associate Experiment" :visible human)))
         
-        (dolist (x (permute-list (subseq *pairs* (- 20 size)))) 
-          
-          (clear-exp-window window)
-          (add-text-to-exp-window window (first x) :x 150 :y 150)
+        (when model
+          (install-device window))
         
-          (setf *response* nil)                   
-          (let ((start (get-time model)))
-          
-            (if model
-                (run-full-time 5)
-              (while (< (- (get-time nil) start) 5000)
-                (process-events)))
-          
-            (when (equal *response* (second x))      
-              (incf score 1.0)    
-              (incf time (- *response-time* start)))
-        
-            (clear-exp-window window)
-            (add-text-to-exp-window window (second x) :x 150 :y 150)
-            (setf start (get-time model))
+        (dotimes (i trials) 
+          (let ((score 0.0)
+                (time 0.0))
             
-            (if model
-                (run-full-time 5)
-              (while (< (- (get-time nil) start) 5000)
-                (process-events)))))
+            (dolist (x (permute-list (subseq *pairs* (- 20 size)))) 
+              
+              (clear-exp-window window)
+              (add-text-to-exp-window window (first x) :x 150 :y 150)
+              
+              (setf *response* nil)                   
+              (let ((start (get-time model)))
+                
+                (if model
+                    (run-full-time 5)
+                  (while (< (- (get-time nil) start) 5000)
+                    (process-events)))
+                
+                (when (equal *response* (second x))      
+                  (incf score 1.0)    
+                  (incf time (- *response-time* start)))
+                
+                (clear-exp-window window)
+                (add-text-to-exp-window window (second x) :x 150 :y 150)
+                (setf start (get-time model))
+                
+                (if model
+                    (run-full-time 5)
+                  (while (< (- (get-time nil) start) 5000)
+                    (process-events)))))
+            
+            (push (list (/ score size) (if (> score 0) (/ time score 1000.0) 0)) result)))
         
-        (push (list (/ score size) (if (> score 0) (/ time score 1000.0) 0)) result)))
-    
-    (reverse result)))
+        (reverse result)))))
  
 
 (defun paired-experiment (n)

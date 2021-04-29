@@ -11,31 +11,32 @@
   (setf *response* key))
 
 (defun choice-person ()
-  (let ((window (open-exp-window "Choice Experiment" :visible t)))
-    
-    (add-act-r-command "choice-response" 'respond-to-key-press "Choice task key response")
-    (monitor-act-r-command "output-key" "choice-response")
-    
-    (add-text-to-exp-window window "choose" :x 50 :y 100)
-    
-    (setf *response* nil)
-    
-    (while (null *response*)        
-      (process-events))
-    
-    (clear-exp-window window)
-    
-    (add-text-to-exp-window window (if (< (act-r-random 1.0) .9) "heads" "tails") :x 50 :y 100)
-    
-    (let ((start (get-time nil)))
-    
-      (while (< (- (get-time nil) start) 1000)
-        (process-events)))
-    
-    (remove-act-r-command-monitor "output-key" "choice-response")
-    (remove-act-r-command "choice-response")
-
-    *response*))
+  (when (visible-virtuals-available?)
+    (let ((window (open-exp-window "Choice Experiment" :visible t)))
+      
+      (add-act-r-command "choice-response" 'respond-to-key-press "Choice task key response")
+      (monitor-act-r-command "output-key" "choice-response")
+      
+      (add-text-to-exp-window window "choose" :x 50 :y 100)
+      
+      (setf *response* nil)
+      
+      (while (null *response*)        
+        (process-events))
+      
+      (clear-exp-window window)
+      
+      (add-text-to-exp-window window (if (< (act-r-random 1.0) .9) "heads" "tails") :x 50 :y 100)
+      
+      (let ((start (get-time nil)))
+        
+        (while (< (- (get-time nil) start) 1000)
+          (process-events)))
+      
+      (remove-act-r-command-monitor "output-key" "choice-response")
+      (remove-act-r-command "choice-response")
+      
+      *response*)))
 
 (defun choice-model ()
   )

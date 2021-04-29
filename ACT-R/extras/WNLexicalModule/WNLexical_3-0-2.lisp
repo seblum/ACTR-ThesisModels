@@ -116,6 +116,8 @@
 ;;; 2018.08.24  DB    - Removed *wnl-code-pathname-directory* because it's unused and not where
 ;;;                     the file should be found now anyway.
 ;;;                   - Added a lock for parameters and queries.
+;;; 2020.01.10  DB    - Removed the #' from module interface functions because that's not
+;;;                     allowed now for the general system.   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -734,16 +736,16 @@
 
 (define-module-fct 'wn-lexical 
                    '(wn-lexical) 
-                   (list (define-parameter :wnl-chunks :valid-test #'valid-wnl-chunks-param-value :default-value nil
+                   (list (define-parameter :wnl-chunks :valid-test 'valid-wnl-chunks-param-value :default-value nil
                                            :warning "Possible values are wnl, dm or nil" :documentation "To load WN-CHUNKS in WNLexical use WNL, to load WN-CHUNKS in declarative memory (and WNLexical) use DM."))
                    :version *wordnet-lexical-version*
                    :documentation *wordnet-lexical-documentation*
-                   :creation #'wnl-module-creation
-                   :reset #'wnl-module-reset
-                   :query #'wnl-module-and-buffer-query
-                   :request #'wnl-module-request
+                   :creation 'wnl-module-creation
+                   :reset 'wnl-module-reset
+                   :query 'wnl-module-and-buffer-query
+                   :request 'wnl-module-request
                    :buffer-mod nil
-                   :params #'wn-lexical-parameters
+                   :params 'wn-lexical-parameters
                    :delete nil
                    :notify-on-clear nil
                    :update nil)

@@ -65,8 +65,9 @@ def collect_responses(count):
     if run_model :
         actr.run(10 * count)
     else:
-        while len(results) < count:
-            actr.process_events()
+        if actr.visible_virtuals_available():
+            while len(results) < count:
+                actr.process_events()
 
     actr.remove_command_monitor("output-key","zbrodoff-response")
     actr.remove_command("zbrodoff-response")

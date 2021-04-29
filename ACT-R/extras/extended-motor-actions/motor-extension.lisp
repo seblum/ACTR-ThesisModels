@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
 ;;; Filename    : motor-extension.lisp
-;;; Version     : 4.1
+;;; Version     : 6.1
 ;;; 
 ;;; Description : Collection of extensions for the motor module which include:
 ;;;             : separate processor and/or execution stages for each hand, buffers
@@ -23,7 +23,11 @@
 ;;; 
 ;;; Bugs        : 
 ;;;
-;;; To do       : 
+;;; To do       : [ ] Should a point-finger action send a notification?
+;;;             :     Currently the normal point-hand actions don't so not
+;;;             :     doing that here either, but if that changes need to make
+;;;             :     the change here as well.
+;;;             :     
 ;;; 
 ;;; ----- History -----
 ;;; 2014.04.24 Dan [1.0a1]
@@ -148,6 +152,59 @@
 ;;;             :   solution for time and a "fancy" solution is going to be at
 ;;;             :   least as costly as a few calls (typically all that's needed
 ;;;             :   to get close enough: +/- .01 key width).
+;;; 2019.08.08 Dan
+;;;             : * Fixed a typo in a parameter doc string.
+;;; 2020.01.10 Dan [4.2]
+;;;             : * Removed the #' and lambdas from param valid functions since 
+;;;             :   that's not allowed in the general system now.
+;;; 2020.04.06 Dan [5.0]
+;;;             : * Updated with the changes necessary to track the separation 
+;;;             :   of current position and next starting position as well as
+;;;             :   add the request time to the standard events as the normal
+;;;             :   motor module does now.
+;;;             : * Changed point-finger to use an exec-time that matches when
+;;;             :   the finger is "at" the key (init + fitts time).  That means
+;;;             :   there's an extra chance for a conflict-resolution at that
+;;;             :   time relative to before, which seems reasonable -- when the
+;;;             :   finger gets there maybe something else could happen.
+;;;             : * Changed all-fingers-to-home to both mark all the fingers as
+;;;             :   busy during the action and to have a time that's the max of
+;;;             :   200ms and the times for each hand to do a hand-ply back to
+;;;             :   home position.
+;;;             : * The release on a punch doesn't include the extra burst cost
+;;;             :   now to be consistent with the timing of peck and peck-recoil
+;;;             :   actions (a 90ms down time was too long).
+;;;             : * The timing of the release-all-fingers event now matches 
+;;;             :   when the release happens instead of a burst time later.
+;;;             : * Go back to a single exec queue which now is searched for
+;;;             :   an available action, possibly for each hand, since the two
+;;;             :   queue approach had issues with skipping over a both when
+;;;             :   one of the hands was free.
+;;; 2020.04.20 Dan
+;;;             : * Updated to work with the new location information in the
+;;;             :   keyboard.
+;;; 2020.05.21 Dan [5.1]
+;;;             : * Added a new parameter, :relay-hand-requests which if set to
+;;;             :   t will pass requests to manual-left and manual-right on to
+;;;             :   the manual buffer.  The requests must still include a hand
+;;;             :   feature when required because they can't just add one in
+;;;             :   since it isn't possible to know when that is required in
+;;;             :   advance.  If a hand feature is included in the request, it
+;;;             :   must match the buffer to be relayed.  Enabling this switch
+;;;             :   will affect the buffer trace information because the request
+;;;             :   for an action will only be recorded for the specific buffer
+;;;             :   which makes the request and not the buffer which corresponds
+;;;             :   to the hand that is used (for example a press-key request
+;;;             :   which only generates the hand after preparing the features
+;;;             :   could be attributed to the wrong buffer).
+;;; 2020.06.24 Dan [6.0]
+;;;             : * Updated the create-motor-module function because now it must
+;;;             :   also specify the types.
+;;; 2020.10.12 Dan [6.1]
+;;;             : * Adjust the actions that are scheduling the prepare-movement
+;;;             :   so it displays in the low detail trace.  Prior to the fix
+;;;             :   for preparation free they were all just calling it and had
+;;;             :   the event shown automatically in the low detail trace.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; General Docs:
@@ -252,8 +309,8 @@
 ;;; The distance from the center of a key at which a peck action is considered
 ;;; to make contact with the key and start depressing it.  The value can be
 ;;; from 0 to .5 (the width of a key is 1.0 and movement is computed from 
-;;; center of key to center of key thus the finger movement crosses half of
-;;; the target key when striking it).  This affects when the output-key
+;;; center of key to center of key thus the finger movement crosses at least
+;;; half of the target key when striking it).  This affects when the output-key
 ;;; action occurs.  The default motor module assumes that the action occurs 
 ;;; after the entire movement completes and ignores the key closure time which
 ;;; is what will still happen if the value is set to nil.  
@@ -406,7 +463,9 @@
 ;;; the default delay time is used.  If delay is either fast or slow, 
 ;;; then the value is taken from the corresponding parameter.  If
 ;;; :randomize-time is enabled then the delay will be randomized
-;;; regardless of how it was indicated.
+;;; regardless of how it was indicated.  If the finger is currently being
+;;; held release it before performing this movement.
+
 ;;;
 ;;; cmd point-finger
 ;;;  hand [left | right]
@@ -429,7 +488,9 @@
 ;;; Move the appropriate finger to the key and press and release it.  The
 ;;; finger is moved from where it currently is (unlike press-key which assumes
 ;;; it's on the home position) and returns to where it was after striking the key
-;;; (which may not be the home row position).
+;;; (which may not be the home row position). If the finger is currently being 
+;;; held release it before performing this movement.
+
 ;;;
 ;;;
 ;;; isa hit-key
@@ -437,7 +498,9 @@
 ;;;
 ;;; Move the appropriate finger to the key and press and release it.  The
 ;;; finger is moved from where it currently is (unlike press-key which assumes
-;;; it's on the home position) and stays over the key which is hit.
+;;; it's on the home position) and stays over the key which is hit.  If the finger
+;;; is currently being held release it before performing this movement.
+
 ;;;
 ;;;
 ;;; isa hold-key
@@ -445,7 +508,9 @@
 ;;;
 ;;; Move the appropriate finger to the key and press it keeping it held down.  The
 ;;; finger is moved from where it currently is (unlike press-key which assumes
-;;; it's on the home position).
+;;; it's on the home position).  If the finger is currently being held release it
+;;; before performing this movement.
+
 ;;;
 ;;;
 ;;; isa release-key
@@ -469,7 +534,8 @@
 ;;;
 ;;; Move the appropriate finger to that key without pressing it.  The finger is moved
 ;;; from where it currently is (unlike press-key which assumes it's on the home position).
-;;;
+;;; If the finger is currently being held release it before performing this movement.
+
 ;;;
 ;;; isa move-finger-to-home
 ;;;  hand [left | right]
@@ -507,7 +573,7 @@
 ;;; Causes all fingers which are currently being held down to release.  The
 ;;; action doesn't jam and will wait until preparation is free to start the 
 ;;; action.  After the init time passes all fingers which are held will be 
-;;; released (no cost to the execution) and then an additional burst cost will
+;;; released after the key-release-time and then an additional burst cost will
 ;;; be applied before it is finished.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -587,7 +653,6 @@
                           (t
                            (print-warning "Invalid mouse release finger position ~s." l)))))
             (when f
-              ;; Is this necessary? shouldn't it always be in the right model?
               (with-model-eval m
                 (schedule-event-now "release-mouse" :params (list m xyz f) :maintenance t :module 'mouse)))))
       (print-warning "mouse device can not process notification from device ~s with features ~s." device features))))
@@ -615,9 +680,10 @@
 ;;; function for the motor module to instantiate this class instead, 
 ;;; and then define the new and updated methods on that new class.
 ;;;
-;;; The only functional difference is that now the proc-s, exec-s, and 
-;;; exec-queue slots hold a list of two items (left and right) respectively
-;;; instead of just one.
+;;; The only functional difference is that now the proc-s and exec-s slots
+;;; hold a list of two items (left and right) respectively instead of just one
+;;; and actions for the exec-queue must have a hand specified (either left,
+;;; right, or both).
 ;;;
 ;;; Also adding slots for holding the new parameters that are available
 ;;; for configuring the operation and adjusting the timing of the
@@ -635,27 +701,56 @@
    (d-punch-default :accessor d-punch-default)
    (d-punch-fast :accessor d-punch-fast)
    (d-punch-slow :accessor d-punch-slow)
-   (drag-delay :accessor drag-delay))
+   (drag-delay :accessor drag-delay)
+   (relay-hand-requests :accessor relay-hand-requests))
   (:default-initargs
-    :version-string "4.1-dual"))
+    :version-string "6.1-dual"))
 
 ;;; Redefine the creation function for the motor module to create the new class.
 
-(defun create-motor-module (name)
-  (declare (ignore name))
-  (make-instance 'dual-execution-motor-module))
+(defun create-motor-module (model-name)
+  (declare (ignore model-name)) 
+  
+  (chunk-type motor-command (cmd "motor action"))
+  (chunk-type (prepare (:include motor-command)) (cmd prepare) style hand finger r theta)
+  
+  (unless (chunk-p prepare)
+    (define-chunks (prepare isa prepare)))
+  
+  
+  (dolist (c '(left right index middle ring pinkie thumb))
+    (unless (chunk-p-fct c)
+      (define-chunks-fct (list (list c 'name c)))))
+  
+  
+  (let ((instance (make-instance 'dual-execution-motor-module)))
+    
+    ;; Define the chunk-types for the specified extensions
+    ;; Note this means that for new extensions to be applied the
+    ;; model must be redefined/reloaded not just reset
+    
+    (maphash (lambda (name value)
+               (let ((type (chunk-type-fct (car value))))
+                 (if type
+                     (unless (chunk-p-fct name)
+                       (define-chunks-fct (list (list name 'isa name))))
+                   (print-warning "Failed to extend motor capabilities with chunk-type definition: ~s" (car value)))))
+             (bt:with-lock-held ((requests-table-lock instance)) (new-requests-table instance)))
+    
+    instance))
+
 
 ;;; Set necessary slots to lists after the regular methods happen
 
 (defmethod clear :after ((module dual-execution-motor-module))
   (bt:with-recursive-lock-held ((state-lock module))
-    (setf (exec-queue module) (list nil nil))))
+    (setf (exec-queue module) nil)))
 
 (defmethod reset-pm-module :after ((module dual-execution-motor-module))
   (bt:with-recursive-lock-held ((state-lock module))
     (setf (proc-s module) (list 'free 'free))
     (setf (exec-s module) (list 'free 'free))
-    (setf (exec-queue module) (list nil nil)))
+    (setf (exec-queue module) nil))
   
   ;; store it for convenience in the style methods
   ;; don't need to lock protect it since it's internal,
@@ -832,32 +927,36 @@
 (defmethod prepare-movement ((module dual-execution-motor-module) (mvmt dual-hand-movement-style))
   (bt:with-recursive-lock-held ((state-lock module))
     (change-state module :prep 'BUSY :proc (list (hand mvmt) 'BUSY))
+    (prepare-features module mvmt)
     (setf (fprep-time mvmt) 
       (randomize-time (compute-prep-time module mvmt)))
     (setf (last-prep module) mvmt)
     
-    (schedule-event-relative  (seconds->ms (fprep-time mvmt)) 'preparation-complete :destination (my-name module)
-                             :time-in-ms t :module (my-name module) 
-                             :details (format nil "PREPARATION-COMPLETE style ~s hand ~s" (type-of mvmt) (hand mvmt)))
-  
+    (schedule-event-relative (seconds->ms (fprep-time mvmt)) 'preparation-complete :time-in-ms t 
+                             :destination (my-name module) :module (my-name module)
+                             :details (concatenate 'string (symbol-name 'preparation-complete) " " (princ-to-string (request-time mvmt))
+                                        " style " (symbol-name (type-of mvmt)) " hand " (symbol-name (hand mvmt))))
+    
     ;; send dummy requests so that the buffer trace records things appropriately by hand
-    (when (or (eq (hand mvmt) 'left) (eq (hand mvmt) 'both))
-      (schedule-event-now 'module-request 
-                          :module (my-name module)
-                          :params (list 'manual-left
-                                        (define-chunk-spec-fct (list 'cmd (type-of mvmt))))
-                          :details (concatenate 'string (symbol-name 'module-request) " " (symbol-name 'manual-left))
-                          :output nil
-                          :maintenance t))
-  
-    (when (or (eq (hand mvmt) 'right) (eq (hand mvmt) 'both))
-      (schedule-event-now 'module-request 
-                          :module (my-name module)
-                          :params (list 'manual-right
-                                        (define-chunk-spec-fct (list 'cmd (type-of mvmt))))
-                          :details (concatenate 'string (symbol-name 'module-request) " " (symbol-name 'manual-right))
-                          :output nil
-                          :maintenance t))))
+    
+    (unless (relay-hand-requests module) ;; if the buffers sent them to manual don't send them back
+      (when (or (eq (hand mvmt) 'left) (eq (hand mvmt) 'both))
+        (schedule-event-now 'module-request 
+                            :module (my-name module)
+                            :params (list 'manual-left
+                                          (define-chunk-spec-fct (list 'cmd (type-of mvmt))))
+                            :details (concatenate 'string (symbol-name 'module-request) " " (symbol-name 'manual-left))
+                            :output nil
+                            :maintenance t))
+      
+      (when (or (eq (hand mvmt) 'right) (eq (hand mvmt) 'both))
+        (schedule-event-now 'module-request 
+                            :module (my-name module)
+                            :params (list 'manual-right
+                                          (define-chunk-spec-fct (list 'cmd (type-of mvmt))))
+                            :details (concatenate 'string (symbol-name 'module-request) " " (symbol-name 'manual-right))
+                            :output nil
+                            :maintenance t)))))
 
 
 
@@ -882,12 +981,15 @@
       (when (last-prep module)
         (if (exec-immediate-p (last-prep module))
             (let ((hand (hand (last-prep module))))
-              (cond ((or (null (two-exec module)) (eq hand 'left) (eq hand 'both)) 
-                     (push-last (last-prep module) (first (exec-queue module))))
-                    ((eq hand 'right) 
-                     (push-last (last-prep module) (second (exec-queue module))))
+              (cond ((or (null (two-exec module)) 
+                         (eq hand 'left) 
+                         (eq hand 'right)
+                         (eq hand 'both))
+                     (push-last (last-prep module) (exec-queue module)))
                     (t
-                     (print-warning "Non-handed action taken with the dual-execution motor module: ~s ~s" (last-prep module) (hand (last-prep module))))))
+                     (print-warning "Non-handed action taken with the dual-execution motor module: ~s ~s" (last-prep module) (hand (last-prep module)))))
+              (when (updated-pos (last-prep module))
+                (update-prepared module)))
           
           (progn
             (when (or (minusp (init-stamp module))
@@ -895,6 +997,9 @@
                            (>= (mp-time-ms) (+ (init-stamp module) (seconds->ms (init-time module))))))
               (change-state module :proc (list (hand (last-prep module)) 'FREE))))))
       (maybe-execute-movement module))))
+
+#| don't need to redefine this since there's only one
+   exec queue again
 
 (defmethod execute ((module dual-execution-motor-module) request)
   (bt:with-recursive-lock-held ((state-lock module))
@@ -904,35 +1009,67 @@
            (model-warning "Motor Module cannot EXECUTE features being prepared."))
           (t
            (setf (request-spec (last-prep module)) request)
-           (case (hand (last-prep module))
-             ((left both)
-              (setf (first (exec-queue module))
-                (append (first (exec-queue module)) (mklist (last-prep module)))))
-             (right 
-              (setf (second (exec-queue module))
-                (append (second (exec-queue module)) (mklist (last-prep module))))))
+           (setf (exec-queue module)
+             (append (exec-queue module) (mklist (last-prep module))))
+           (when (updated-pos (last-prep module))
+             (update-prepared module))
            (maybe-execute-movement module)))))
-       
+|#
+
+(defmethod update-prepared ((mtr-mod dual-execution-motor-module))
+  (when (find 'hand (feature-slots (last-prep mtr-mod)))
+    (case (hand (last-prep mtr-mod))
+      (left (set-hand-position mtr-mod 'left (updated-pos (last-prep mtr-mod)) :current nil))
+      (right (set-hand-position mtr-mod 'right (updated-pos (last-prep mtr-mod)) :current nil))
+      (both (set-hand-position mtr-mod 'left (first (updated-pos (last-prep mtr-mod))) :current nil)
+            (set-hand-position mtr-mod 'right (second (updated-pos (last-prep mtr-mod))) :current nil)))))
+
 (defmethod maybe-execute-movement ((module dual-execution-motor-module))
-  ;; Check both exec queues everytime since we don't know which action
-  ;; triggered this check.
-  ;; The "left" queue also handles both hand actions and is the only
-  ;; one used when there's not multiple exec stages.
+  ;; If only one exec system just pop the next one like normal.
+  ;; Otherwise, if there's an execution stage available check actions to 
+  ;; perform starting from the front until one can be executed for each
+  ;; available stage or a both is found (regardless of whether it can
+  ;; be executed because if it can't be executed then you can't skip 
+  ;; over it).
+  ;; 
   
   (bt:with-recursive-lock-held ((state-lock module))
     (bt:with-recursive-lock-held ((param-lock module))
-      (when (and (first (exec-queue module)) (or (and (eq (hand (first (first (exec-queue module)))) 'left)
-                                                      (eq (first (exec-s module)) 'FREE))
-                                                 (and (eq (hand (first (first (exec-queue module)))) 'both)
-                                                      (eq (first (exec-s module)) 'FREE)
-                                                      (eq (second (exec-s module)) 'FREE))
-                                                 (and (null (two-exec module))
-                                                      (eq (first (exec-s module)) 'FREE))))
-        (perform-movement module (pop (first (exec-queue module)))))
       
-      (when (and (second (exec-queue module)) (eq (second (exec-s module)) 'FREE))
-        (perform-movement module (pop (second (exec-queue module))))))))
-
+      (when (exec-queue module)
+        (if (null (two-exec module))
+            (when (eq (first (exec-s module)) 'FREE)
+              (perform-movement module (pop (exec-queue module))))
+          
+          (when (or (eq (first (exec-s module)) 'FREE)
+                    (eq (second (exec-s module)) 'FREE))
+            (do* ((left-available (eq (first (exec-s module)) 'FREE))
+                  (right-available (eq (second (exec-s module)) 'FREE))
+                  (queue (exec-queue module) (cdr queue))
+                  (evt (car queue) (car queue)))
+                 ((or (null evt)
+                      (and (null left-available)
+                           (null right-available))))
+              (case (hand evt)
+                (left
+                 (when left-available
+                   (setf left-available nil)
+                   (setf (exec-queue module) (remove evt (exec-queue module)))
+                   (perform-movement module evt)))
+                (right
+                 (when right-available
+                   (setf right-available nil)
+                   (setf (exec-queue module) (remove evt (exec-queue module)))
+                   (perform-movement module evt)))
+                (both
+                 (when (and left-available right-available)
+                   (setf (exec-queue module) (remove evt (exec-queue module)))
+                   (perform-movement module evt))
+                 ;; whether a both executes or not it blocks any
+                 ;; further actions because you can't reorder the
+                 ;; actions for a hand
+                 (setf left-available nil)
+                 (setf right-available nil))))))))))
 
 (defmethod perform-movement ((module dual-execution-motor-module) (mvmt movement-style))
   (bt:with-recursive-lock-held ((state-lock module)) ; don't need the lock the whole time but more efficient than grabbing twice
@@ -943,6 +1080,9 @@
         ;; Check releases now because they could have been going down while this was being
         ;; prepared but if it's not down now just stop.
         
+        ;; Shouldn't happen now because of the preparation checks, but just to be safe
+        ;; leaving it here.
+        
         (when (and (or (typep last 'release)
                        (typep last 'release-recoil))
                    
@@ -950,6 +1090,7 @@
           
           (print-warning "RELEASE action ignored because the ~s ~s finger is not held down." (hand (last-prep module)) (finger (last-prep module)))
           (return-from perform-movement))
+        
         
         (let ((hands (if (eq (hand mvmt) 'both) (list 'left 'right) (list (hand mvmt))))
               (fingers (let ((f (when (find 'finger (feature-slots mvmt))
@@ -960,11 +1101,11 @@
           
           (schedule-event-relative (seconds->ms (init-time module)) 'INITIATION-COMPLETE :destination (my-name module)
                                    :time-in-ms t :module (my-name module) 
-                                   :details (format nil "INITIATION-COMPLETE style ~s hand ~s" (type-of mvmt) (hand mvmt)))
+                                   :details (concatenate 'string (symbol-name 'INITIATION-COMPLETE) " " (princ-to-string (request-time mvmt))
+                                              " style " (symbol-name (type-of mvmt)) " hand " (symbol-name (hand mvmt))))
           
           (change-state module :proc (list (hand mvmt) 'BUSY) :exec (list (hand mvmt) 'BUSY))
-          
-          
+                    
           (setf (init-stamp module) (mp-time-ms))
   
           (setf (exec-time mvmt) (compute-exec-time module mvmt))
@@ -1010,7 +1151,8 @@
 (defmethod queue-finish-event ((module dual-execution-motor-module) (mvmt movement-style))
   (schedule-event-relative (seconds->ms (finish-time mvmt)) 'finish-movement-dual :destination (my-name module)
                            :time-in-ms t :params (list mvmt) :module (my-name module) 
-                           :details (format nil "FINISH-MOVEMENT style ~s hand ~s" (type-of mvmt) (hand mvmt))))
+                           :details (concatenate 'string (symbol-name 'finish-movement) " " (princ-to-string (request-time mvmt))
+                                              " style " (symbol-name (type-of mvmt)) " hand " (symbol-name (hand mvmt)))))
 
 
 (defmethod finish-movement-dual ((module dual-execution-motor-module) (mvmt movement-style))
@@ -1046,16 +1188,32 @@
 
 
 (defstruct hand-tracker 
-  manual left-cmd right-cmd 
+  manual left-cmd right-cmd relay
   (lock (bt:make-recursive-lock "hand-tracker"))
   (finger-busy (make-hash-table :size 10 :test 'equalp))
   (finger-down (make-hash-table :size 10 :test 'equalp)))
 
 (defun track-hand-requests (module buffer spec)
-  (bt:with-recursive-lock-held ((hand-tracker-lock module))
-    (if (eq buffer 'manual-left)
-        (setf (hand-tracker-left-cmd module) (spec-slot-value (car (chunk-spec-slot-spec spec 'cmd))))
-      (setf (hand-tracker-right-cmd module) (spec-slot-value (car (chunk-spec-slot-spec spec 'cmd)))))))
+  (let (relay)
+    (bt:with-recursive-lock-held ((hand-tracker-lock module))
+      
+      (setf relay (hand-tracker-relay module))
+      
+      (if (eq buffer 'manual-left)
+          (setf (hand-tracker-left-cmd module) (spec-slot-value (car (chunk-spec-slot-spec spec 'cmd))))
+        (setf (hand-tracker-right-cmd module) (spec-slot-value (car (chunk-spec-slot-spec spec 'cmd))))))
+    
+    (when relay
+      (let ((includes-hand (chunk-spec-slot-spec spec 'hand)))
+        
+        (if (or (null includes-hand)
+                (and includes-hand
+                     (= (length includes-hand) 1)
+                     (eq (spec-slot-op (car includes-hand)) '=) 
+                     (or (and (eq buffer 'manual-left) (eq (spec-slot-value (car includes-hand)) 'left))
+                         (and (eq buffer 'manual-right) (eq (spec-slot-value (car includes-hand)) 'right)))))
+            (module-request 'manual spec)
+          (print-warning "Request to ~s buffer has an invalid hand slot ~s." buffer includes-hand))))))
 
 (defun reset-hand-tracker (module)
   (bt:with-recursive-lock-held ((hand-tracker-lock module))
@@ -1064,10 +1222,40 @@
     (setf (hand-tracker-right-cmd module) 'none)
     (clrhash (hand-tracker-finger-busy module))
     (clrhash (hand-tracker-finger-down module))))
+
+
+(defun finger-down (extension hand finger &key (current t))
+  (if current
+      (bt:with-recursive-lock-held ((hand-tracker-lock extension))
+        (gethash (list hand finger) (hand-tracker-finger-down extension)))
+    (let* ((hand-pos (hand-position hand :current nil))
+           (fingers (find 'extended-fingers (hand-pos-other hand-pos) :key 'first))
+           (f (find finger (rest fingers) :key 'first)))
+      (if f
+          (second f)
+        (bt:with-recursive-lock-held ((hand-tracker-lock extension))
+          (gethash (list hand finger) (hand-tracker-finger-down extension)))))))
+
+
+(defun any-finger-down (extension hand &key (current t))
   
-(defun finger-down (extension hand finger)
-  (bt:with-recursive-lock-held ((hand-tracker-lock extension))
-    (gethash (list hand finger) (hand-tracker-finger-down extension))))
+  (if current
+      (bt:with-recursive-lock-held ((hand-tracker-lock extension))
+        (some (lambda (x) (gethash (list hand x) (hand-tracker-finger-down extension)))
+              '(index middle ring pinkie thumb)))
+    
+    (let* ((hand-pos (hand-position hand :current nil))
+           (fingers (find 'extended-fingers (hand-pos-other hand-pos) :key 'first))
+           (states (rest fingers)))
+      (if states
+          (progn
+            (unless (= 5 (length states))
+              (print-warning "Invalid extended-fingers information stored in hand position for any-finger-down."))
+            (some 'second states))
+        (bt:with-recursive-lock-held ((hand-tracker-lock extension))
+          (some (lambda (x) (gethash (list hand x) (hand-tracker-finger-down extension)))
+                '(index middle ring pinkie thumb)))))))
+
 
 (defun finger-busy (extension hand finger)
   (bt:with-recursive-lock-held ((hand-tracker-lock extension))
@@ -1203,7 +1391,11 @@
                (:slow-punch-delay
                 (setf (d-punch-slow manual) (cdr param)))
                (:cursor-drag-delay 
-                (setf (drag-delay manual) (cdr param)))))
+                (setf (drag-delay manual) (cdr param)))
+               (:relay-hand-requests 
+                (setf (relay-hand-requests manual) (cdr param))
+                (bt:with-recursive-lock-held ((hand-tracker-lock instance))
+                  (setf (hand-tracker-relay instance) (cdr param))))))
             (t
              (case param
                (:key-release-time
@@ -1221,33 +1413,47 @@
                (:slow-punch-delay
                 (d-punch-slow manual))
                (:cursor-drag-delay 
-                (drag-delay manual))))))))
-  
+                (drag-delay manual))
+               (:relay-hand-requests 
+                (bt:with-recursive-lock-held ((hand-tracker-lock instance))
+                  (hand-tracker-relay instance)))))))))
+
+(defun left-hand-buffer-status ()
+  (print-hand-buffer-status (get-module motor-extension) 'manual-left))
+
+(defun right-hand-buffer-status ()
+  (print-hand-buffer-status (get-module motor-extension) 'manual-right))
+
+(defun peck-strike-value-test (x)
+  (or (null x) (and (numberp x) (<= 0 x .5))))
+
+(defun create-motor-extension-module (x)
+  (declare (ignore x))
+  (make-hand-tracker))
+
 (define-module-fct 'motor-extension 
     (list (list 'manual-left nil nil '(execution processor last-command index middle ring pinkie thumb)
-                (lambda () 
-                  (print-hand-buffer-status (get-module motor-extension) 'manual-left)))
+                'left-hand-buffer-status)
           (list 'manual-right nil nil '(execution processor last-command index middle ring pinkie thumb)
-                (lambda () 
-                  (print-hand-buffer-status (get-module motor-extension) 'manual-right))))
+                'right-hand-buffer-status))
   (list
    (define-parameter :default-punch-delay
-     :valid-test #'posnum
+     :valid-test 'posnum
      :warning "a number"
      :default-value 0.075
-     :documentation "Defualt time for a delayed-punch request.")
+     :documentation "Default time for a delayed-punch request.")
    (define-parameter :fast-punch-delay
-     :valid-test #'posnum
+     :valid-test 'posnum
      :warning "a number"
      :default-value 0.050
      :documentation "Time for a delayed-punch request with a delay of fast.")
    (define-parameter :slow-punch-delay
-     :valid-test #'posnum
+     :valid-test 'posnum
      :warning "a number"
      :default-value 0.1
      :documentation "Time for a delayed-punch request with a delay of slow.")
    (define-parameter :cursor-drag-delay
-     :valid-test (lambda (x) (or (tornil x) (posnum x)))
+     :valid-test 'posnumorbool 
      :warning "T, nil, or a positive number"
      :default-value nil
      :documentation "Control order increment for cursor drag actions.")
@@ -1272,17 +1478,23 @@
      :default-value nil
      :documentation "Whether the motor module has separate execution stages for the hands.")
    (define-parameter :peck-strike-distance
-     :valid-test (lambda (x) (or (null x) (and (numberp x) (<= 0 x .5))))
+     :valid-test 'peck-strike-value-test
      :warning "Nil or a number between 0 and .5"
      :default-value nil
-     :documentation "Distance from center of the key at which time a peck starts to depress the key."))
+     :documentation "Distance from center of the key at which time a peck starts to depress the key.")
+   (define-parameter :relay-hand-requests
+     :valid-test 'tornil
+     :warning "T or nil"
+     :default-value nil
+     :documentation "Whether manual-left and manual-right pass requests to manual"))
   
   :params 'track-hand-params
   :request 'track-hand-requests
   :query 'generic-state-query 
-  :creation (lambda (x) (declare (ignore x))(make-hand-tracker))
+  :creation 'create-motor-extension-module
   :reset (list nil nil 'reset-hand-tracker)
-  :version "4.0" :documentation "Extends motor module with dual processor and/or execution states and finger holding actions.")
+  :version "6.0"
+  :documentation "Extends motor module with dual processor and/or execution states and finger holding actions.")
 
 
 ;;; Compute when a peck or peck-recoil indicates that the key is hit
@@ -1391,6 +1603,39 @@
                            :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self)))))
 
 
+
+;;; Method to adjust the state of a finger given a starting position
+
+(defgeneric adjust-finger-position (mtr-mod self starting-point finger-state)
+  )
+
+(defmethod adjust-finger-position ((mtr-mod dual-execution-motor-module) (self dual-hand-movement-style) starting-point finger-state)
+  (let* ((hand (hand self))
+         (others (copy-seq (hand-pos-other starting-point)))
+         (extension (extension mtr-mod))
+         (current (find 'extended-fingers (hand-pos-other starting-point) :key 'first))
+         (current-fingers (rest current)))
+    (when current
+      (setf others (remove current others)))
+           
+    (let ((updated-fingers (list 'extended-fingers)))
+             
+      ;; don't really need to set all of them, but
+      ;; for consistency always going to do so
+             
+      (dolist (finger '(index middle ring pinkie thumb)) 
+        (push-last (if (eq finger (finger self))
+                       (list finger finger-state) 
+                     (let ((previous (find finger current-fingers :key 'first)))
+                       (if previous
+                           (list finger (second previous))
+                         (list finger (finger-down extension hand finger))))) ;; know it's not in :current nil
+                   updated-fingers))
+        
+      (push updated-fingers others))
+    (setf (hand-pos-other starting-point) others)
+    (setf (updated-pos self) starting-point)))
+  
 ;;; Updated punch 
 
 (defclass punch (hf-movement)
@@ -1400,22 +1645,32 @@
     :two-exec-p t
     :release-if-down :penalty))
 
+(defmethod prepare-features ((mtr-mod motor-module) (self punch))
+  (adjust-finger-position mtr-mod self (copy-hand-pos (hand-position (hand self) :current nil)) nil))
+
 
 (defmethod compute-second-exec-time ((mtr-mod motor-module) (self punch))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (+ (init-time mtr-mod) 
-       (burst-time mtr-mod)
+       ; don't add this to be consistent with peck and peck-recoil actions (burst-time mtr-mod)
        (key-release-time mtr-mod))))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self punch))
   
+  ;; don't need to schedule a setting of the new hand position
+  ;; since the "current" finger info isn't stored in there but do it
+  ;; for consistency and use exec2 since that's when the finger is really up.
+  
+  (schedule-event-relative (seconds->ms (exec2-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
+  
   (schedule-event-relative (seconds->ms (exec-time self))
                            'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self))))
 
   (schedule-event-relative (seconds->ms (exec2-time self))
                            'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self)))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self)))))
 
 
 ;;; Updated peck
@@ -1428,6 +1683,8 @@
     :two-exec-p t
     :release-if-down :penalty))
 
+(defmethod prepare-features ((mtr-mod motor-module) (self peck))
+  (adjust-finger-position mtr-mod self (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self) :current nil) nil))
 
 (defmethod compute-exec-time ((mtr-mod motor-module) (self peck))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -1451,16 +1708,17 @@
        (key-release-time mtr-mod))))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self peck))
-  ;; need to move it before the scheduling of the press and release
-  (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self))
+  
+  (schedule-event-relative (seconds->ms (exec2-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
   
   (schedule-event-relative (seconds->ms (exec-time self))
                            'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self))))
   
   (schedule-event-relative (seconds->ms (exec2-time self))
                            'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self)))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self)))))
 
 ;;; Updated peck-recoil
 ;;; for a peck-recoil record the base movement time and the specific (noisy) first movement times
@@ -1472,6 +1730,9 @@
     :style-name 'peck
     :two-exec-p t
     :release-if-down :penalty))
+
+(defmethod prepare-features ((mtr-mod motor-module) (self peck-recoil))
+  (adjust-finger-position mtr-mod self (copy-hand-pos (hand-position (hand self) :current nil)) nil))
 
 (defmethod compute-exec-time ((mtr-mod motor-module) (self peck-recoil))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -1501,20 +1762,20 @@
        (key-release-time mtr-mod))))
 
 (defmethod queue-output-events ((mtr-mod motor-module) (self peck-recoil))
-  ;; need to move it before the scheduling of the press and release
-  (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self))
   
-  (schedule-event-relative (seconds->ms (exec-time self))
-                           'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self))))
+  (schedule-event-relative (seconds->ms (exec2-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
   
-  (schedule-event-relative (seconds->ms (exec2-time self))
-                           'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self))))
-  
-  ;; then move it back to where it was since that's it real target
-  
-  (move-a-finger mtr-mod (hand self) (finger self) (r self) (+ pi (theta self))))
+  (let ((target-loc (polar-move-xy (finger-loc (updated-pos self) (finger self))
+                                   (vector (r self) (theta self)))))
+        
+    (schedule-event-relative (seconds->ms (exec-time self))
+                             'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
+                             :params (list (style-name self) (hand self) (finger self) target-loc))
+    
+    (schedule-event-relative (seconds->ms (exec2-time self))
+                             'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
+                             :params (list (style-name self) (hand self) (finger self) target-loc))))
 
 
 ;;; Make sure that mouse movement doesn't change the state of the
@@ -1534,6 +1795,10 @@
     :release-if-down nil
     :finger-based-style nil))
 
+;; Since it doesn't adjust the extended custom features for the hand-position
+;; (doesn't change finger states) the original methods will still work.
+;; However, to account for the drag-delay need to change the :before
+;; method on the exec-time.
 
 (defmethod compute-exec-time :before ((mtr-mod motor-module) (self cursor-ply))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -1542,13 +1807,8 @@
           (hand (hand self)))
       
       (when (drag-delay mtr-mod)
-        (bt:with-recursive-lock-held ((hand-tracker-lock extension))
-          (when ;; any finger on the same hand busy
-              (some (lambda (x)
-                      (gethash (list hand x) (hand-tracker-finger-down extension)))
-                    '(index middle ring pinkie thumb))
-            (setf offset (if (eq (drag-delay mtr-mod) t) .8 (drag-delay mtr-mod))))))
-      
+        (when (any-finger-down extension hand :current nil) ;; down when move will happen
+          (setf offset (if (eq (drag-delay mtr-mod) t) .8 (drag-delay mtr-mod)))))
       
       (setf (fitts-coeff self) 
         (* (expt-coerced 2 (+ offset (control-order self))) (fitts-coeff self))))))
@@ -1563,6 +1823,9 @@
     :two-exec-p nil
     :release-if-down :penalty))
 
+(defmethod prepare-features ((mtr-mod motor-module) (self hold-punch))
+  (adjust-finger-position mtr-mod self (copy-hand-pos (hand-position (hand self) :current nil)) t))
+
 (defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self hold-punch))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (+ (init-time mtr-mod) 
@@ -1575,9 +1838,12 @@
 
 (defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self hold-punch))
   
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
+  
   (schedule-event-relative (seconds->ms (exec-time self))
                            'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self)))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self)))))
 
 
 (defmethod hold-punch ((mtr-mod dual-execution-motor-module) &key hand finger request-spec)
@@ -1594,6 +1860,10 @@
     :two-exec-p nil
     :release-if-down :penalty))
 
+(defmethod prepare-features ((mtr-mod motor-module) (self hold-peck))
+  (adjust-finger-position mtr-mod self (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self) :current nil) t))
+
+
 (defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self hold-peck))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (setf (move-time self)
@@ -1608,10 +1878,15 @@
     (+ (init-time mtr-mod) 
        (move-time self))))
      
-(defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self hold-peck))
+(defmethod queue-output-events ((mtr-mod motor-module) (self hold-peck))
+  
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
+  
   (schedule-event-relative (seconds->ms (exec-time self))
                            'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self)))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self)))))
+  
 
 (defmethod hold-peck ((mtr-mod motor-module) &key hand finger r theta request-spec)
   (unless (or (check-jam mtr-mod) (check-specs 'hold-peck hand finger r theta))
@@ -1622,12 +1897,16 @@
 (extend-manual-requests (hold-peck hand finger r theta) handle-style-request)
 
 
+
 (defclass release (punch)
   nil
   (:default-initargs
       :style-name 'punch
     :two-exec-p nil
     :release-if-down nil))
+
+(defmethod prepare-features ((mtr-mod motor-module) (self release))
+  (adjust-finger-position mtr-mod self (copy-hand-pos (hand-position (hand self) :current nil)) nil))
 
 (defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self release))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -1640,13 +1919,19 @@
        (burst-time mtr-mod))))
 
 (defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self release))
+  
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
+  
   (schedule-event-relative (seconds->ms (exec-time self))
                            'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self)))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self)))))
 
 (defmethod release ((mtr-mod dual-execution-motor-module) &key hand finger request-spec)
   (unless (or (check-jam mtr-mod) (check-specs 'release hand finger))
-    (prepare-movement mtr-mod (make-instance 'release :hand hand :finger finger :request-spec request-spec))))
+    (if (not (finger-down (extension mtr-mod) hand finger :current nil))
+        (print-warning "RELEASE action ignored because the ~s ~s finger is not held down or already being released." hand finger)
+    (prepare-movement mtr-mod (make-instance 'release :hand hand :finger finger :request-spec request-spec)))))
 
 
 (extend-manual-requests (release hand finger) handle-style-request)
@@ -1658,6 +1943,8 @@
       :style-name 'peck
     :two-exec-p nil
     :release-if-down nil))
+
+;; the same prepare as peck is fine
 
 (defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self release-recoil))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -1675,11 +1962,14 @@
        (burst-time mtr-mod))))
                
 (defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self release-recoil))
-  (schedule-event-relative (seconds->ms (exec-time self))
-                           'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self))))
-  ;; cheat a little like other styles and put the finger in the final position ahead of time
-  (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self)))
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
+  
+  (let ((current-position (finger-loc (hand self) (finger self))))
+    
+    (schedule-event-relative (seconds->ms (exec-time self))
+                             'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
+                             :params (list (style-name self) (hand self) (finger self) current-position))))
   
 (defmethod release-recoil ((mtr-mod dual-execution-motor-module) &key hand finger r theta request-spec)
   (unless (or (check-jam mtr-mod) (check-specs 'release-recoil hand finger r theta))
@@ -1699,24 +1989,27 @@
       :two-exec-p nil
       :release-if-down :penalty))
 
-(defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self point-finger))
-  (bt:with-recursive-lock-held ((param-lock mtr-mod))
-    
-    ;;; there isn't really an exec time needed so just return init-time
-    (init-time mtr-mod)))
 
-(defmethod compute-finish-time ((mtr-mod dual-execution-motor-module) (self point-finger))
+
+(defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self point-finger))
+  ;; compute a real exec time now to send the change in hand position
+  
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (setf (move-time self)
       (max (burst-time mtr-mod)
            (randomize-time (fitts mtr-mod (peck-fitts-coeff mtr-mod) (r self)))))
-    
+  
+    (max (init-time mtr-mod)
+         (move-time self))))
+
+(defmethod compute-finish-time ((mtr-mod dual-execution-motor-module) (self point-finger))
+  (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (+ (init-time mtr-mod) 
        (move-time self))))
                                                                              
 (defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self point-finger))
-  ;; just move the finger, there's nothing to schedule
-  (move-a-finger mtr-mod (hand self) (finger self) (r self) (theta self)))
+  (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self))))
 
 (defmethod point-finger ((mtr-mod motor-module) &key hand finger r theta request-spec)
   (unless (or (check-jam mtr-mod) (check-specs 'point-finger hand finger r theta))
@@ -1750,34 +2043,28 @@
         (values hand-name finger-name)))))
   
 
-;;; Indicate each finger's home position (which should really be in the keyboard
-;;; definition instead of implicit in the module startup & hand-to-home actions).
+;;; Get a finger's home position.
 
 (defun home-position (keyboard hand finger)
   (let* ((positions
           (case hand
-            (left (left-home keyboard))
-            (right (right-home keyboard))))
+            (left (keyboard-hand-location keyboard 'left-home))
+            (right (keyboard-hand-location keyboard 'right-home))))
          (h-pos (find 'hand positions :key 'first))
          (f-pos (find finger positions :key 'first)))
     (if (and f-pos h-pos)
         (coerce (mapcar '+ (rest f-pos) (rest h-pos)) 'vector)
       (print-warning "No home-position available for hand ~s and finger ~s." hand finger))))
 
-;;; Should probably abstract these a little since they're so similar,
-;;; but for now just a cut-and-paste job...
+;;; Here's the general pattern for many of the new finger-based keyboard actions
 
-;; type-key
-;; Similar to the press-key command except that it doesn't assume the finger
-;; starts from the home row.  It uses the appropriate finger's current position
-;; to determine the movement necessary to strike the key and return to where it
-;; started (which may or may not be the home row).
-
-
-(defmethod type-key ((mtr-mod dual-execution-motor-module) spec)
+(defmethod extended-finger-keyboard ((mtr-mod dual-execution-motor-module) spec name 
+                                     &key (same-loc-action 'punch) (move-loc-action 'peck-recoil)
+                                     (same-loc-key-only nil) (move-loc-key-only nil))
+                                     
   (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
       (aif (current-keyboard)
-           (let ((key (verify-single-explicit-value spec 'key :motor 'type-key)))
+           (let ((key (verify-single-explicit-value spec 'key :motor name)))
              (if key
                  (progn 
                    (unless (stringp key)
@@ -1785,25 +2072,33 @@
                    
                    (multiple-value-bind (hand finger) (key->hand&finger it key)
                      (if (and hand finger)
-                         (let* ((h (case hand
-                                     (right (right-hand mtr-mod))
-                                     (left (left-hand mtr-mod))
-                                     (t (print-warning "Invalid hand ~s in type-key request for key ~s." hand key)
-                                        (return-from type-key))))
-                                (device (bt:with-lock-held ((hand-lock h))
-                                          (device h))))
+                         (let ((device (device-for-hand hand :current nil)))
                            (if (string-equal (second device) "keyboard")
                                (let ((key-loc (key->loc it key))
-                                     (finger-loc (finger-loc-m mtr-mod hand finger)))
+                                     (finger-loc (finger-loc-m mtr-mod hand finger :current nil)))
                                  (if (vpt= key-loc finger-loc)
-                                     (punch mtr-mod :hand hand :finger finger :request-spec spec)
+                                     (if same-loc-key-only
+                                         (funcall same-loc-action key)
+                                       (funcall same-loc-action mtr-mod :hand hand :finger finger :request-spec spec))
                                    (let ((vector (xy-to-polar finger-loc key-loc)))
-                                     (peck-recoil mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec))))
-                             (print-warning "The ~s hand is not on the keyboard device for type-key request." hand)))
-                       (print-warning "Could not determine a hand and finger for key ~s in type-key request." key))))
-               (print-warning "No valid key value found in type-key request.")))
-           (print-warning "No keyboard device available for type-key request."))
-    (print-warning "Keyboard device not installed for motor interface in type-key request.")))
+                                     (if move-loc-key-only
+                                         (funcall move-loc-action key)
+                                       (funcall move-loc-action mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec)))))
+                             (print-warning "The ~s hand is not (or will not be) on the keyboard device for ~s request." hand name)))
+                       (print-warning "Could not determine a hand and finger for key ~s in ~s request." key name))))
+               (print-warning "No valid key value found in ~s request." name)))
+           (print-warning "No keyboard device available for ~s request." name))
+    (print-warning "Keyboard device not installed for motor interface in ~s request." name)))
+
+;; type-key
+;; Similar to the press-key command except that it doesn't assume the finger
+;; starts from the home row.  It uses the appropriate finger's starting position
+;; to determine the movement necessary to strike the key and return to where it
+;; started (which may or may not be the home row).
+
+
+(defmethod type-key ((mtr-mod dual-execution-motor-module) spec)
+  (extended-finger-keyboard mtr-mod spec 'type-key))
 
 (extend-manual-requests (type-key key) type-key)
 
@@ -1814,35 +2109,7 @@
 ;; key which was hit instead of returning to the home position.
 
 (defmethod hit-key ((mtr-mod dual-execution-motor-module) spec)
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
-      (aif (current-keyboard)
-           (let ((key (verify-single-explicit-value spec 'key :motor 'type-key)))
-             (if key
-                 (progn 
-                   (unless (stringp key)
-                     (setf key (princ-to-string key)))
-                   
-                   (multiple-value-bind (hand finger) (key->hand&finger it key)
-                     (if (and hand finger)
-                         (let* ((h (case hand
-                                     (right (right-hand mtr-mod))
-                                     (left (left-hand mtr-mod))
-                                     (t (print-warning "Invalid hand ~s in hit-key request for key ~s." hand key)
-                                        (return-from hit-key))))
-                                (device (bt:with-lock-held ((hand-lock h))
-                                          (device h))))
-                           (if (string-equal (second device) "keyboard")
-                               (let ((key-loc (key->loc it key))
-                                     (finger-loc (finger-loc-m mtr-mod hand finger)))
-                                 (if (vpt= key-loc finger-loc)
-                                     (punch mtr-mod :hand hand :finger finger :request-spec spec)
-                                   (let ((vector (xy-to-polar finger-loc key-loc)))
-                                     (peck mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec))))
-                             (print-warning "The ~s hand is not on the keyboard device for hit-key request." hand)))
-                       (print-warning "Could not determine a hand and finger for key ~s in hit-key request." key))))
-               (print-warning "No valid key value found in hit-key request.")))
-           (print-warning "No keyboard device available for hit-key request."))
-    (print-warning "Keyboard device not installed for motor interface in hit-key request.")))
+  (extended-finger-keyboard mtr-mod spec 'type-key :move-loc-action 'peck))
 
 (extend-manual-requests (hit-key key) hit-key)
 
@@ -1851,74 +2118,18 @@
 ;; Like the hit-key action except that it continues to hold the key that is struck.
 
 (defmethod hold-key ((mtr-mod dual-execution-motor-module) spec)
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
-      (aif (current-keyboard)
-           (let ((key (verify-single-explicit-value spec 'key :motor 'type-key)))
-             (if key
-                 (progn 
-                   (unless (stringp key)
-                     (setf key (princ-to-string key)))
-                   
-                   (multiple-value-bind (hand finger) (key->hand&finger it key)
-                     (if (and hand finger)
-                         (let* ((h (case hand
-                                     (right (right-hand mtr-mod))
-                                     (left (left-hand mtr-mod))
-                                     (t (print-warning "Invalid hand ~s in hit-key request for key ~s." hand key)
-                                        (return-from hold-key))))
-                                (device (bt:with-lock-held ((hand-lock h))
-                                          (device h))))
-                           (if (string-equal (second device) "keyboard")
-                               (let ((key-loc (key->loc it key))
-                                     (finger-loc (finger-loc-m mtr-mod hand finger)))
-                                 (if (vpt= key-loc finger-loc)
-                                     (hold-punch mtr-mod :hand hand :finger finger :request-spec spec)
-                                   (let ((vector (xy-to-polar finger-loc key-loc)))
-                                     (hold-peck mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec))))
-                             (print-warning "The ~s hand is not on the keyboard device for hold-key request." hand)))
-                       (print-warning "Could not determine a hand and finger for key ~s in hold-key request." key))))
-               (print-warning "No valid key value found in hold-key request.")))
-           (print-warning "No keyboard device available for hold-key request."))
-    (print-warning "Keyboard device not installed for motor interface in hold-key request.")))
+  (extended-finger-keyboard mtr-mod spec 'type-key :same-loc-action 'hold-punch :move-loc-action 'hold-peck))
 
 (extend-manual-requests (hold-key key) hold-key)
 
-
 ;; release-key
 ;; If the designated key is being held down release it and leave the finger over it.
-;; Don't check if it's down however because it could be in the process of making
-;; that action, and release will figure that out when it starts to execute.
-;; Only test that it's at the indicated key location.
 
 (defmethod release-key ((mtr-mod dual-execution-motor-module) spec)
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
-      (aif (current-keyboard)
-           (let ((key (verify-single-explicit-value spec 'key :motor 'type-key)))
-             (if key
-                 (progn 
-                   (unless (stringp key)
-                     (setf key (princ-to-string key)))
-                   
-                   (multiple-value-bind (hand finger) (key->hand&finger it key)
-                     (if (and hand finger)
-                         (let* ((h (case hand
-                                     (right (right-hand mtr-mod))
-                                     (left (left-hand mtr-mod))
-                                     (t (print-warning "Invalid hand ~s in hit-key request for key ~s." hand key)
-                                        (return-from release-key))))
-                                (device (bt:with-lock-held ((hand-lock h))
-                                          (device h))))
-                           (if (string-equal (second device) "keyboard")
-                               (let ((key-loc (key->loc it key))
-                                     (finger-loc (finger-loc-m mtr-mod hand finger)))
-                                 (if (vpt= key-loc finger-loc)
-                                     (release mtr-mod :hand hand :finger finger :request-spec spec)
-                                   (print-warning "Cannot release the ~s key because the appropriate finger is not on that key in release-key request." key)))
-                             (print-warning "The ~s hand is not on the keyboard device for release-key request." hand)))
-                       (print-warning "Could not determine a hand and finger for key ~s in release-key request." key))))
-               (print-warning "No valid key value found in release-key request.")))
-           (print-warning "No keyboard device available for release-key request."))
-    (print-warning "Keyboard device not installed for motor interface in release-key request.")))
+  (extended-finger-keyboard mtr-mod spec 'release-key :same-loc-action 'release 
+                            :move-loc-key-only t
+                            :move-loc-action (lambda (key)
+                                               (print-warning "Cannot release the ~s key because the appropriate finger is not on that key in release-key request." key))))
 
 (extend-manual-requests (release-key key) release-key)
 
@@ -1928,36 +2139,20 @@
 ;; home position.
 
 (defmethod release-key-to-home ((mtr-mod dual-execution-motor-module) spec)
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
-      (aif (current-keyboard)
-           (let ((key (verify-single-explicit-value spec 'key :motor 'type-key)))
-             (if key
-                 (progn 
-                   (unless (stringp key)
-                     (setf key (princ-to-string key)))
-                   
-                   (multiple-value-bind (hand finger) (key->hand&finger it key)
-                     (if (and hand finger)
-                         (let* ((h (case hand
-                                     (right (right-hand mtr-mod))
-                                     (left (left-hand mtr-mod))
-                                     (t (print-warning "Invalid hand ~s in hit-key request for key ~s." hand key)
-                                        (return-from release-key-to-home))))
-                                (device (bt:with-lock-held ((hand-lock h))
-                                          (device h))))
-                           (if (string-equal (second device) "keyboard")
-                               (let ((key-loc (key->loc it key))
-                                     (finger-loc (finger-loc-m mtr-mod hand finger)))
-                                 (if (vpt= key-loc finger-loc)
-                                     (let* ((home-pos (home-position it hand finger))
-                                            (vector (xy-to-polar finger-loc home-pos)))
-                                       (release-recoil mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec))
-                                   (print-warning "Cannot release the ~s key because the appropriate finger is not on that key in release-key-to-home request." key)))
-                             (print-warning "The ~s hand is not on the keyboard device for release-key-to-home request." hand)))
-                       (print-warning "Could not determine a hand and finger for key ~s in release-key-to-home request." key))))
-               (print-warning "No valid key value found in release-key-to-home request.")))
-           (print-warning "No keyboard device available for release-key-to-home request."))
-    (print-warning "Keyboard device not installed for motor interface in release-key-to-home request.")))
+  
+  (extended-finger-keyboard mtr-mod spec 'release-key-to-home 
+                            :same-loc-action (lambda (m-mod &key hand finger request-spec)
+                                               (let* ((home-pos (home-position (current-keyboard) hand finger))
+                                                      (finger-loc (finger-loc-m m-mod hand finger :current nil))
+                                                      (vector (xy-to-polar finger-loc home-pos)))
+                                                 (if (zerop (vr vector))
+                                                     (release m-mod :hand hand :finger finger :request-spec request-spec)
+                                                   (release-recoil m-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec request-spec)))
+                                               )
+                            :move-loc-key-only t
+                            :move-loc-action (lambda (key)
+                                               (print-warning "Cannot release the ~s key because the appropriate finger is not on that key in release-key-to-home request." key))))
+
 
 (extend-manual-requests (release-key-to-home key) release-key-to-home)
 
@@ -1966,35 +2161,11 @@
 ;; Position the appropriate finger over the designated key without striking it.
 
 (defmethod move-to-key ((mtr-mod dual-execution-motor-module) spec)
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
-      (aif (current-keyboard)
-           (let ((key (verify-single-explicit-value spec 'key :motor 'type-key)))
-             (if key
-                 (progn 
-                   (unless (stringp key)
-                     (setf key (princ-to-string key)))
-                   
-                   (multiple-value-bind (hand finger) (key->hand&finger it key)
-                     (if (and hand finger)
-                         (let* ((h (case hand
-                                     (right (right-hand mtr-mod))
-                                     (left (left-hand mtr-mod))
-                                     (t (print-warning "Invalid hand ~s in hit-key request for key ~s." hand key)
-                                        (return-from move-to-key))))
-                                (device (bt:with-lock-held ((hand-lock h))
-                                          (device h))))
-                           (if (string-equal (second device) "keyboard")
-                               (let ((key-loc (key->loc it key))
-                                     (finger-loc (finger-loc-m mtr-mod hand finger)))
-                                 (if (vpt= key-loc finger-loc)
-                                     (print-warning "Move-to-key request for key ~s ignored because appropriate finger is already at that key." key)
-                                   (let ((vector (xy-to-polar finger-loc key-loc)))
-                                     (point-finger mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec))))
-                             (print-warning "The ~s hand is not on the keyboard device for move-to-key request." hand)))
-                       (print-warning "Could not determine a hand and finger for key ~s in move-to-key request." key))))
-               (print-warning "No valid key value found in move-to-key request.")))
-           (print-warning "No keyboard device available for move-to-key request."))
-    (print-warning "Keyboard device not installed for motor interface in move-to-key request.")))
+  (extended-finger-keyboard mtr-mod spec 'move-to-key 
+                            :same-loc-key-only t
+                            :same-loc-action (lambda (key)
+                                               (print-warning "Move-to-key request for key ~s ignored because appropriate finger is already at that key." key))
+                            :move-loc-action 'point-finger))
 
 (extend-manual-requests (move-to-key key) move-to-key)
 
@@ -2002,27 +2173,28 @@
 ;; move-finger-to-home 
 ;; Return a specified finger to the home position without striking that key.
 
+;; could probably get tricky and add the home-key for the given finger to the spec 
+;; and use the extended-finger-keyboard request, but don't want to mess around with
+;; altering specs.
+
 (defmethod move-finger-to-home ((mtr-mod dual-execution-motor-module) spec)
+  
   (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
       (aif (current-keyboard)
            (let ((hand (verify-single-explicit-value spec 'hand :motor 'move-finger-to-home))
                  (finger (verify-single-explicit-value spec 'finger :motor 'move-finger-to-home)))
+             
              (if (and hand finger)
-                 (let* ((h (case hand
-                             (right (right-hand mtr-mod))
-                             (left (left-hand mtr-mod))
-                             (t (print-warning "Invalid hand ~s in move-finger-to-home request." hand)
-                                (return-from move-finger-to-home))))
-                        (device (bt:with-lock-held ((hand-lock h))
-                                  (device h))))
+                 (let ((device (device-for-hand hand :current nil)))
                    (if (string-equal (second device) "keyboard")
-                       (let ((finger-loc (finger-loc-m mtr-mod hand finger))
-                             (home-pos (home-position it hand finger)))
+                       
+                       (let ((home-pos (home-position it hand finger))
+                             (finger-loc (finger-loc-m mtr-mod hand finger :current nil)))
                          (if (vpt= home-pos finger-loc)
                              (print-warning "Cannot move the ~s ~s finger to home position because it is already there in move-finger-to-home request." hand finger)
                            (let ((vector (xy-to-polar finger-loc home-pos)))
                              (point-finger mtr-mod :hand hand :finger finger :r (vr vector) :theta (vtheta vector) :request-spec spec))))
-                     (print-warning "The ~s hand is not on the keyboard device for move-finger-to-home request." hand)))
+                     (print-warning "The ~s hand is not (or will not be) on the keyboard device for move-finger-to-home request." hand)))
                (print-warning "Hand and finger not provided for move-finger-to-home request.")))
            (print-warning "No keyboard device available for move-finger-to-home request."))
     (print-warning "Keyboard device not installed for motor interface in move-finger-to-home request.")))
@@ -2030,64 +2202,154 @@
 (extend-manual-requests (move-finger-to-home hand finger) move-finger-to-home)
 
 
-;;; all-home
+;;; all-fingers-to-home
 ;;; A style to move all of the fingers on one or both hands to the home row.
-;;; The cost for the action is fixed at 200ms.  However, the style itself
-;;; isn't directly made available as a model action.  It's only available
-;;; through the all-fingers-to-home action below.
+;;; The cost for the action is the max of 200ms, the minimum time set for a 
+;;; fitts action, and the times for each hand to perform a hand-ply to the home location.
+;;; The init-time is not added to the exec time, only to the finish time.
 ;;;
-;;; Doesn't mark the fingers as busy in the process.
+;;;
+;;; Does mark the fingers as busy in the process. (prior to version 5.0 it did not).
 ;;;
 
-(defclass all-home (hfrt-movement)
+(defclass all-fingers-to-home (hfrt-movement)
   nil
   (:default-initargs
     :style-name :all-home
     :hand 'both
-    :finger-based-style nil))
+    :finger-based-style t ; so the fingers are marked busy and released
+    :finger :dummy))
 
-(defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self all-home))
-  ;; no exec time needed so just return init-time
+(defmethod num-to-prepare :around ((self all-fingers-to-home))
+  ;; don't want to count the direction as a possible feature
+  ;; to match previous version
+  (- (call-next-method) 1))
+
+
+(defmethod prepare-features ((mtr-mod motor-module) (self all-fingers-to-home))
+  ;; Assuming that the need for a movement has already been determined
+  ;; and the hand is set appropriately (only one even if both specified
+  ;; but one is already there) as well as the installation of a keyboard.
+  
+  (let ((hand (hand self))
+        (keyboard-device (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal))
+        (k (current-keyboard))
+        l-pos r-pos)
+    
+    (when (or (eq hand 'both)
+              (eq hand 'left))
+      (let* ((keyboard-hand (keyboard-hand-location k 'left-home))
+             (home-pos (coerce (rest (find 'hand keyboard-hand :key 'first)) 'vector))
+             (home-offsets (mapcar (lambda (x)
+                                     (list (first x) (vector (second x) (third x))))
+                             (remove 'hand keyboard-hand :key 'first)))
+             (hand-pos (hand-position 'left :current nil))
+             (vector (xy-to-polar (hand-pos-loc hand-pos) home-pos))
+             (device (device-for-hand 'left :current nil)))
+        
+        (setf l-pos (list (make-hand-pos :loc home-pos
+                                         :fingers home-offsets
+                                         ;; none are down so just set that 
+                                         :other (let ((start (remove 'extended-fingers (hand-pos-other hand-pos) :key 'first)))
+                                                  (push (list 'extended-fingers
+                                                              (list 'index nil)
+                                                              (list 'middle nil)
+                                                              (list 'ring nil)
+                                                              (list 'pinkie nil)
+                                                              (list 'thumb nil))
+                                                        start)
+                                                  start)
+                                         :device (if (equalp device keyboard-device)
+                                                     nil
+                                                   device))
+                          (vr vector)))))
+    
+    (when (or (eq hand 'both)
+              (eq hand 'right))
+      (let* ((keyboard-hand (keyboard-hand-location k 'right-home))
+             (home-pos (coerce (rest (find 'hand keyboard-hand :key 'first)) 'vector))
+             (home-offsets (mapcar (lambda (x)
+                                     (list (first x) (vector (second x) (third x))))
+                             (remove 'hand keyboard-hand :key 'first)))
+             (hand-pos (hand-position 'right :current nil))
+             (vector (xy-to-polar (hand-pos-loc hand-pos) home-pos))
+             (device (device-for-hand 'right :current nil)))
+        
+        (setf r-pos (list (make-hand-pos :loc home-pos
+                                         :fingers home-offsets
+                                         ;; none are down so just set that 
+                                         :other (let ((start (remove 'extended-fingers (hand-pos-other hand-pos) :key 'first)))
+                                                  (push (list 'extended-fingers
+                                                              (list 'index nil)
+                                                              (list 'middle nil)
+                                                              (list 'ring nil)
+                                                              (list 'pinkie nil)
+                                                              (list 'thumb nil))
+                                                        start)
+                                                  start)
+                                         :device (if (equalp device keyboard-device)
+                                                     nil
+                                                   device))
+                          (vr vector)))))
+    
+    (case hand
+      (left
+       (setf (updated-pos self) (first l-pos))
+       (setf (r self) (second l-pos)))
+      (right
+       (setf (updated-pos self) (first r-pos))
+       (setf (r self) (second r-pos)))
+      (both
+       (setf (updated-pos self) (list (first l-pos) (first r-pos)))
+       (setf (r self) (max (second l-pos) (second r-pos)))))))
+
+
+(defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self all-fingers-to-home))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
-    (init-time mtr-mod)))
+    (max 
+     (init-time mtr-mod) ;; to be safe since not adding it here
+     (randomize-time
+      (max .2 (fitts mtr-mod (mouse-fitts-coeff mtr-mod) (r self) 4.0))))))
+                
 
-(defmethod compute-finish-time ((mtr-mod dual-execution-motor-module) (self all-home))
+(defmethod compute-finish-time ((mtr-mod dual-execution-motor-module) (self all-fingers-to-home))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (+ (init-time mtr-mod) 
-       (max 
-        (min-fitts-time mtr-mod)
-        (randomize-time .200)))))
+       (exec-time self))))
 
-(defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self all-home))
-  ;; move them with point-finger so that a release occurs if needed
-  ;; and do that action if it's not at home or it's marked as down
+
+(defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self all-fingers-to-home))
+  ;; just need to set the hand-position and the device when needed
+  ;; any release events are automatically generated now
   
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
-      (aif (current-keyboard)
-           (dolist (hand (if (eq (hand self) 'both) (list 'left 'right) (list (hand self))))
-             (let* ((h (case hand
-                         (right (right-hand mtr-mod))
-                         (left (left-hand mtr-mod))))
-                    (device (bt:with-lock-held ((hand-lock h))
-                              (device h))))
-               (if (string-equal (second device) "keyboard")
-                   (dolist (finger '(index middle ring pinkie thumb))
-                     (let ((finger-loc (finger-loc-m mtr-mod hand finger))
-                           (home-pos (home-position it hand finger)))
-                       (when (or (not (vpt= home-pos finger-loc))
-                                 (finger-down (extension mtr-mod) hand finger))
-                         (let ((vector (xy-to-polar finger-loc home-pos)))
-                           ;; just schedule the move to happen without a style
-                           (schedule-event-relative (finish-time self) 'move-a-finger
-                                                    :destination :motor :module :motor :output nil
-                                                    :params (list hand finger (vr vector) (vtheta vector)))))))
-                 (print-warning "The ~s hand is not on the keyboard device for all-home style." hand))))
-           (print-warning "No keyboard device available for all-home style."))
-    (print-warning "Keyboard device not installed for motor interface in all-home style.")))
+  (when (or (eq (hand self) 'left) (eq (hand self) 'both))
+    (let ((new-pos (if (eq (hand self) 'both)
+                       (first (updated-pos self))
+                     (updated-pos self))))
+      
+      (when (hand-pos-device new-pos)
+        (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-device :time-in-ms t
+                                 :module :motor :params (list 'left (hand-pos-device new-pos)) :priority 1 :output nil))
+      
+      (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                               :destination :motor :params (list 'left new-pos)
+                               ;; Show an action now
+                               :details (concatenate 'string (symbol-name 'all-fingers-to-home) " " (symbol-name 'left)))))
   
-(defmethod all-home ((mtr-mod motor-module) hand &optional request)
-  (unless (check-jam mtr-mod) 
-    (prepare-movement mtr-mod (make-instance 'all-home :hand hand :request-spec request))))
+  (when (or (eq (hand self) 'both) (eq (hand self) 'right))
+    (let ((new-pos (if (eq (hand self) 'both)
+                       (second (updated-pos self))
+                     (updated-pos self))))
+      
+      (when (hand-pos-device new-pos)
+        (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-device :time-in-ms t
+                                 :module :motor :params (list 'right (hand-pos-device new-pos)) :priority 1 :output nil))
+      
+      (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                               :destination :motor :params (list 'right new-pos)
+                               ;; Show an action now
+                               :details (concatenate 'string (symbol-name 'all-fingers-to-home) " " (symbol-name 'right))))))
+  
 
 
 ;; all-fingers-to-home
@@ -2095,77 +2357,115 @@
 ;; without striking any keys.
 
 (defmethod all-fingers-to-home ((mtr-mod dual-execution-motor-module) spec)
-  (if (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)
+  (let ((key (find "keyboard" (current-devices "motor") :key 'second :test 'string-equal)))
+    (if key
       (aif (current-keyboard)
-           
            (let* ((slot-specs (and (slot-in-chunk-spec-p spec 'hand) (chunk-spec-slot-spec spec 'hand)))
                   (hands (cond ((zerop (length slot-specs)) '(left right))
                                ((and (= (length slot-specs) 1)
                                      (eql '= (caar slot-specs))
                                      (or (eq (third (car slot-specs)) 'left)
-                                         (eq (third (car slot-specs)) 'right)))
-                                (list (third (car slot-specs))))
+                                         (eq (third (car slot-specs)) 'right)
+                                         (eq (third (car slot-specs)) 'both)))
+                                (if (eq (third (car slot-specs)) 'both)
+                                    '(left right)
+                                  (list (third (car slot-specs)))))
+                                
                                (t (print-warning "Invalid hand specified in all-fingers-to-home request.  No action taken."))))
                   (any-to-move nil))
+             
              (when hands
                (dolist (hand hands)
-                 (dolist (finger '(index middle ring pinkie thumb))
-                   (let ((home-pos (home-position it hand finger))
-                         (finger-loc (finger-loc-m mtr-mod hand finger)))
-                     (when (or (not (vpt= home-pos finger-loc))
-                               (finger-down (extension mtr-mod) hand finger))
-                       (setf any-to-move t)))))
+                 
+                 ;; need to check the hand position before all of the fingers
+                 ;; because it could be in an odd state of the hand in the
+                 ;; wrong place but with finger offsets to put them in the
+                 ;; home positions...
+                 (let* ((hand-pos (hand-position hand :current nil))
+                        (keyboard-hand (if (eq hand 'left) 
+                                           (keyboard-hand-location it 'left-home) 
+                                         (keyboard-hand-location it 'right-home)))
+                        (home-pos (coerce (rest (find 'hand keyboard-hand :key 'first)) 'vector))
+                        (vector (xy-to-polar (hand-pos-loc hand-pos) home-pos))
+                        (device (device-for-hand 'left :current nil)))
+                   (if (or (not (equalp device key))
+                           (not (zerop (vr vector)))
+                           (any-finger-down (extension mtr-mod) hand :current nil))
+                       ;; hand not on device, not in start position, or some finger down
+                       ;; it needs to be moved
+                       (push hand any-to-move)
+                     
+                     ;; otherwise check all the fingers for matching position
+                     ;; know hand is in home position so easiest to check position
+                     
+                     (dolist (finger '(index middle ring pinkie thumb))
+                       (let ((home-pos (home-position it hand finger))
+                             (finger-loc (finger-loc hand-pos finger)))
+                         (unless (vpt= home-pos finger-loc)
+                           (pushnew hand any-to-move))))))))
                
                (if any-to-move
-                   (all-home mtr-mod (if (= (length hands) 2) 'both (car hands)) spec)
-                 (print-warning "All-fingers-to-home request ignored because fingers are already at home positions."))))
+                   (unless (check-jam mtr-mod) 
+                     (prepare-movement mtr-mod (make-instance 'all-fingers-to-home
+                                                 :hand (if (= (length any-to-move) 2)
+                                                           'both
+                                                         (first any-to-move))
+                                                 :request-spec spec)))
+                 (print-warning "All-fingers-to-home request ignored because fingers are already at home positions.")))
            
-           (print-warning "No keyboard device available for all-home style."))
-    (print-warning "Keyboard device not installed for motor interface in all-home style.")))
-       
+           (print-warning "No keyboard device available for all-fingers-to-home request."))
+    (print-warning "Keyboard device not installed for motor interface in all-fingers-to-home request."))))
+
+
 (extend-manual-requests (all-fingers-to-home hand) all-fingers-to-home)
        
 
 ;; hold-mouse
 ;; Like click-mouse except that it does not release the button.
+;; Just use hold-punch with the right index finger.
 
 (defmethod hold-mouse ((mtr-mod dual-execution-motor-module) spec)
   (let* ((model (current-model))
          (mouse (find-model-cursor (list model 'mouse))))
     (if mouse
-        (let ((hand (right-hand mtr-mod)))
-          
-          (if (equalp (bt:with-lock-held ((hand-lock hand))(device hand))
-                      (list "motor" "cursor" "mouse"))
-              (hold-punch mtr-mod :hand 'right :finger 'index :request-spec spec)
-            (model-warning "Hold-mouse requested when hand not at mouse.")))
+        (if (equalp (device-for-hand 'right :current nil) 
+                    (list "motor" "cursor" "mouse"))
+            (hold-punch mtr-mod :hand 'right :finger 'index :request-spec spec)
+          (model-warning "Hold-mouse requested when right hand not at mouse."))
       (model-warning "Hold-mouse requested but no mouse device available."))))
   
 
 (extend-manual-requests (hold-mouse) hold-mouse)
 
 ;; release-mouse
-;; If the mouse button is being held release it.
+;; If the mouse button is being held release it (release does
+;; the check for whether the finger is down or not).
 
 (defmethod release-mouse-button ((mtr-mod dual-execution-motor-module) spec)
   (let* ((model (current-model))
          (mouse (find-model-cursor (list model 'mouse))))
     (if mouse
-        (let ((hand (right-hand mtr-mod)))
-          
-          (if (equalp (bt:with-lock-held ((hand-lock hand))(device hand))
-                      (list "motor" "cursor" "mouse"))
-              (release mtr-mod :hand 'right :finger 'index :request-spec spec)
-            (model-warning "Release-mouse requested when hand not at mouse.")))
+        (if (equalp (device-for-hand 'right :current nil) 
+                    (list "motor" "cursor" "mouse"))
+            (release mtr-mod :hand 'right :finger 'index :request-spec spec)
+          (model-warning "Release-mouse requested when right hand not at mouse."))
       (model-warning "Release-mouse requested but no mouse device available."))))
+    
 
 (extend-manual-requests (release-mouse) release-mouse-button)
 
 
 ;; release-all-fingers
-;; As soon as possible release all the fingers i.e. it doesn't jam
-;; but waits for preparation to be free before it starts and then
-;; like everything else it queues up for execution.
+;; 
+;; Will delay if preparation not free.
+;; Checks whether either hand requires lifting fingers:
+;;  - if neither do then it's a no-op 
+;;  - if only one does then only that hand requires execution
+;;  - if both do then requires execution of both
+;;
+
+;; Let the default release mechanism handle the actual releasing.
+;; So only need to schedule the update the position.
 
 (defclass release-all-fingers (punch)
   nil
@@ -2173,9 +2473,64 @@
     :style-name :release-all-fingers
     :hand 'both
     :two-exec-p nil
-    :feature-slots nil
-    :finger-based-style nil
+    :feature-slots '(hand)
+    :release-if-down :free
+    :finger-based-style t
+    :finger :dummy
     ))
+
+(defmethod num-to-prepare :around ((self release-all-fingers))
+  ;; don't want to count the hand to match previous version
+  (- (call-next-method) 1))
+
+(defmethod prepare-features ((mtr-mod motor-module) (self release-all-fingers))
+  ;; Assuming that the need for a release has already been determined
+  ;; and the hand is set appropriately (only one or both if needed).
+  
+  (let ((hand (hand self))
+        left
+        right)
+    
+    (when (or (eq hand 'both)
+              (eq hand 'left))
+      (setf left (copy-hand-pos (hand-position 'left :current nil)))
+      
+      ;; just note that all fingers are up
+      
+      (let ((start (remove 'extended-fingers (hand-pos-other left) :key 'first)))
+        (push (list 'extended-fingers
+                    (list 'index nil)
+                    (list 'middle nil)
+                    (list 'ring nil)
+                    (list 'pinkie nil)
+                    (list 'thumb nil))
+              start)
+        (setf (hand-pos-other left) start)))
+    
+    (when (or (eq hand 'both)
+              (eq hand 'right))
+      (setf right (copy-hand-pos (hand-position 'right :current nil)))
+      
+      ;; just note that all fingers are up
+      
+      (let ((start (remove 'extended-fingers (hand-pos-other right) :key 'first)))
+        (push (list 'extended-fingers
+                    (list 'index nil)
+                    (list 'middle nil)
+                    (list 'ring nil)
+                    (list 'pinkie nil)
+                    (list 'thumb nil))
+              start)
+        (setf (hand-pos-other right) start)))
+    
+    (case hand
+      (left
+       (setf (updated-pos self) left))
+      (right
+       (setf (updated-pos self) right))
+      (both
+       (setf (updated-pos self) (list left right))))))
+
 
 (defmethod compute-exec-time ((mtr-mod dual-execution-motor-module) (self release-all-fingers))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -2185,33 +2540,67 @@
 (defmethod compute-finish-time ((mtr-mod dual-execution-motor-module) (self release-all-fingers))
   (bt:with-recursive-lock-held ((param-lock mtr-mod))
     (+ (init-time mtr-mod) 
-       (burst-time mtr-mod))))
+       (* 2 (burst-time mtr-mod)))))
 
 (defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self release-all-fingers))
+  
+  (when (or (eq (hand self) 'left) (eq (hand self) 'both))
+    (let ((new-pos (if (eq (hand self) 'both)
+                       (first (updated-pos self))
+                     (updated-pos self))))
+      
+      (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                               :destination :motor :params (list 'left new-pos)
+                               :output nil)))
+  
+  (when (or (eq (hand self) 'both) (eq (hand self) 'right))
+    (let ((new-pos (if (eq (hand self) 'both)
+                       (second (updated-pos self))
+                     (updated-pos self))))
+      
+      (schedule-event-relative (seconds->ms (exec-time self)) 'set-hand-position :time-in-ms t :module :motor 
+                               :destination :motor :params (list 'right new-pos)
+                               :output nil)))  
+  
+  ;; for backward compatibility keep the same notice in the trace instead of adding it to
+  ;; the set-hand-position actions even though this function doesn't need to do anything now.
+  
   (schedule-event-relative (seconds->ms (exec-time self))
-                           'releasing-all-fingers :time-in-ms t :destination :motor :module :motor :output 'medium
-                           :params nil
-                           :details "releasing-all-fingers"))
+                           'releasing-all-fingers :time-in-ms t :module :motor :output 'medium
+                           :params nil))
 
-(defun releasing-all-fingers (mtr-mod)
-   (dolist (hand '(left right))
-      (dolist (finger '(index middle ring pinkie thumb))
-        (when (finger-down (extension mtr-mod) hand finger)
-          (set-finger-up mtr-mod 'release hand finger (finger-loc-m mtr-mod hand finger))))))
+(defun releasing-all-fingers ())
    
-
-(defmethod release-all-fingers ((mtr-mod dual-execution-motor-module) &key request-spec)
+(defmethod release-all-fingers ((mtr-mod dual-execution-motor-module) request-spec)
   (if (eq (bt:with-lock-held ((state-lock mtr-mod)) (prep-s mtr-mod)) 'busy)
-      (schedule-event-after-module :motor 'release-all-fingers  :maintenance t :output 'medium :destination :motor :module :motor
+      (schedule-event-after-module :motor 'release-all-fingers :maintenance t :output 'medium 
+                                   :destination :motor :module :motor
                                    :params (list request-spec)
                                    :details "delayed-release-all-fingers")
-    (prepare-movement mtr-mod (make-instance 'release-all-fingers :request-spec request-spec))))
+    (let (left right)
+      (when (any-finger-down (extension mtr-mod) 'left :current nil)
+        (setf left t))
+      (when (any-finger-down (extension mtr-mod) 'right :current nil)
+        (setf right t))
+      (if (or left right)
+          (schedule-event-now 'prepare-movement :module :motor
+                              :destination :motor
+                              :params (list (make-instance 'release-all-fingers 
+                                              :hand (cond ((and left right) 'both)
+                                                          (left 'left)
+                                                          (t 'right))
+                                              :request-spec request-spec))
+                              :output 'low
+                              :details "release-all-fingers")
+        (print-warning "Release-all-fingers action called when no fingers need to be released.")))))
       
-(extend-manual-requests (release-all-fingers) handle-style-request)
+(extend-manual-requests (release-all-fingers) release-all-fingers)
 
 
 
 ;;; A punch with a release based on given time
+;;; doesn't use the key-release-time and assumes
+;;; that is accounted for in the delay.
 
 (defclass delayed-punch (punch)
   ((delay :accessor delay :initarg :delay :initform .050))
@@ -2219,9 +2608,9 @@
       :finger-based-style t
       :release-if-down :penalty))
 
-(defmethod delayed-punch ((module dual-execution-motor-module) &key hand finger delay request-spec)
-  (unless (or (check-jam module) (check-specs 'delayed-punch hand finger delay))
-    (prepare-movement module (make-instance 'delayed-punch :hand hand :finger finger :delay delay :request-spec request-spec))))
+;; the prepare for a punch works fine
+
+;; as does the initial execution time
 
 (defmethod compute-second-exec-time ((mtr-mod dual-execution-motor-module) (self delayed-punch))
  (bt:with-recursive-lock-held ((param-lock mtr-mod))
@@ -2239,13 +2628,16 @@
 
 (defmethod queue-output-events ((mtr-mod dual-execution-motor-module) (self delayed-punch))
   
+  (schedule-event-relative (seconds->ms (exec2-time self)) 'set-hand-position :time-in-ms t :module :motor :output nil
+                           :destination :motor :params (list (hand self) (updated-pos self)))
+  
   (schedule-event-relative (seconds->ms (exec-time self))
                            'set-finger-down :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self))))
 
   (schedule-event-relative (seconds->ms (exec2-time self))
                            'set-finger-up :time-in-ms t :destination :motor :module :motor :output nil
-                           :params (list (style-name self) (hand self) (finger self) (finger-loc-m mtr-mod (hand self) (finger self)))))
+                           :params (list (style-name self) (hand self) (finger self) (finger-loc (updated-pos self) (finger self)))))
 
 
 (defun parse-delay-time (module delay)
@@ -2261,6 +2653,7 @@
           (t (model-warning "Invalid delay value ~s to a delayed-punch. Using default instead" delay)
              (d-punch-default module)))))
 
+
 (defmethod handle-delayed-punch-request ((mtr-mod dual-execution-motor-module) chunk-spec)
   (let* ((hand (verify-single-explicit-value 
                 chunk-spec 'hand
@@ -2274,14 +2667,13 @@
                          :motor 'delayed-punch)))
          (delay (parse-delay-time mtr-mod given-delay)))
     (if (and hand finger delay)
-        (schedule-event-now 'delayed-punch
-                            :destination :motor
-                            :params (list :hand hand :finger finger :delay delay :request-spec chunk-spec)
-                            :module :motor
-                            :output 'low
-                            :details (format nil "~a ~a ~a ~a ~a ~a ~a" 'delayed-punch :hand hand :finger finger :delay delay))
+        (unless (check-jam mtr-mod)
+          (schedule-event-now 'prepare-movement 
+                              :destination :motor :module :motor 
+                              :params (list (make-instance 'delayed-punch :hand hand :finger finger :delay delay :request-spec chunk-spec))
+                              :output 'low
+                              :details (format nil "~s ~s ~s ~s ~s ~s ~f" 'delayed-punch 'hand hand 'finger finger 'delay delay)))
       (print-warning "Invalid delayed-punch request with chunk-spec ~S" chunk-spec))))
-
 
 (extend-manual-requests (delayed-punch hand finger delay) handle-delayed-punch-request)
 

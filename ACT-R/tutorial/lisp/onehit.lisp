@@ -246,15 +246,17 @@
 
 
 (defun play-against-model (count &optional (print-game nil))
-  (let* ((old-rule *opponent-rule*)
-         (old-feedback *opponent-feedback*)
-         (*opponent-rule* 'play-human)
-         (*opponent-feedback* 'show-human-results))
-    (unwind-protect
-        (onehit-hands count print-game)
-      (progn
-        (setf *opponent-rule* old-rule)
-        (setf *opponent-feedback* old-feedback)))))
+  (if (visible-virtuals-available?)
+      (let* ((old-rule *opponent-rule*)
+             (old-feedback *opponent-feedback*)
+             (*opponent-rule* 'play-human)
+             (*opponent-feedback* 'show-human-results))
+        (unwind-protect
+            (onehit-hands count print-game)
+          (progn
+            (setf *opponent-rule* old-rule)
+            (setf *opponent-feedback* old-feedback))))
+    (print-warning "Cannot play against the model without a visible window available.")))
 
 
 (defun show-opponent-cards (cards mc1)

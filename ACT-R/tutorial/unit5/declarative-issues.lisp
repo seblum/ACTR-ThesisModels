@@ -16,7 +16,7 @@
   (chunk-type simple-value result)
   (chunk-type simple-fact item attribute)
   (chunk-type task-state state)
-  (chunk-type number representation)
+  (chunk-type number visual-rep)
   (chunk-type math-fact arg1 arg2 result operator)
   (chunk-type context val1 val2 val3 goal)
   
@@ -30,10 +30,10 @@
   ;; Create the initial declarative memory chunks.
   
   (add-dm 
-   (zero isa number representation "0")
-   (one isa number representation "1")
-   (two isa number representation "2")
-   (three isa number representation "3")
+   (zero isa number visual-rep "0")
+   (one isa number visual-rep "1")
+   (two isa number visual-rep "2")
+   (three isa number visual-rep "3")
    (add isa chunk)
    (subtract isa chunk)
    (sky isa chunk)

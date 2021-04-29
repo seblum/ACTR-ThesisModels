@@ -23,13 +23,7 @@ button [control_panel_name].run_frame.run -text "Run" -font button_font -command
 
   set run_warnings ""
 
-  set run_monitor [new_variable_name "run_monitor"]
-
-  while {[send_cmd "check" $run_monitor] != "null"} {
-    set run_monitor [new_variable_name "run_monitor"]
-  }
-
-  add_cmd $run_monitor "record_run_warnings" "Environment command for capturing warnings during a call to run."
+  set run_monitor [add_new_cmd run_monitor "record_run_warnings" "Environment command for capturing warnings during a call to run."]
 
   send_cmd "monitor" [list "warning-trace" $run_monitor]
 

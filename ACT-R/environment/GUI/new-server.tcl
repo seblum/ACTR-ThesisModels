@@ -178,6 +178,22 @@ proc add_cmd {cmd_name proc_name {documentation "null"} {single "null"}} {
   send_cmd "add" [list $cmd_name $proc_name $documentation $single]
 }
 
+
+proc add_new_cmd {base_name proc_name {documentation "null"} {single "null"}} {
+
+  set n [new_variable_name $base_name]
+
+  while {[send_cmd "check" $n] != "null"} {
+    set n [new_variable_name $base_name]
+  }
+
+  add_cmd $n $proc_name $documentation $single
+
+  return $n
+}
+
+
+
 proc remove_cmd {cmd_name} {
 
   global cmd_table
@@ -349,6 +365,7 @@ proc start_connection {{address ""} {port ""}} {
   global local_connection
   global actr_address
   global actr_port
+  global options_array
 
   if {$address == ""} {
     if {[file readable "~/act-r-address.txt"]} {
@@ -367,6 +384,10 @@ proc start_connection {{address ""} {port ""}} {
     } else {
       set port $actr_port
     }
+  }
+
+  if {$options_array(use_localhost) == 1 && $address == "127.0.0.1"} {
+    set address "localhost"
   }
 
   set actr_address $address
