@@ -85,10 +85,10 @@ random.shuffle(run_list)
 # runs for non-UL-model:
 run_list_2 = [
     (
-        2,
+        3,
         7,
         5,
-        3,
+        1,
         2,
         3,
         2,
@@ -168,6 +168,7 @@ for tr in range(len(run_list)):
         for time in quit_timelist:
             actcv.schedule_force_quit(time)
 
+        breakpoint()
         actr.run_until_condition("quit-simulation", True)
 
         # if index == plimit:

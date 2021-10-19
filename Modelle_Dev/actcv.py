@@ -9,13 +9,28 @@ import actr
 import pandas as pd
 import numpy as np
 import time
+from functools import wraps
 
 """ToDo
 - instert variable column names
-- inser args stringcolumns
+- insert args stringcolumns
 - insert data load check
 - insert docstrings
 """
+
+
+def timer(func):
+    """Decorator to print how long a function runs."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        t_total = time.time() - start
+        print(f"{func.__name__} took {round(t_total,2)}s")
+        return result
+
+    return wrapper
 
 
 class ActCV:
@@ -152,25 +167,22 @@ class ActCV:
                 previousstate_tuple = currentstate_tuple
         return offsetdict, statedict, tonelist
 
+    @timer
     def load_States(self):
-        t0 = time.time()
         self.offsetdict, self.statedict, self.tonelist = self.set_states()
-        print(f"load states took: { round(time.time()-t0, 5) } seconds")
 
+    @timer
     def schedule_Visicon(self):
-        t0 = time.time()
         for key, value in self.offsetdict.items():
             timepoint = value
             actr.schedule_event(
                 timepoint, "commit-to-visicon", params=[key], maintenance=True
             )  # this impedes runtime
-        print(f"schedule visicon took: { round(time.time()-t0, 5) } seconds")
 
+    @timer
     def schedule_Tone(self, freq, duration):
-        t0 = time.time()
         for key in self.tonelist:
             actr.new_tone_sound(freq, duration, key)  # this impedes runtime
-        print(f"schedule tone took: { round(time.time()-t0, 5) } seconds")
 
     def quit_simulation(self, input):
         if input == 1:
